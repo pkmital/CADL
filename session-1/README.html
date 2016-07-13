@@ -1,0 +1,1435 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>body {
+  width: 45em;
+  border: 1px solid #ddd;
+  outline: 1300px solid #fff;
+  margin: 16px auto;
+}
+
+body .markdown-body
+{
+  padding: 30px;
+}
+
+@font-face {
+  font-family: fontawesome-mini;
+  src: url(data:font/woff;charset=utf-8;base64,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) format('woff');
+}
+
+@font-face {
+  font-family: octicons-anchor;
+  src: url(data:font/woff;charset=utf-8;base64,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) format('woff');
+}
+
+.markdown-body {
+  font-family: sans-serif;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  color: #333333;
+  overflow: hidden;
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+.markdown-body a {
+  background: transparent;
+}
+
+.markdown-body a:active,
+.markdown-body a:hover {
+  outline: 0;
+}
+
+.markdown-body b,
+.markdown-body strong {
+  font-weight: bold;
+}
+
+.markdown-body mark {
+  background: #ff0;
+  color: #000;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.markdown-body sub,
+.markdown-body sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+.markdown-body sup {
+  top: -0.5em;
+}
+.markdown-body sub {
+  bottom: -0.25em;
+}
+
+.markdown-body h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+.markdown-body img {
+  border: 0;
+}
+
+.markdown-body hr {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0;
+}
+
+.markdown-body pre {
+  overflow: auto;
+}
+
+.markdown-body code,
+.markdown-body kbd,
+.markdown-body pre,
+.markdown-body samp {
+  font-family: monospace, monospace;
+  font-size: 1em;
+}
+
+.markdown-body input {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+
+.markdown-body html input[disabled] {
+  cursor: default;
+}
+
+.markdown-body input {
+  line-height: normal;
+}
+
+.markdown-body input[type="checkbox"] {
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.markdown-body table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.markdown-body td,
+.markdown-body th {
+  padding: 0;
+}
+
+.markdown-body .codehilitetable {
+  border: 0;
+  border-spacing: 0;
+}
+
+.markdown-body .codehilitetable tr {
+  border: 0;
+}
+
+.markdown-body .codehilitetable pre,
+.markdown-body .codehilitetable div.codehilite {
+  margin: 0;
+}
+
+.markdown-body .linenos,
+.markdown-body .code,
+.markdown-body .codehilitetable td {
+  border: 0;
+  padding: 0;
+}
+
+.markdown-body td:not(.linenos) .linenodiv {
+  padding: 0 !important;
+}
+
+.markdown-body .code {
+  width: 100%;
+}
+
+.markdown-body .linenos div pre,
+.markdown-body .linenodiv pre,
+.markdown-body .linenodiv {
+  border: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -webkit-border-top-left-radius: 3px;
+  -webkit-border-bottom-left-radius: 3px;
+  -moz-border-radius-topleft: 3px;
+  -moz-border-radius-bottomleft: 3px;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+.markdown-body .code div pre,
+.markdown-body .code div {
+  border: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -webkit-border-top-right-radius: 3px;
+  -webkit-border-bottom-right-radius: 3px;
+  -moz-border-radius-topright: 3px;
+  -moz-border-radius-bottomright: 3px;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+
+.markdown-body * {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.markdown-body input {
+  font: 13px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  line-height: 1.4;
+}
+
+.markdown-body a {
+  color: #4183c4;
+  text-decoration: none;
+}
+
+.markdown-body a:hover,
+.markdown-body a:focus,
+.markdown-body a:active {
+  text-decoration: underline;
+}
+
+.markdown-body hr {
+  height: 0;
+  margin: 15px 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.markdown-body hr:before,
+.markdown-body hr:after {
+  display: table;
+  content: " ";
+}
+
+.markdown-body hr:after {
+  clear: both;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  line-height: 1.1;
+}
+
+.markdown-body h1 {
+  font-size: 30px;
+}
+
+.markdown-body h2 {
+  font-size: 21px;
+}
+
+.markdown-body h3 {
+  font-size: 16px;
+}
+
+.markdown-body h4 {
+  font-size: 14px;
+}
+
+.markdown-body h5 {
+  font-size: 12px;
+}
+
+.markdown-body h6 {
+  font-size: 11px;
+}
+
+.markdown-body blockquote {
+  margin: 0;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.markdown-body ol ol,
+.markdown-body ul ol {
+  list-style-type: lower-roman;
+}
+
+.markdown-body ul ul ol,
+.markdown-body ul ol ol,
+.markdown-body ol ul ol,
+.markdown-body ol ol ol {
+  list-style-type: lower-alpha;
+}
+
+.markdown-body dd {
+  margin-left: 0;
+}
+
+.markdown-body code,
+.markdown-body pre,
+.markdown-body samp {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+}
+
+.markdown-body pre {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.markdown-body kbd {
+  background-color: #e7e7e7;
+  background-image: -moz-linear-gradient(#fefefe, #e7e7e7);
+  background-image: -webkit-linear-gradient(#fefefe, #e7e7e7);
+  background-image: linear-gradient(#fefefe, #e7e7e7);
+  background-repeat: repeat-x;
+  border-radius: 2px;
+  border: 1px solid #cfcfcf;
+  color: #000;
+  padding: 3px 5px;
+  line-height: 10px;
+  font: 11px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  display: inline-block;
+}
+
+.markdown-body>*:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body>*:last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown-body .headeranchor-link {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  padding-right: 6px;
+  padding-left: 30px;
+  margin-left: -30px;
+}
+
+.markdown-body .headeranchor-link:focus {
+  outline: none;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  position: relative;
+  margin-top: 1em;
+  margin-bottom: 16px;
+  font-weight: bold;
+  line-height: 1.4;
+}
+
+.markdown-body h1 .headeranchor,
+.markdown-body h2 .headeranchor,
+.markdown-body h3 .headeranchor,
+.markdown-body h4 .headeranchor,
+.markdown-body h5 .headeranchor,
+.markdown-body h6 .headeranchor {
+  display: none;
+  color: #000;
+  vertical-align: middle;
+}
+
+.markdown-body h1:hover .headeranchor-link,
+.markdown-body h2:hover .headeranchor-link,
+.markdown-body h3:hover .headeranchor-link,
+.markdown-body h4:hover .headeranchor-link,
+.markdown-body h5:hover .headeranchor-link,
+.markdown-body h6:hover .headeranchor-link {
+  height: 1em;
+  padding-left: 8px;
+  margin-left: -30px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.markdown-body h1:hover .headeranchor-link .headeranchor,
+.markdown-body h2:hover .headeranchor-link .headeranchor,
+.markdown-body h3:hover .headeranchor-link .headeranchor,
+.markdown-body h4:hover .headeranchor-link .headeranchor,
+.markdown-body h5:hover .headeranchor-link .headeranchor,
+.markdown-body h6:hover .headeranchor-link .headeranchor {
+  display: inline-block;
+}
+
+.markdown-body h1 {
+  padding-bottom: 0.3em;
+  font-size: 2.25em;
+  line-height: 1.2;
+  border-bottom: 1px solid #eee;
+}
+
+.markdown-body h2 {
+  padding-bottom: 0.3em;
+  font-size: 1.75em;
+  line-height: 1.225;
+  border-bottom: 1px solid #eee;
+}
+
+.markdown-body h3 {
+  font-size: 1.5em;
+  line-height: 1.43;
+}
+
+.markdown-body h4 {
+  font-size: 1.25em;
+}
+
+.markdown-body h5 {
+  font-size: 1em;
+}
+
+.markdown-body h6 {
+  font-size: 1em;
+  color: #777;
+}
+
+.markdown-body p,
+.markdown-body blockquote,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body dl,
+.markdown-body table,
+.markdown-body pre,
+.markdown-body .admonition {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown-body hr {
+  height: 4px;
+  padding: 0;
+  margin: 16px 0;
+  background-color: #e7e7e7;
+  border: 0 none;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+}
+
+.markdown-body ul ul,
+.markdown-body ul ol,
+.markdown-body ol ol,
+.markdown-body ol ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.markdown-body li>p {
+  margin-top: 16px;
+}
+
+.markdown-body dl {
+  padding: 0;
+}
+
+.markdown-body dl dt {
+  padding: 0;
+  margin-top: 16px;
+  font-size: 1em;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.markdown-body dl dd {
+  padding: 0 16px;
+  margin-bottom: 16px;
+}
+
+.markdown-body blockquote {
+  padding: 0 15px;
+  color: #777;
+  border-left: 4px solid #ddd;
+}
+
+.markdown-body blockquote>:first-child {
+  margin-top: 0;
+}
+
+.markdown-body blockquote>:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  word-break: normal;
+  word-break: keep-all;
+}
+
+.markdown-body table th {
+  font-weight: bold;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  padding: 6px 13px;
+  border: 1px solid #ddd;
+}
+
+.markdown-body table tr {
+  background-color: #fff;
+  border-top: 1px solid #ccc;
+}
+
+.markdown-body table tr:nth-child(2n) {
+  background-color: #f8f8f8;
+}
+
+.markdown-body img {
+  max-width: 100%;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.markdown-body code,
+.markdown-body samp {
+  padding: 0;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(0,0,0,0.04);
+  border-radius: 3px;
+}
+
+.markdown-body code:before,
+.markdown-body code:after {
+  letter-spacing: -0.2em;
+  content: "\00a0";
+}
+
+.markdown-body pre>code {
+  padding: 0;
+  margin: 0;
+  font-size: 100%;
+  word-break: normal;
+  white-space: pre;
+  background: transparent;
+  border: 0;
+}
+
+.markdown-body .codehilite {
+  margin-bottom: 16px;
+}
+
+.markdown-body .codehilite pre,
+.markdown-body pre {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #f7f7f7;
+  border-radius: 3px;
+}
+
+.markdown-body .codehilite pre {
+  margin-bottom: 0;
+  word-break: normal;
+}
+
+.markdown-body pre {
+  word-wrap: normal;
+}
+
+.markdown-body pre code {
+  display: inline;
+  max-width: initial;
+  padding: 0;
+  margin: 0;
+  overflow: initial;
+  line-height: inherit;
+  word-wrap: normal;
+  background-color: transparent;
+  border: 0;
+}
+
+.markdown-body pre code:before,
+.markdown-body pre code:after {
+  content: normal;
+}
+
+/* Admonition */
+.markdown-body .admonition {
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  position: relative;
+  border-radius: 3px;
+  border: 1px solid #e0e0e0;
+  border-left: 6px solid #333;
+  padding: 10px 10px 10px 30px;
+}
+
+.markdown-body .admonition table {
+  color: #333;
+}
+
+.markdown-body .admonition p {
+  padding: 0;
+}
+
+.markdown-body .admonition-title {
+  font-weight: bold;
+  margin: 0;
+}
+
+.markdown-body .admonition>.admonition-title {
+  color: #333;
+}
+
+.markdown-body .attention>.admonition-title {
+  color: #a6d796;
+}
+
+.markdown-body .caution>.admonition-title {
+  color: #d7a796;
+}
+
+.markdown-body .hint>.admonition-title {
+  color: #96c6d7;
+}
+
+.markdown-body .danger>.admonition-title {
+  color: #c25f77;
+}
+
+.markdown-body .question>.admonition-title {
+  color: #96a6d7;
+}
+
+.markdown-body .note>.admonition-title {
+  color: #d7c896;
+}
+
+.markdown-body .admonition:before,
+.markdown-body .attention:before,
+.markdown-body .caution:before,
+.markdown-body .hint:before,
+.markdown-body .danger:before,
+.markdown-body .question:before,
+.markdown-body .note:before {
+  font: normal normal 16px fontawesome-mini;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  line-height: 1.5;
+  color: #333;
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding-top: 10px;
+  padding-left: 10px;
+}
+
+.markdown-body .admonition:before {
+  content: "\f056\00a0";
+  color: 333;
+}
+
+.markdown-body .attention:before {
+  content: "\f058\00a0";
+  color: #a6d796;
+}
+
+.markdown-body .caution:before {
+  content: "\f06a\00a0";
+  color: #d7a796;
+}
+
+.markdown-body .hint:before {
+  content: "\f05a\00a0";
+  color: #96c6d7;
+}
+
+.markdown-body .danger:before {
+  content: "\f057\00a0";
+  color: #c25f77;
+}
+
+.markdown-body .question:before {
+  content: "\f059\00a0";
+  color: #96a6d7;
+}
+
+.markdown-body .note:before {
+  content: "\f040\00a0";
+  color: #d7c896;
+}
+
+.markdown-body .admonition::after {
+  content: normal;
+}
+
+.markdown-body .attention {
+  border-left: 6px solid #a6d796;
+}
+
+.markdown-body .caution {
+  border-left: 6px solid #d7a796;
+}
+
+.markdown-body .hint {
+  border-left: 6px solid #96c6d7;
+}
+
+.markdown-body .danger {
+  border-left: 6px solid #c25f77;
+}
+
+.markdown-body .question {
+  border-left: 6px solid #96a6d7;
+}
+
+.markdown-body .note {
+  border-left: 6px solid #d7c896;
+}
+
+.markdown-body .admonition>*:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body .admonition>*:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* progress bar*/
+.markdown-body .progress {
+  display: block;
+  width: 300px;
+  margin: 10px 0;
+  height: 24px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  background-color: #ededed;
+  position: relative;
+  box-shadow: inset -1px 1px 3px rgba(0, 0, 0, .1);
+}
+
+.markdown-body .progress-label {
+  position: absolute;
+  text-align: center;
+  font-weight: bold;
+  width: 100%; margin: 0;
+  line-height: 24px;
+  color: #333;
+  text-shadow: 1px 1px 0 #fefefe, -1px -1px 0 #fefefe, -1px 1px 0 #fefefe, 1px -1px 0 #fefefe, 0 1px 0 #fefefe, 0 -1px 0 #fefefe, 1px 0 0 #fefefe, -1px 0 0 #fefefe, 1px 1px 2px #000;
+  -webkit-font-smoothing: antialiased !important;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.markdown-body .progress-bar {
+  height: 24px;
+  float: left;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  background-color: #96c6d7;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 -1px 0 rgba(0, 0, 0, .1);
+  background-size: 30px 30px;
+  background-image: -webkit-linear-gradient(
+    135deg, rgba(255, 255, 255, .4) 27%,
+    transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%,
+    transparent 77%, transparent
+  );
+  background-image: -moz-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, .4) 27%, transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%, transparent 77%,
+    transparent
+  );
+  background-image: -ms-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, .4) 27%, transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%, transparent 77%,
+    transparent
+  );
+  background-image: -o-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, .4) 27%, transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%, transparent 77%,
+    transparent
+  );
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, .4) 27%, transparent 27%,
+    transparent 52%, rgba(255, 255, 255, .4) 52%,
+    rgba(255, 255, 255, .4) 77%, transparent 77%,
+    transparent
+  );
+}
+
+.markdown-body .progress-100plus .progress-bar {
+  background-color: #a6d796;
+}
+
+.markdown-body .progress-80plus .progress-bar {
+  background-color: #c6d796;
+}
+
+.markdown-body .progress-60plus .progress-bar {
+  background-color: #d7c896;
+}
+
+.markdown-body .progress-40plus .progress-bar {
+  background-color: #d7a796;
+}
+
+.markdown-body .progress-20plus .progress-bar {
+  background-color: #d796a6;
+}
+
+.markdown-body .progress-0plus .progress-bar {
+  background-color: #c25f77;
+}
+
+.markdown-body .candystripe-animate .progress-bar{
+  -webkit-animation: animate-stripes 3s linear infinite;
+  -moz-animation: animate-stripes 3s linear infinite;
+  animation: animate-stripes 3s linear infinite;
+}
+
+@-webkit-keyframes animate-stripes {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 60px 0;
+  }
+}
+
+@-moz-keyframes animate-stripes {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 60px 0;
+  }
+}
+
+@keyframes animate-stripes {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 60px 0;
+  }
+}
+
+.markdown-body .gloss .progress-bar {
+  box-shadow:
+    inset 0 4px 12px rgba(255, 255, 255, .7),
+    inset 0 -12px 0 rgba(0, 0, 0, .05);
+}
+
+/* Multimarkdown Critic Blocks */
+.markdown-body .critic_mark {
+  background: #ff0;
+}
+
+.markdown-body .critic_delete {
+  color: #c82829;
+  text-decoration: line-through;
+}
+
+.markdown-body .critic_insert {
+  color: #718c00 ;
+  text-decoration: underline;
+}
+
+.markdown-body .critic_comment {
+  color: #8e908c;
+  font-style: italic;
+}
+
+.markdown-body .headeranchor {
+  font: normal normal 16px octicons-anchor;
+  line-height: 1;
+  display: inline-block;
+  text-decoration: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.headeranchor:before {
+  content: '\f05c';
+}
+
+.markdown-body .task-list-item {
+  list-style-type: none;
+}
+
+.markdown-body .task-list-item+.task-list-item {
+  margin-top: 3px;
+}
+
+.markdown-body .task-list-item input {
+  margin: 0 4px 0.25em -20px;
+  vertical-align: middle;
+}
+
+/* Media */
+@media only screen and (min-width: 480px) {
+  .markdown-body {
+    font-size:14px;
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  .markdown-body {
+    font-size:16px;
+  }
+}
+
+@media print {
+  .markdown-body * {
+    background: transparent !important;
+    color: black !important;
+    filter:none !important;
+    -ms-filter: none !important;
+  }
+
+  .markdown-body {
+    font-size:12pt;
+    max-width:100%;
+    outline:none;
+    border: 0;
+  }
+
+  .markdown-body a,
+  .markdown-body a:visited {
+    text-decoration: underline;
+  }
+
+  .markdown-body .headeranchor-link {
+    display: none;
+  }
+
+  .markdown-body a[href]:after {
+    content: " (" attr(href) ")";
+  }
+
+  .markdown-body abbr[title]:after {
+    content: " (" attr(title) ")";
+  }
+
+  .markdown-body .ir a:after,
+  .markdown-body a[href^="javascript:"]:after,
+  .markdown-body a[href^="#"]:after {
+    content: "";
+  }
+
+  .markdown-body pre {
+    white-space: pre;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .markdown-body pre,
+  .markdown-body blockquote {
+    border: 1px solid #999;
+    padding-right: 1em;
+    page-break-inside: avoid;
+  }
+
+  .markdown-body .progress,
+  .markdown-body .progress-bar {
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+
+  .markdown-body .progress {
+    border: 1px solid #ddd;
+  }
+
+  .markdown-body .progress-bar {
+    height: 22px;
+    border-right: 1px solid #ddd;
+  }
+
+  .markdown-body tr,
+  .markdown-body img {
+    page-break-inside: avoid;
+  }
+
+  .markdown-body img {
+    max-width: 100% !important;
+  }
+
+  .markdown-body p,
+  .markdown-body h2,
+  .markdown-body h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .markdown-body h2,
+  .markdown-body h3 {
+    page-break-after: avoid;
+  }
+}
+</style><title>session-0</title></head><body><article class="markdown-body"><h1 id="session-0-preliminaries-with-pythonnotebook"><a name="user-content-session-0-preliminaries-with-pythonnotebook" href="#session-0-preliminaries-with-pythonnotebook" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Session 0: Preliminaries with Python/Notebook</h1>
+<p><p class="lead"><br />
+Parag K. Mital<br />
+<a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a><br />
+Kadenze Academy<br />
+#CADL</p></p>
+<p><a name="learning-goals"></a></p>
+<h1 id="learning-goals"><a name="user-content-learning-goals" href="#learning-goals" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Learning Goals</h1>
+<ul>
+<li>Get jupyter notebook setup/running</li>
+<li>Learn to create a dataset of images using <code>os.listdir</code> and <code>plt.imread</code></li>
+<li>Understand how images are represented when using float or uint8</li>
+<li>Learn how to crop and resize images to a standard size.</li>
+</ul>
+<h1 id="table-of-contents"><a name="user-content-table-of-contents" href="#table-of-contents" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Table of Contents</h1>
+<!-- MarkdownTOC autolink=true autoanchor=true bracket=round -->
+
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#using-notebook">Using Notebook</a><ul>
+<li><a href="#what-is-notebook">What is Notebook?</a></li>
+<li><a href="#docker-toolbox">Docker Toolbox</a></li>
+<li><a href="#jupyter-notebook">Jupyter Notebook</a></li>
+<li><a href="#navigating-to-notebook">Navigating to Notebook</a></li>
+<li><a href="#installing-python-packages">Installing Python Packages</a></li>
+</ul>
+</li>
+<li><a href="#loading-data">Loading Data</a><ul>
+<li><a href="#structuring-data-as-folders">Structuring data as folders</a></li>
+<li><a href="#using-oslistdir-to-get-data">Using <code>os.listdir</code> to get data</a></li>
+<li><a href="#loading-numericaltext-data-from-a-file">Loading numerical/text data from a file</a></li>
+<li><a href="#loading-an-image">Loading an image</a></li>
+</ul>
+</li>
+<li><a href="#image-manipulation">Image Manipulation</a><ul>
+<li><a href="#rgb-image-representation">RGB Image Representation</a></li>
+<li><a href="#manipulating-image-data">Manipulating image data</a></li>
+<li><a href="#understanding-data-types-and-ranges-uint8-float32">Understanding data types and ranges (uint8, float32)</a></li>
+<li><a href="#visualizing-your-data-as-images">Visualizing your data as images</a></li>
+<li><a href="#cropping-images">Cropping images</a></li>
+<li><a href="#resizing-images">Resizing images</a></li>
+<li><a href="#croppingresizing-images">Cropping/Resizing Images</a></li>
+</ul>
+</li>
+</ul>
+<!-- /MarkdownTOC -->
+
+<p><a name="introduction"></a></p>
+<h1 id="introduction"><a name="user-content-introduction" href="#introduction" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Introduction</h1>
+<p>This first session will cover the basics of working with image data in Python and how to create a dataset.  We&rsquo;ll learn a bit about datasets, why they are so important for deep learning, how we can create a dataset of images, and begin to explore visualizing some simple but powerful statistics of them which are often used before applying more advanced deep learning techniques.  In order to do so, we&rsquo;ll learn about the python libraries NumPy, SciPy, and Matplotlib.  While these libraries aren&rsquo;t necessary for performing the Deep Learning which we&rsquo;ll get to in later lectures, they are incredibly useful for manipulating data on your computer, preparing data for learning, and exploring the results of your network.</p>
+<p>This notebook will cover some basic fundamentals of manipulating data in Python.  Feel free to skip over this if you are comfortable with this material.  If you are not comfortable with loading images from a directory, resizing, cropping, or not familiar with how to change an image datatype from unsigned int to float32, please make sure you follow this notebook.</p>
+<p><a name="using-notebook"></a></p>
+<h1 id="using-notebook"><a name="user-content-using-notebook" href="#using-notebook" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Using Notebook</h1>
+<p><a name="what-is-notebook"></a></p>
+<h2 id="what-is-notebook"><a name="user-content-what-is-notebook" href="#what-is-notebook" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>What is Notebook?</h2>
+<p>Jupyter Notebook, previously called &ldquo;iPython Notebook&rdquo; prior to version 4.0, is a way of interacting with Python code using a web browser.  It is a very useful instructional tool that we will be using for all of our homework assignments.  Notebooks have the file extensions &ldquo;ipynb&rdquo; which are abbreviations of &ldquo;iPython Notebook&rdquo;.  Some websites such as <a href="nbviewer.ipython.org">nbviewer.ipython.org</a> or <a href="www.github.com"><a href="http://www.github.com"><a href="http://www.github.com">www.github.com</a></a></a> can view .ipynb files directly as HTML.  However, these are not &ldquo;interactive&rdquo; versions of the notebook, meaning, they are not running the python kernel which evaluates/interacts with the code.  So the notebook is just a static version of the code contained inside of it.</p>
+<p>The real power of notebook is interacting with the notebook.  In order to interact with notebook, you will need to launch Terminal (for Mac and Linux users).  For Windows users, you have a little bit more work to do (as July 2016).  If you are not a Windows user, please skip over the next section.</p>
+<p><a name="docker-toolbox"></a></p>
+<h2 id="docker-toolbox"><a name="user-content-docker-toolbox" href="#docker-toolbox" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Docker Toolbox</h2>
+<p>Docker is a way of launching &ldquo;virtual&rdquo; machines on your computer which will aid the creation a machine capable of running tensorflow.  In order to get up to speed with Tensorflow, please install the Docker Toolbox:</p>
+<p><a href="https://www.docker.com/products/docker-toolbox">https://www.docker.com/products/docker-toolbox</a></p>
+<p>You&rsquo;ll then need to run the &ldquo;Docker Quickstart Terminal&rdquo; which will launch a Terminal environment inside a Virtual Machine running on your computer.  Once the terminal is launched, run the following command:</p>
+<pre><code>$ cd
+$ docker-machine ip
+</code></pre>
+
+<p>This is the virtual machine&rsquo;s IP address, or location on your private network.  NOTE THIS IP ADDRESS!  As we&rsquo;ll need it in a second.  Now run the following command, which will download a 530 MB image of a virtual machine containing everything we need to run tensorflow and jupyter notebook!</p>
+<pre><code>$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tf.0.9.0-py.3.4
+</code></pre>
+
+<p>On OSX, you may want to write the following command instead:</p>
+<pre><code>$ docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/Desktop/tensorflow:/notebooks --name tf pkmital/tf.0.9.0-py.3.4
+</code></pre>
+
+<p>This command will download everything you need to run Tensorflow on a virtual machine.</p>
+<p>When you want to start this machine, you will launch the docker quickstart terminal and then write:</p>
+<pre><code>$ cd
+$ docker start -i tf
+</code></pre>
+
+<p>As a result of this, you should have a new folder &ldquo;tensorflow&rdquo; inside your Home directory.  Make sure you do everything inside this directory only or else any files you make on your virtual machine WILL BE ERASED once it is shutdown!</p>
+<p><a name="jupyter-notebook"></a></p>
+<h2 id="jupyter-notebook"><a name="user-content-jupyter-notebook" href="#jupyter-notebook" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Jupyter Notebook</h2>
+<h3 id="osxlinux"><a name="user-content-osxlinux" href="#osxlinux" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>OSX/Linux</h3>
+<p>The easiest way to ensure you have Python 3.4 or higher and Jupter Notebook is to install Anaconda for Python 3.5 located here:</p>
+<p><a href="https://www.continuum.io/downloads">https://www.continuum.io/downloads</a></p>
+<p>This package will install both python and the package &ldquo;ipython[notebook]&rdquo;, along with a ton of other very useful packages such as numpy, matplotlib, scikit-learn, scikit-image, and many others.</p>
+<p>With everything installed, restart your Terminal application, and then navigate to the directory containing the &ldquo;ipynb&rdquo;, or &ldquo;iPython Notebook&rdquo; file, by &ldquo;cd&rsquo;ing&rdquo; (pronounced, see-dee-ing), into that directory.  This involves typing the command: &ldquo;cd some_directory&rdquo;.  Once inside the directory of the notebook file, you will then type: &ldquo;jupyter notebook&rdquo;.  If this command does not work, it means you do not have notebook installed!  Try installed anaconda as above, restart your Temrinal application, or manually install notebook like so:</p>
+<pre><code>$ pip3 install ipython[notebook]
+$ jupyter notebook
+</code></pre>
+
+<h3 id="windowsdocker-containers"><a name="user-content-windowsdocker-containers" href="#windowsdocker-containers" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Windows/Docker Containers</h3>
+<p>Once inside your Docker container as outlined above, you can launch notebook like so:</p>
+<pre><code>$ cd /notebooks
+$ /run_jupyter.sh &amp;
+</code></pre>
+
+<p><a name="navigating-to-notebook"></a></p>
+<h2 id="navigating-to-notebook"><a name="user-content-navigating-to-notebook" href="#navigating-to-notebook" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Navigating to Notebook</h2>
+<p>After running &ldquo;jupyter notebook &amp;&rdquo;, you should see a message similar to:</p>
+<pre><code>root@182bd64f27d2:~# jupyter notebook &amp;
+[I 21:15:33.647 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
+[W 21:15:33.712 NotebookApp] WARNING: The notebook server is listening on all IP addresses and not using encryption. This is not recommended.
+[W 21:15:33.713 NotebookApp] WARNING: The notebook server is listening on all IP addresses and not using authentication. This is highly insecure and not recommended.
+[I 21:15:33.720 NotebookApp] Serving notebooks from local directory: /root
+[I 21:15:33.721 NotebookApp] 0 active kernels
+[I 21:15:33.721 NotebookApp] The IPython Notebook is running at: http://[all ip addresses on your system]:8888/
+[I 21:15:33.721 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+</code></pre>
+
+<p>Don&rsquo;t worry if the IP address or command prompt look different.  Note where it says: <code>The IPython Notebook is running at</code>.  If you are running Docker (Windows users), this is where we need that IP address.  For OSX/Linux users, we&rsquo;ll use &ldquo;localhost&rdquo;.  Now open up Chrome/Safari/Firefox whatever browser you like, and then navigate to:</p>
+<p><a href="http://localhost:8888">http://localhost:8888</a></p>
+<p>or for Windows users:</p>
+<p>http://ADDRESS:8888</p>
+<p>where ADDRESS are the numbers you noted down before!  For instance, on my machine, I would visit the website:</p>
+<p><a href="http://192.168.99.100:8888">http://192.168.99.100:8888</a></p>
+<p>This will launch the Jupter Notebook where you will be able to interact with the homework assignments!</p>
+<p><a name="installing-python-packages"></a></p>
+<h2 id="installing-python-packages"><a name="user-content-installing-python-packages" href="#installing-python-packages" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Installing Python Packages</h2>
+<p>Packages are libraries or useful extensions to the standard python libraries.  In this course, we&rsquo;ll be using a few including Tensorflow, NumPy, MatPlotLib, SciPy, SciKits-Image, and SciKits-Learn.  You can install these using &ldquo;pip&rdquo;, which is the python package manager.  In Python 3.4 and higher, this comes with any standard python installation.  In order to use <code>pip</code>, you&rsquo;ll write:</p>
+<pre><code>$ pip3 install some_package
+</code></pre>
+
+<p>Such as:</p>
+<pre><code>$ pip3 install &quot;scikit-image&gt;=0.11.3&quot; &quot;numpy&gt;=1.11.0&quot; &quot;matplotlib&gt;=1.5.1&quot; &quot;scikit-learn&gt;=0.17&quot;
+</code></pre>
+
+<p>This should get you all of the libraries we need for the course, EXCEPT for tensorflow.  Tensorflow is a special case, but can be pip installed in much the same way by pointing pip to the github repo corresponding to your OS like so.</p>
+<h3 id="ubuntulinux-64-bit-for-python-35"><a name="user-content-ubuntulinux-64-bit-for-python-35" href="#ubuntulinux-64-bit-for-python-35" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Ubuntu/Linux 64-bit for Python 3.5</h3>
+<pre><code>$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.9.0-cp35-cp35m-linux_x86_64.whl
+</code></pre>
+
+<h3 id="osx-for-cpu-for-python-34-or-python-35"><a name="user-content-osx-for-cpu-for-python-34-or-python-35" href="#osx-for-cpu-for-python-34-or-python-35" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>OSX for CPU for Python 3.4 or Python 3.5</h3>
+<pre><code>$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/mac/tensorflow-0.9.0-py3-none-any.whl
+</code></pre>
+
+<h3 id="other-linuxosx-varities"><a name="user-content-other-linuxosx-varities" href="#other-linuxosx-varities" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Other Linux/OSX varities</h3>
+<p>You can pip install Tensorflow for most OSX/Linux setups using one the packages listed on this link:<br />
+<a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#pip-installation">https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#pip-installation</a></p>
+<p>If you are having trouble, you may want to consider running a Docker instance instead as outlined in the Windows instructions above.</p>
+<p><a name="loading-data"></a></p>
+<h1 id="loading-data"><a name="user-content-loading-data" href="#loading-data" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Loading Data</h1>
+<p><a name="structuring-data-as-folders"></a></p>
+<h2 id="structuring-data-as-folders"><a name="user-content-structuring-data-as-folders" href="#structuring-data-as-folders" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Structuring data as folders</h2>
+<p>Existing datasets can be downloaded in a variety of ways.  They will almost always be composed of a set of directories.  Each sub directory should describe one class, label, or thing that you are interested in.  Python lets us very easily crawl through a dataset formatted this way, pulling out each directory and grabbing each file.  Let&rsquo;s have a look at how to do this.</p>
+<p><a name="using-oslistdir-to-get-data"></a></p>
+<h2 id="using-oslistdir-to-get-data"><a name="user-content-using-oslistdir-to-get-data" href="#using-oslistdir-to-get-data" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Using <code>os.listdir</code> to get data</h2>
+<p>Using the <code>os</code> package, we can list an entire directory.  The docstring says that listdir takes one parameter, path.  This is the location of the directory we need to list.  If we pass it a dot, that is convention for specifying the current working directory.  What if we want to include only specific files or folders?  We can use python&rsquo;s powerful list comprehension:</p>
+<p>Using this notation, we can replicate the previous behavior like so:</p>
+<pre><code class="python">import os
+[file_i for file_i in os.listdir('img_align_celeba')]
+</code></pre>
+
+<p>But we can also specify to include only certain files like so:</p>
+<pre><code class="python">[file_i for file_i in os.listdir('img_align_celeba') if '.jpg' in file_i]
+</code></pre>
+
+<p>To see what&rsquo;s going on here, let&rsquo;s try and be more specific with that if statement, and try only grabbing every 10000th file:</p>
+<pre><code class="python">[file_i for file_i in os.listdir('img_align_celeba') if '00000.jpg' in file_i]
+</code></pre>
+
+<p>We can set this list to a variable, so we can perform further actions on it:</p>
+<pre><code class="python">files = [file_i for file_i in os.listdir('img_align_celeba')
+         if '00000.jpg' in file_i]
+</code></pre>
+
+<p>And now we can index that list using the square brackets:</p>
+<pre><code class="python">print(files[0])
+print(files[1])
+</code></pre>
+
+<p>We can even go in the reverse direction, which wraps around to the end of the list:</p>
+<pre><code class="python">print(files[-1])
+print(files[-2])
+</code></pre>
+
+<p><a name="loading-numericaltext-data-from-a-file"></a></p>
+<h2 id="loading-numericaltext-data-from-a-file"><a name="user-content-loading-numericaltext-data-from-a-file" href="#loading-numericaltext-data-from-a-file" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Loading numerical/text data from a file</h2>
+<p>Sometimes, we might just see one directory of every file in the dataset, and a separate file which will list details of those files.</p>
+<ul>
+<li>csv, json, txt, dict</li>
+</ul>
+<p>In this case, we might want to filter on the extension of the filename:</p>
+<pre><code class="python">[file_i for file_i in os.listdir('img_align_celeba') if '.jpg' in file_i]
+</code></pre>
+
+<p>We could also combine file types if we happened to have multiple types:</p>
+<pre><code class="python">files = [file_i for file_i in os.listdir('img_align_celeba')
+         if '.jpg' in file_i or '.png' in file_i or '.jpeg' in file_i]
+</code></pre>
+
+<p><a name="loading-an-image"></a></p>
+<h2 id="loading-an-image"><a name="user-content-loading-an-image" href="#loading-an-image" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Loading an image</h2>
+<p><code>matplotlib</code> is an incredibly powerful python library which will let us play with visualization and loading of image data.  We can import it like so:</p>
+<p><TODO: Python backend setup.></p>
+<pre><code class="python">import matplotlib.pyplot as plt
+%matplotlib inline
+</code></pre>
+
+<p>This lets us refer to the library by using <code>plt</code>:</p>
+<pre><code class="python"># help(plt)
+# plt.&lt;tab&gt;
+</code></pre>
+
+<p><code>plt</code> contains a very useful function for loading images:</p>
+<pre><code class="python">plt.imread?
+</code></pre>
+
+<p>Here we see that it actually returns a variable which requires us to use another library, <code>NumPy</code>.  NumPy makes working with numerical data a lot easier.  Let&rsquo;s import it as well:</p>
+<pre><code class="python">import numpy as np
+# help(np)
+# np.&lt;tab&gt;
+</code></pre>
+
+<p>Let&rsquo;s try loading the first image in our dataset:</p>
+<p>We have a list of filenames, and we know where they are.  But we need to combine the path to the file and the filename itself.  If we try and do this:</p>
+<pre><code class="python">img = plt.imread(files[0])
+</code></pre>
+
+<p><code>plt.imread</code> will not know where that file is.  We can tell it where to find the file by using os.path.join:</p>
+<pre><code class="python">os.path.join('img_align_celeba/', files[0])
+plt.imread(os.path.join('img_align_celeba/', files[0]))
+</code></pre>
+
+<p>Now we get a bunch of numbers!  I&rsquo;d rather not have to keep prepending the path to my files, so I can create the list of files like so:</p>
+<pre><code class="python">files = [os.path.join('img_align_celeba', file_i)
+ for file_i in os.listdir('img_align_celeba')
+ if '.jpg' in file_i]
+</code></pre>
+
+<p>Let&rsquo;s set this to a variable, <code>img</code>, and inspect a bit further what&rsquo;s going on:</p>
+<pre><code class="python">img = plt.imread(files[0])
+# img.&lt;tab&gt;
+</code></pre>
+
+<p><a name="image-manipulation"></a></p>
+<h1 id="image-manipulation"><a name="user-content-image-manipulation" href="#image-manipulation" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Image Manipulation</h1>
+<p><a name="rgb-image-representation"></a></p>
+<h2 id="rgb-image-representation"><a name="user-content-rgb-image-representation" href="#rgb-image-representation" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>RGB Image Representation</h2>
+<pre><code class="python">files = [os.path.join('img_align_celeba', file_i)
+ for file_i in os.listdir('img_align_celeba')
+ if '.jpg' in file_i]
+</code></pre>
+
+<p>It turns out that all of these numbers are capable of describing an image.  We can use the function <code>imshow</code> to see this:</p>
+<pre><code class="python">img = plt.imread(files[0])
+</code></pre>
+
+<pre><code class="python"># If nothing is drawn and you are using notebook, try uncommenting the next line:
+#%matplotlib inline
+plt.imshow(img)
+</code></pre>
+
+<p>Let&rsquo;s break this data down a bit more.  We can see the dimensions of the data using the <code>shape</code> accessor:</p>
+<pre><code class="python">img.shape
+(218, 178, 3)
+</code></pre>
+
+<p>This means that the image has 218 rows, 178 columns, and 3 color channels corresponding to the Red, Green, and Blue channels of the image, or RGB.  Let&rsquo;s try looking at just one of the color channels.  We can use the square brackets just like when we tried to access elements of our list:</p>
+<pre><code class="python">plt.imshow(img[:, :, 0])
+plt.imshow(img[:, :, 1])
+plt.imshow(img[:, :, 2])
+</code></pre>
+
+<p>We use the special colon operator to say take every value in this dimension.  This is saying, give me every row, every column, and the 0th dimension of the color channels.</p>
+<p>What we see now is a heatmap of our image corresponding to each color channel.</p>
+<p><a name="manipulating-image-data"></a></p>
+<h2 id="manipulating-image-data"><a name="user-content-manipulating-image-data" href="#manipulating-image-data" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Manipulating image data</h2>
+<p>Let&rsquo;s try downloading a few images and try loading them.</p>
+<p><TODO: ...></p>
+<p><a name="understanding-data-types-and-ranges-uint8-float32"></a></p>
+<h2 id="understanding-data-types-and-ranges-uint8-float32"><a name="user-content-understanding-data-types-and-ranges-uint8-float32" href="#understanding-data-types-and-ranges-uint8-float32" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Understanding data types and ranges (uint8, float32)</h2>
+<p>Let&rsquo;s take a look at the range of values of our image:</p>
+<pre><code class="python">np.min(img), np.max(img)
+</code></pre>
+
+<p>The numbers are all between 0 to 255.  What a strange number you must be thinking.  Well, this is equivalent to using 1 byte of memory or disk space.  We measure a byte using bits, and each byte takes up 8 bits.  Each bit can be either 0 or 1.  When we stack up 8 bits, we can express up to 256 possible values, giving us our range, 0 to 255.  You can compute that using powers of two.  2 to the power of 8 is 256.</p>
+<p>numpy arrays have a field which will tell us how many bits they are using: <code>dtype</code>:</p>
+<pre><code class="python">img.dtype
+</code></pre>
+
+<p><code>uint8</code>:  Let&rsquo;s decompose that:  <code>unsigned</code>, <code>int</code>, <code>8</code>.  That means the values do not have a sign, meaning they are all positive.  They are only integers, meaning no decimal places. And that they are all 8 bits.</p>
+<p>Something which is 32-bits of information can express a single value with a range of nearly 4.3 billion different possibilities.  We&rsquo;ll generally need to work with 32-bit data when working with neural networks.  In order to do that, we can simply ask numpy for the correct data type:</p>
+<pre><code class="python">img.astype(np.float32)
+</code></pre>
+
+<p>This is saying, let me see this data as a floating point number, meaning with decimal places, and with 32 bits of precision, rather than the previous data types 8 bits.  This will become important when we start to work with neural networks, as we&rsquo;ll need those extra possible values!</p>
+<p><a name="visualizing-your-data-as-images"></a></p>
+<h2 id="visualizing-your-data-as-images"><a name="user-content-visualizing-your-data-as-images" href="#visualizing-your-data-as-images" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Visualizing your data as images</h2>
+<p>We&rsquo;ve seen how to look at a single image.  But what if we have hundreds, thousands, or millions of images?  Is there a good way of knowing what our dataset looks like without looking at their file names, or opening up each image one at a time?</p>
+<p>One way we can do that is to randomly pick an image.</p>
+<p>We&rsquo;ve already seen how to read the image located at one of our file locations:</p>
+<pre><code class="python">plt.imread(files[0])
+</code></pre>
+
+<p>to pick a random image from our list of files, we can use the numpy random module:</p>
+<pre><code class="python">np.random.randint(0, len(files))
+np.random.randint(0, len(files))
+np.random.randint(0, len(files))
+</code></pre>
+
+<p>This function will produce random integers between a range of values that we specify.  We say, give us random integers from 0 to the length of files.</p>
+<p>We can now use the code we&rsquo;ve written before to show a random image from our list of files:</p>
+<pre><code class="python">filename = files[np.random.randint(0, len(files))]
+img = plt.imread(filename)
+plt.imshow(img)
+</code></pre>
+
+<p>This might be something useful that we&rsquo;d like to do often.  So we can use a function to help us in the future:</p>
+<pre><code class="python">def plot_image(filename):
+    img = plt.imread(filename)
+    plt.imshow(img)
+</code></pre>
+
+<p>This function takes one parameter, a variable named filename, which we will have to specify whenever we call it.  That variable is fed into the plt.imread function, and used to load an image.  It is then drawn with plt.imshow.  Let&rsquo;s see how we can use this function definition:</p>
+<pre><code class="python">f = files[np.random.randint(0, len(files))]
+plot_image(f)
+</code></pre>
+
+<p>or simply:</p>
+<pre><code class="python">plot_image(files[np.random.randint(0, len(files))])
+</code></pre>
+
+<p>We use functions to help us reduce the main flow of our code.  It helps to make things clearer, using function names that help describe what is going on.</p>
+<p><a name="cropping-images"></a></p>
+<h2 id="cropping-images"><a name="user-content-cropping-images" href="#cropping-images" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Cropping images</h2>
+<p>We&rsquo;re going to create another function which will help us crop the image to a standard size and help us draw every image in our list of files as a grid.</p>
+<p>In many applications of deep learning, we will need all of our data to be the same size.  For images this means we&rsquo;ll need to crop the images while trying not to remove any of the important information in it.  Most image datasets that you&rsquo;ll find online will already have a standard size for every image.  But if you&rsquo;re creating your own dataset, you&rsquo;ll need to know how to make all the images the same size.  One way to do this is to find the longest edge of the image, and crop this edge to be as long as the shortest edge of the image.  This will convert the image to a square one, meaning its sides will be the same lengths.  The reason for doing this is that we can then resize this square image to any size we&rsquo;d like, without distorting the image.  Let&rsquo;s see how we can do that:</p>
+<pre><code class="python">def imcrop_tosquare(img):
+    if img.shape[0] &gt; img.shape[1]:
+        extra = (img.shape[0] - img.shape[1]) // 2
+        crop = img[extra:-extra, :]
+    elif img.shape[1] &gt; img.shape[0]:
+        extra = (img.shape[1] - img.shape[1]) // 2
+        crop = img[:, extra:-extra]
+    else:
+        crop = img
+    return crop
+</code></pre>
+
+<p>There are a few things going on here.  First, we are defining a function which takes as input a single variable.  This variable gets named <code>img</code> inside the function, and we enter a set of if/else-if conditionals.  The first branch says, if the rows of <code>img</code> are greater than the columns, then set the variable <code>extra</code> to their difference and divide by 2.  The <code>//</code> notation means to perform an integer division, instead of a floating point division.  So <code>3 // 2 = 1</code>, not 1.5.  We need integers for the next line of code which says to set the variable <code>crop</code> to <code>img</code> starting from <code>extra</code> rows, and ending at negative <code>extra</code> rows down.  We can&rsquo;t be on row 1.5, only row 1 or 2.  So that&rsquo;s why we need the integer divide there.  Let&rsquo;s say our image was 128 x 96 x 3.  We would have <code>extra = (128 - 96) // 2</code>, or 16.  Then we&rsquo;d start from the 16th row, and end at the -16th row, or the 112th row.  That adds up to 96 rows, exactly the same number of columns as we have.</p>
+<p>Let&rsquo;s try another crop function which can crop by an arbitrary amount.  It will take an image and a single factor from 0-1, saying how much of the original image to crop:</p>
+<pre><code class="python">def imcrop(img, amt):
+    if amt &lt;= 0:
+        return img
+    row_i = int(img.shape[0] * amt) // 2
+    col_i = int(img.shape[1] * amt) // 2
+    return img[row_i:-row_i, col_i:-col_i]
+</code></pre>
+
+<p><a name="resizing-images"></a></p>
+<h2 id="resizing-images"><a name="user-content-resizing-images" href="#resizing-images" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Resizing images</h2>
+<p>for resizing the image, we&rsquo;ll make use of a python library, <code>scipy</code>.  Let&rsquo;s import the function which we need like so:</p>
+<pre><code class="python">#from scipy.&lt;tab&gt;misc import &lt;tab&gt;imresize
+</code></pre>
+
+<p>Notice how I can hit tab after each step to see what is available. That is really helpful as I don&rsquo;t always remember what the names are.</p>
+<pre><code class="python">from scipy.misc import imresize
+imresize?
+</code></pre>
+
+<p>The <code>imresize</code> function takes a input image as its first parameter, and a tuple defining the new image shape as rows and then columns.</p>
+<p>Let&rsquo;s see how our cropped image can be imresized now:</p>
+<pre><code class="python">square = imcrop_tosquare(img)
+crop = imcrop(square, 0.2)
+rsz = imresize(crop, (64, 64))
+plt.imshow(rsz)
+</code></pre>
+
+<p>Great!  To really see what&rsquo;s going on, let&rsquo;s turn off the interpolation like so:</p>
+<pre><code class="python">plt.imshow(rsz, interpolation='nearest')
+</code></pre>
+
+<p>Each one of these squares is called a pixel.  Since this is a color image, each pixel is actually a mixture of 3 values, Red, Green, and Blue.  When we mix those proportions of Red Green and Blue, we get the color shown here.</p>
+<p>We can combine the Red Green and Blue channels by taking the mean, or averaging them.  This is equivalent to adding each channel, <code>R + G + B</code>, then dividing by the number of color channels, <code>(R + G + B) / 3</code>.   We can use the numpy.mean function to help us do this:</p>
+<pre><code class="python">mean_img = np.mean(rsz, axis=2)
+print(mean_img.shape)
+plt.imshow(mean_img, cmap='gray')
+</code></pre>
+
+<p>This is an incredibly useful function which we&rsquo;ll revisit later when we try to visualize the mean image of our entire dataset.</p>
+<p><a name="croppingresizing-images"></a></p>
+<h2 id="croppingresizing-images"><a name="user-content-croppingresizing-images" href="#croppingresizing-images" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Cropping/Resizing Images</h2>
+<p>We now have functions for cropping an image to a square image, and a function for resizing an image to any desired size.  With these tools, we can begin to create a dataset.  We&rsquo;re going to loop over the first 1000 files, crop the image to a square to remove the longer edge, and then crop again to remove some of the background, and then finally resize the image to a standard size of 64 x 64 pixels.</p>
+<pre><code class="python">imgs = []
+for file_i in files[:1000]:
+    img = plt.imread(file_i)
+    square = imcrop_tosquare(img)
+    crop = imcrop(square, 0.2)
+    rsz = imresize(crop, (64, 64))
+    imgs.append(rsz)
+print(len(imgs))
+</code></pre>
+
+<p>We now have a list containing our images.  Each index of the <code>imgs</code> list is another image which we can access using the square brackets:</p>
+<pre><code class="python">plt.imshow(imgs[0])
+</code></pre>
+
+<p>Since all of the images are the same size, we can make use of numpy&rsquo;s array instead of a list.</p>
+<p>Remember that an image has a shape describing the height, width, channels:</p>
+<pre><code class="python">imgs[0].shape
+</code></pre>
+
+<p>there is a convention for storing many images in an array using a new dimension called the batch dimension.  The resulting image shape should be:</p>
+<p>N x H x W x C</p>
+<p>The Number of images, or the batch size, is first; then the Height or number of rows in the image; then the Width or number of cols in the image; then finally the number of channels the image has.  A Color image should have 3 color channels, RGB.  A Grayscale image should just have 1 channel.</p>
+<p>We can combine all of our images to look like this in a few ways.  The easiest way is to tell numpy to give us an array of all the images:</p>
+<pre><code class="python">data = np.array(imgs)
+data.shape
+</code></pre>
+
+<p>We could also use the <code>numpy.concatenate</code> function, but we have to create a new dimension for each image.  Numpy let&rsquo;s us do this by using a special variable <code>np.newaxis</code></p>
+<pre><code class="python">data = np.concatenate([img_i[np.newaxis] for img_i in imgs], axis=0)
+data.shape
+</code></pre>
+
+<p>The shape is describing batch, or number of images, the height, or rows of the image, the width, or columns of the image, and finally, the number of channels in the image, describing the red, green, and blue colors of the image.</p>
+<p>Try to remember at least one of these methods for building up your images as a large array as they can come in handy!</p></article></body></html>
