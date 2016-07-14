@@ -5,7 +5,11 @@ Parag K. Mital<br />
 <a href="https://twitter.com/hashtag/CADL">#CADL</a>
 </p>
 
+[![coursecard](imgs/cadl-coursecard.png)](https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info)
+
 This repository contains homework assignments for the <a href="https://www.kadenze.com/partners/kadenze-academy">Kadenze Academy</a> course on <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>.
+
+# Overview
 
 | | Session | Description |
 | --- | --- | --- |
