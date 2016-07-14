@@ -9,7 +9,8 @@ This repository contains homework assignments for the <a href="https://www.kaden
 
 | | Session | Description |
 | --- | --- | --- |
-|0| **[Preliminaries with Python/Notebook](session-0)** | Setting up Python/Notebook, Tensorflow and additional libraries. Some basics of working with Python and images. |
+|Installation| **[Installation](#installation-preliminaries)** | Setting up Python/Notebook and necessary Libraries. |
+|Preliminaries| **[Preliminaries with Python](session-0)** | Basics of working with Python and images. |
 |1| **[Creating a Dataset/Computing with Tensorflow](session-1)** | Working with a small dataset of images.  Dataset preprocessing.  Tensorflow basics.  Sorting/organizing a dataset. |
 |2| **[TBA](session-2)** | TBA. |
 |3| **[TBA](session-3)** | TBA. |
