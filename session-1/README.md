@@ -1,7 +1,6 @@
 # Session 1 - Introduction to Tensorflow
-<p class="lead">
+
 Assignment: Creating a Dataset/Computing with Tensorflow
-</p>
 
 This first homework assignment is contained in the [session-1.ipynb](session-1.ipynb) notebook file.  If you are unsure of how to use notebook, please first follow the [installation instructions](../README.md#installation-preliminaries).
 

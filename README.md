@@ -1,9 +1,4 @@
 # <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>
-<p class="lead">
-Parag K. Mital<br />
-<a href="https://www.kadenze.com/partners/kadenze-academy">Kadenze Academy</a><br />
-<a href="https://twitter.com/hashtag/CADL">#CADL</a>
-</p>
 
 [![coursecard](imgs/cadl-coursecard.png)](https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info)
 
