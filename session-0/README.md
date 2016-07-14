@@ -43,12 +43,12 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 <a name="introduction"></a>
 # Introduction
 
-This preliminary session will cover the basics of working with image data in Python, and creating an image dataset.  Please make sure you are running at least Python 3.4 and have Tensorflow 0.9.0 or higher installed.  If you are unsure of how to do this, please make sure you follow the [installation instructions](../#installation-preliminaries).  We'll also cover loading images from a directory, resizing and cropping images, and changing an image datatype from unsigned int to float32.  If you feel comfortable with all of this, please feel free to skip straight to Session 1.
+This preliminary session will cover the basics of working with image data in Python, and creating an image dataset.  Please make sure you are running at least Python 3.4 and have Tensorflow 0.9.0 or higher installed.  If you are unsure of how to do this, please make sure you follow the [installation instructions](../README.md#installation-preliminaries).  We'll also cover loading images from a directory, resizing and cropping images, and changing an image datatype from unsigned int to float32.  If you feel comfortable with all of this, please feel free to skip straight to Session 1.
 
 <a name="using-notebook"></a>
 # Using Notebook
 
-*Make sure you have launched `jupyter notebook` and are reading the `session-0.ipynb` file*.  If you are unsure of how to do this, please make sure you follow the [installation instructions](../#installation-preliminaries).  This will allow you to interact with the contents and run the code using an interactive python kernel!
+*Make sure you have launched `jupyter notebook` and are reading the `session-0.ipynb` file*.  If you are unsure of how to do this, please make sure you follow the [installation instructions](../README.md#installation-preliminaries).  This will allow you to interact with the contents and run the code using an interactive python kernel!
 
 <a name="cells"></a>
 ## Cells
