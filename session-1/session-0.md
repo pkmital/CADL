@@ -52,7 +52,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 This preliminary session will cover the basics of setting up a jupyter notebook session, working with image data in Python, and creating an image dataset.  It will guide you on how to install and launch Jupyter Notebook.  This will be necessary for completing the homeworks and interacting with the guided session notebooks I will provide for each assignment.  This preliminary session will guide you through obtaining all of the necessary libraries that we'll be using.  By the end of this, you'll have installed Jupyter Notebook, NumPy, SciPy, and Matplotlib.  While many of these libraries aren't necessary for performing the Deep Learning which we'll get to in later lectures, they are incredibly useful for manipulating data on your computer, preparing data for learning, and exploring results.
 
-We'll also make sure you are running at least Python 3.4 and have Tensorflow 0.9.0 or higher installed.  After installing these libraries installed, we'll then cover loading images from a directory, resizing and cropping images, and changing an image datatype from unsigned int to float32.
+We'll also make sure you are running at least Python 3.4 and have Tensorflow 0.9.0 or higher installed.  After installing these libraries, we'll then cover loading images from a directory, resizing and cropping images, and changing an image datatype from unsigned int to float32.
 
 <a name="installation-preliminaries"></a>
 # Installation Preliminaries
@@ -67,11 +67,11 @@ In order to interact with notebook and start coding, you will need to launch Ter
 <a name="docker-toolbox"></a>
 ## Docker Toolbox
 
-Unforunately, at the time of this writing (July 2011), there are no binaries for Tensorflow available for Windows users.  The easiest way to get up an running is to use Docker.  Docker is a way of managing a "virtual" Linux machine on your computer which will aid the creation a machine capable of running Tensorflow.  First, please download and install the Docker Toolbox:
+Unforunately, at the time of this writing (July 2016), there are no binaries for Tensorflow available for Windows users.  The easiest way to get up an running is to use Docker.  Docker is a way of managing a "virtual" Linux machine on your computer which will aid the creation a machine capable of running Tensorflow.  First, please download and install the Docker Toolbox:
 
 https://www.docker.com/products/docker-toolbox
 
-With this installed, you'll then need to run the "Docker Quickstart Terminal" which will launch a Terminal environment running on a virtual Linux machine on your computer.  A virtual machine is basically an emulation of another machine.  This is important because we'll use this machine to run Linux and install all of the necessary libraries for running Tensorflow.  Once the terminal is launched, run the following command (ignoring the `$` sign at the beginning of each line, which just denote that each line is a terminal command that you should type out exactly and then hit ENTER afterwards):
+With this installed, you'll then need to run the "Docker Quickstart Terminal" which will launch a Terminal environment running on a virtual Linux machine on your computer. A virtual machine is basically an emulation of another machine. This is important because we'll use this machine to run Linux and install all of the necessary libraries for running Tensorflow.  Once the terminal is launched, run the following command (ignoring the `$` sign at the beginning of each line, which just denote that each line is a terminal command that you should type out exactly and then hit ENTER afterwards):
 
 ```shell
 $ cd
@@ -121,11 +121,11 @@ $ jupyter notebook
 
 ### Windows/Docker Containers
 
-For Windows users making use of Docker, os for OSX users that had trouble w/ the pip/Anaconda install, once inside your Docker container as outlined above, you can launch notebook like so:
+For Windows users making use of Docker, or for OSX users that had trouble w/ the pip/Anaconda install, once inside your Docker container as outlined above, you can launch notebook like so:
 
 ```shell
 $ cd /notebooks
-$ jupyter notebook &
+$ jupyter notebook &```
 ```
 
 <a name="navigating-to-notebook"></a>
@@ -152,16 +152,16 @@ or for Windows users:
 
 http://ADDRESS:8888
 
-where ADDRESS is the ip address you should have noted down before.  For instance, on my machine, I would visit the website:
+where ADDRESS is the ip address you should have noted down before. For instance, on my machine, I would visit the website:
 
 http://192.168.99.100:8888
 
-This will launch the Jupter Notebook where you will be able to interact with the homework assignments!
+This will launch the Jupyter Notebook where you will be able to interact with the homework assignments!
 
 <a name="installing-python-packages"></a>
 ## Installing Python Packages
 
-Packages are libraries or useful extensions to the standard python libraries.  In this course, we'll be using a few including Tensorflow, NumPy, MatPlotLib, SciPy, SciKits-Image, and SciKits-Learn.  Windows users will already have these libraries since the Docker container includes these.  However, if you needed to, you can install these using "pip", which is the python package manager.  OSX/Linux users should follow these steps just to be sure they have the latest versions of these packages. In Python 3.4 and higher, `pip` comes with any standard python installation.  In order to use `pip`, you'll write:
+Packages are libraries or useful extensions to the standard python libraries.  In this course, we'll be using a few including Tensorflow, NumPy, MatPlotLib, SciPy, SciKit-Image, and SciKit-Learn.  Windows users will already have these libraries since the Docker container includes these.  However, if you needed to, you can install these using "pip", which is the python package manager.  OSX/Linux users should follow these steps just to be sure they have the latest versions of these packages. In Python 3.4 and higher, `pip` comes with any standard python installation.  In order to use `pip`, you'll write:
 
 ```shell
 $ pip3 install some_package
@@ -178,7 +178,7 @@ This should get you all of the libraries we need for the course, EXCEPT for tens
 ### Ubuntu/Linux 64-bit for Python 3.4
 
 ```shell
-$ pip3 install --ugprade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp34-cp34m-linux_x86_64.whl
+$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp34-cp34m-linux_x86_64.whl
 ```
 
 ### Ubuntu/Linux 64-bit for Python 3.5
