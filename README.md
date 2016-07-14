@@ -18,21 +18,19 @@ This repository contains homework assignments for the <a href="https://www.kaden
 |5| **[TBA](session-5)** | TBA. |
 
 
+<a name="installation-preliminaries"></a>
+# Installation Preliminaries
+
 <!-- MarkdownTOC autolink=true autoanchor=true bracket=round -->
 
-- [Installation Preliminaries](#installation-preliminaries)
-    - [What is Notebook?](#what-is-notebook)
-    - [Docker Toolbox](#docker-toolbox)
-    - [Jupyter Notebook](#jupyter-notebook)
-    - [Navigating to Notebook](#navigating-to-notebook)
-    - [Installing Python Packages](#installing-python-packages)
+- [What is Notebook?](#what-is-notebook)
+- [Docker Toolbox](#docker-toolbox)
+- [Jupyter Notebook](#jupyter-notebook)
+- [Navigating to Notebook](#navigating-to-notebook)
+- [Installing Python Packages](#installing-python-packages)
 - [CUDA/GPU instructions](#cudagpu-instructions)
 
 <!-- /MarkdownTOC -->
-
-
-<a name="installation-preliminaries"></a>
-# Installation Preliminaries
 
 We will be using Jupyter Notebook.  This will be necessary for submitting the homeworks and interacting with the guided session notebooks I will provide for each assignment.  Follow along this guide and we'll see how to obtain all of the necessary libraries that we'll be using.  By the end of this, you'll have installed Jupyter Notebook, NumPy, SciPy, and Matplotlib.  While many of these libraries aren't necessary for performing the Deep Learning which we'll get to in later lectures, they are incredibly useful for manipulating data on your computer, preparing data for learning, and exploring results.
 
@@ -180,7 +178,7 @@ https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_starte
 If you are having trouble with these instructions, you may want to instead run a Docker instance as outlined in the Windows instructions above: [Setting up a Docker Container](#docker-toolbox).
 
 <a name="cudagpu-instructions"></a>
-# CUDA/GPU instructions
+## CUDA/GPU instructions
 
 Note that I have not provided instructions on getting setup w/ CUDA as it is beyond the scope of this course!  If you are interested in using GPU acceleration, I highly recommend using Ubuntu Linux and setting up a machine on [Nimbix](https://www.nimbix.net) or [Amazon EC2](https://aws.amazon.com/ec2/
 ) using the instructions here: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#optional-install-cuda-gpus-on-linux.  If you're using Nimbix, you can skip the install process as there is already a machine pre-installed w/ Tensorflow.  Similarly, for Amazon EC2, there are many existing "images" of machines that have Tensorflow already installed.
