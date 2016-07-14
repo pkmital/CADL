@@ -50,12 +50,12 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 <a name="introduction"></a>
 # Introduction
 
-This preliminary session will cover the basics of setting up a jupyter notebook session, working with image data in Python, and creating an image dataset.  It will guide you on how to install and launch Jupyter Notebook.  This will be necessary for completing the homeworks and interacting with the guided session notebooks I will provide for each assignment.  This preliminary session will guide you through obtaining all of the necessary libraries that we'll be using.  By the end of this, you'll have installed Jupyter Notebook, NumPy, SciPy, and Matplotlib.  While many of these libraries aren't necessary for performing the Deep Learning which we'll get to in later lectures, they are incredibly useful for manipulating data on your computer, preparing data for learning, and exploring results.
-
-We'll also make sure you are running at least Python 3.4 and have Tensorflow 0.9.0 or higher installed.  After installing these libraries installed, we'll then cover loading images from a directory, resizing and cropping images, and changing an image datatype from unsigned int to float32.
+This preliminary session will cover the basics of setting up a jupyter notebook session, working with image data in Python, and creating an image dataset.  We'll also make sure you are running at least Python 3.4 and have Tensorflow 0.9.0 or higher installed.  After installing all the libraries we'll be making use of, we'll then cover loading images from a directory, resizing and cropping images, and changing an image datatype from unsigned int to float32.  If you feel comfortable with all of this, please feel free to skip over this notebook straight to Session 1.
 
 <a name="installation-preliminaries"></a>
 # Installation Preliminaries
+
+This notebook will first guide you on how to install and launch Jupyter Notebook.  This will be necessary for submitting the homeworks and interacting with the guided session notebooks I will provide for each assignment.  Then we'll see how to obtain all of the necessary libraries that we'll be using.  By the end of this, you'll have installed Jupyter Notebook, NumPy, SciPy, and Matplotlib.  While many of these libraries aren't necessary for performing the Deep Learning which we'll get to in later lectures, they are incredibly useful for manipulating data on your computer, preparing data for learning, and exploring results.
 
 <a name="what-is-notebook"></a>
 ## What is Notebook?
@@ -204,7 +204,7 @@ If you are having trouble with these instructions, you may want to instead run a
 # CUDA/GPU instructions
 
 Note that I have not provided instructions on getting setup w/ CUDA as it is beyond the scope of this course!  If you are interested in using GPU acceleration, I highly recommend using Ubuntu Linux and setting up a machine on [Nimbix](https://www.nimbix.net) or [Amazon EC2](https://aws.amazon.com/ec2/
-) using the instructions here: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#optional-install-cuda-gpus-on-linux.
+) using the instructions here: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#optional-install-cuda-gpus-on-linux.  If you're using Nimbix, you can skip the install process as there is already a machine pre-installed w/ Tensorflow.  Similarly, for Amazon EC2, there are many existing "images" of machines that have Tensorflow already installed.
 
 <a name="using-notebook"></a>
 # Using Notebook
