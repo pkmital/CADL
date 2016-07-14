@@ -3,9 +3,7 @@
 Assignment: Creating a Dataset/Computing with Tensorflow
 </p>
 
-This first homework assignment is contained in the [session-1.ipynb](session-1.ipynb) notebook file.  If you are unsure of how to use notebook, please first visit:
-
-[session-0](../session-0)
+This first homework assignment is contained in the [session-1.ipynb](session-1.ipynb) notebook file.  If you are unsure of how to use notebook, please first follow the [installation instructions](../#installation-preliminaries).
 
 And follow the instructions on getting notebook running.
 
