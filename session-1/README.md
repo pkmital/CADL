@@ -5,9 +5,12 @@ Assignment: Creating a Dataset/Computing with Tensorflow
 
 <p class="lead">
 Parag K. Mital<br />
+<a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a><br />
 <a href="https://www.kadenze.com/partners/kadenze-academy">Kadenze Academy</a><br />
 <a href="https://twitter.com/hashtag/CADL">#CADL</a>
 </p>
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
 
 # Learning Goals
 
@@ -33,14 +36,14 @@ Parag K. Mital<br />
 
 <h1>Notebook</h1>
 
-Everything you will need to do will be inside of this notebook, and I've marked which cells you will need to edit by saying <b><font color='red'>"TODO! COMPLETE THIS SECTION!"</font></b>.  For you to work with this notebook, you'll either download the zip file from the resources section on Kadenze or clone the github repo (whichever you are more comfortable with), and then run notebook inside the same directory as wherever this file is located using the command line "jupyter notebook" or "ipython notbeook" (using Terminal on Unix/Linux/OSX, or Command Line/Shell/Powershell on Windows).  If you are unfamiliar with jupyter notebook, please look at the session-0 notebook and/or html file to be sure you have all the necessary libraries and notebook installed.
+Everything you will need to do will be inside of this notebook, and I've marked which cells you will need to edit by saying <b><font color='red'>"TODO! COMPLETE THIS SECTION!"</font></b>.  For you to work with this notebook, you'll either download the zip file from the resources section on Kadenze or clone the github repo (whichever you are more comfortable with), and then run notebook inside the same directory as wherever this file is located using the command line "jupyter notebook" or "ipython notbeook" (using Terminal on Unix/Linux/OSX, or Command Line/Shell/Powershell on Windows).  If you are unfamiliar with jupyter notebook, please look at "Session 0" to be sure you have all the necessary libraries and notebook installed.
 
 Once you have launched notebook, this will launch a web browser with the contents of the zip files listed.  Click the file "session-1.ipynb" and this document will open in an interactive notebook, allowing you to "run" the cells, computing them using python, and edit the text inside the cells.
 
 <a name="assignment-synopsis"></a>
 # Assignment Synopsis
 
-This first homework assignment will guide you through working with a small dataset of images.  For Part 1, you'll need to find 100 images and use the function I've provided to create a montage of your images, saving it to the file "dataset.png" (template code provided below).  You can load an existing dataset of images, find your own images, or perhaps create your own images using a creative process such as painting, photography, or something along those lines.  Each image will be reshaped to 100 x 100 pixels.  There needs to be at least 100 images.  For Parts 2 and 3, you'll then calculate the mean and deviation of it using a tensorflow session.  For Part 4, you'll need to sort the entire dataset based on its color values or find another method of sorting them.  Finally, the last part will package everything for you in a zip file which you can upload to Kadenze to get assessed (only if you are a Kadenze Premium member, $10 p/m, free for the first month).  If you have any questions, be sure to enroll in the course and ask your peers in the \#CADL community or me on the forums!
+This first homework assignment will guide you through working with a small dataset of images.  For Part 1, you'll need to find 100 images and use the function I've provided to create a montage of your images, saving it to the file "dataset.png" (template code provided below).  You can load an existing dataset of images, find your own images, or perhaps create your own images using a creative process such as painting, photography, or something along those lines.  Each image will be reshaped to 100 x 100 pixels.  There needs to be at least 100 images.  For Parts 2 and 3, you'll then calculate the mean and deviation of it using a tensorflow session.  For Part 4, you'll need to sort the entire dataset based on its color values or find another method of sorting them.  Finally, the last part will package everything for you in a zip file which you can upload to Kadenze to get assessed (only if you are a Kadenze Premium member, $10 p/m, free for the first month).  Remember to complete the additional excercises online, including the Gallery participation and the Forum post.  If you have any questions, be sure to enroll in the course and ask your peers in the \#CADL community or me on the forums!
 
 https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info
 
@@ -52,7 +55,7 @@ The following assignment breakdown gives more detailed instructions and includes
 <a name="instructions"></a>
 ## Instructions
 
-Use Python, Numpy, and Matplotlib to load a dataset of 100 images and create a montage of the dataset as a 10 x 10 image using the function below. You'll need to make sure you call the function using a 4-d array of `N x H x W x C` dimensions, meaning every image will need to be the same size! You can load an existing dataset of images, find your own images, or perhaps create your own images using a creative process such as painting, photography, or something along those lines. The code below will show you how to resize and/or crop your images so that they are 100 pixels x 100 pixels in height and width. Finally, make sure you only use 100 images of any dataset you create or use!  Once you have your 100 images loaded, make sure you use `montage` function to draw and save your dataset to the file <b>dataset.png</b>.
+Use Python, Numpy, and Matplotlib to load a dataset of 100 images and create a montage of the dataset as a 10 x 10 image using the function below. You'll need to make sure you call the function using a 4-d array of `N x H x W x C` dimensions, meaning every image will need to be the same size! You can load an existing dataset of images, find your own images, or perhaps create your own images using a creative process such as painting, photography, or something along those lines. The code below will show you how to resize and/or crop your images so that they are 100 pixels x 100 pixels in height and width.  Once you have 100 images loaded, we'll use a `montage` function to draw and save your dataset to the file <b>dataset.png</b>.
 
 <a name="code"></a>
 ## Code

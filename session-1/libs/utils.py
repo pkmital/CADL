@@ -29,7 +29,7 @@ def imcrop_tosquare(img):
         extra = (img.shape[0] - img.shape[1]) // 2
         crop = img[extra:-extra, :]
     elif img.shape[1] > img.shape[0]:
-        extra = (img.shape[1] - img.shape[1]) // 2
+        extra = (img.shape[1] - img.shape[0]) // 2
         crop = img[:, extra:-extra]
     else:
         crop = img

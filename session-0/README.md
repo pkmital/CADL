@@ -35,10 +35,10 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
     - [Structuring data as folders](#structuring-data-as-folders)
     - [Using the `os` library to get data](#using-the-os-library-to-get-data)
     - [Loading an image](#loading-an-image)
-- [Image Manipulation](#image-manipulation)
     - [RGB Image Representation](#rgb-image-representation)
     - [Understanding data types and ranges \(uint8, float32\)](#understanding-data-types-and-ranges-uint8-float32)
     - [Visualizing your data as images](#visualizing-your-data-as-images)
+- [Image Manipulation](#image-manipulation)
     - [Cropping images](#cropping-images)
     - [Resizing images](#resizing-images)
     - [Cropping/Resizing Images](#croppingresizing-images)
@@ -50,7 +50,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 <a name="introduction"></a>
 # Introduction
 
-This preliminary session will cover the basics of setting up a jupyter notebook session, working with image data in Python, and creating an image dataset.  We'll also make sure you are running at least Python 3.4 and have Tensorflow 0.9.0 or higher installed.  After installing all the libraries we'll be making use of, we'll then cover loading images from a directory, resizing and cropping images, and changing an image datatype from unsigned int to float32.  If you feel comfortable with all of this, please feel free to skip over this notebook straight to Session 1.
+This preliminary session will cover the basics of setting up a jupyter notebook session, working with image data in Python, and creating an image dataset.  We'll also make sure you are running at least Python 3.4 and have Tensorflow 0.9.0 or higher installed.  After installing all the libraries we'll be making use of, we'll then cover loading images from a directory, resizing and cropping images, and changing an image datatype from unsigned int to float32.  If you feel comfortable with all of this, please feel free to skip straight to Session 1.
 
 <a name="installation-preliminaries"></a>
 # Installation Preliminaries
@@ -390,7 +390,7 @@ We have a list of filenames, and we know where they are.  But we need to combine
 `plt.imread` will not know where that file is.  We can tell it where to find the file by using os.path.join:
 
 ```python
-os.path.join('img_align_celeba/', files[0])
+print(os.path.join('img_align_celeba/', files[0]))
 plt.imread(os.path.join('img_align_celeba/', files[0]))
 ```
 
@@ -409,17 +409,8 @@ img = plt.imread(files[0])
 # img.<tab>
 ```
 
-<a name="image-manipulation"></a>
-# Image Manipulation
-
 <a name="rgb-image-representation"></a>
 ## RGB Image Representation
-
-```python
-files = [os.path.join('img_align_celeba', file_i)
- for file_i in os.listdir('img_align_celeba')
- if '.jpg' in file_i]
-```
 
 It turns out that all of these numbers are capable of describing an image.  We can use the function `imshow` to see this:
 
@@ -544,6 +535,9 @@ plot_image(files[np.random.randint(0, len(files))])
 
 We use functions to help us reduce the main flow of our code.  It helps to make things clearer, using function names that help describe what is going on.
 
+<a name="image-manipulation"></a>
+# Image Manipulation
+
 <a name="cropping-images"></a>
 ## Cropping images
 
@@ -558,7 +552,7 @@ def imcrop_tosquare(img):
         extra = (img.shape[0] - img.shape[1]) // 2
         crop = img[extra:-extra, :]
     elif img.shape[1] > img.shape[0]:
-        extra = (img.shape[1] - img.shape[1]) // 2
+        extra = (img.shape[1] - img.shape[0]) // 2
         crop = img[:, extra:-extra]
     else:
         crop = img
