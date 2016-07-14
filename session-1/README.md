@@ -4,10 +4,10 @@ Assignment: Creating a Dataset/Computing with Tensorflow
 </p>
 
 <p class="lead">
-Parag K. Mital
-[Creative Applications of Deep Learning w/ Tensorflow](https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info)
-Kadenze Academy
-\#CADL</p>
+Parag K. Mital<br />
+<a href="https://www.kadenze.com/partners/kadenze-academy">Kadenze Academy</a><br />
+<a href="https://twitter.com/hashtag/CADL">#CADL</a>
+</p>
 
 # Learning Goals
 
