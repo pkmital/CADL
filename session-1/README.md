@@ -33,8 +33,7 @@ Kadenze Academy
 
 <h1>Notebook</h1>
 
-Everything you will need to do will be inside of this notebook, and I've marked which cells you will need to edit by saying <b><font color='red'>"TODO! COMPLETE THIS SECTION!"</font></b>.  For you to work with this notebook, you'll either download the zip file from the resources section on Kadenze or clone the github repo (whichever you are more comfortable with), and then run notebook inside the same directory as wherever this file is located using the command line "jupyter notebook" or "ipython notbeook" (using Terminal on Unix/Linux/OSX, or Command Line/Shell/Powershell on Windows).  If you are unfamiliar with jupyter notebook, please visit this website for instructions:
-https://jupyter.readthedocs.io/en/latest/install.html
+Everything you will need to do will be inside of this notebook, and I've marked which cells you will need to edit by saying <b><font color='red'>"TODO! COMPLETE THIS SECTION!"</font></b>.  For you to work with this notebook, you'll either download the zip file from the resources section on Kadenze or clone the github repo (whichever you are more comfortable with), and then run notebook inside the same directory as wherever this file is located using the command line "jupyter notebook" or "ipython notbeook" (using Terminal on Unix/Linux/OSX, or Command Line/Shell/Powershell on Windows).  If you are unfamiliar with jupyter notebook, please look at the session-0 notebook and/or html file to be sure you have all the necessary libraries and notebook installed.
 
 Once you have launched notebook, this will launch a web browser with the contents of the zip files listed.  Click the file "session-1.ipynb" and this document will open in an interactive notebook, allowing you to "run" the cells, computing them using python, and edit the text inside the cells.
 
@@ -187,7 +186,7 @@ except ImportError:
 
 
 ```python
-# First create a session
+# First create a tensorflow session
 sess = ...
 
 # Now create an operation that will calculate the mean of your images
@@ -307,7 +306,7 @@ To get assessed, you'll need to be a premium student which is free for a month! 
 
 Then remember to complete the remaining parts of Assignemnt 1 on Kadenze!:
 
-    * Participation Assessment: Comment on another student's open-ended arrangement
+    * Participation Assessment: Comment on another student's open-ended arrangement (Part 4).  Think about what images they've used in their dataset and how the arrangement reflects what could be represented by that data.
     * (Extra Credit): Forum Post - Find artists making use of machine learning to organize data or finding representations within large datasets.
 
 
