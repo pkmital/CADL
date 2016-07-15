@@ -28,6 +28,7 @@ This repository contains homework assignments for the <a href="https://www.kaden
 - [Navigating to Notebook](#navigating-to-notebook)
 - [Installing Python Packages](#installing-python-packages)
 - [CUDA/GPU instructions](#cudagpu-instructions)
+- [Testing it](#testing-it)
 
 <!-- /MarkdownTOC -->
 
@@ -174,10 +175,22 @@ $ pip3 install --upgrade https://storage.googleapis.com/tensorflow/mac/tensorflo
 You can pip install Tensorflow for most OSX/Linux setups including those that are making use of NVIDIA GPUs and CUDA using one the packages listed on this link:
 https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#pip-installation
 
-If you are having trouble with these instructions, you may want to instead run a Docker instance as outlined in the Windows instructions above: [Setting up a Docker Container](#docker-toolbox).
+If you are having trouble with pip installation, try looking here first: [Common Installation Problems](https://github.com/tensorflow/tensorflow/blob/37451589519d15207448dc2d9b1c0309de15d8db/tensorflow/g3doc/get_started/os_setup.md#common-problems).  Failing that, reach out to us on the forums, or else you may want to instead run a Docker instance as outlined in the Windows instructions above: [Setting up a Docker Container](#docker-toolbox).
 
 <a name="cudagpu-instructions"></a>
 ## CUDA/GPU instructions
 
 Note that I have not provided instructions on getting setup w/ CUDA as it is beyond the scope of this course!  If you are interested in using GPU acceleration, I highly recommend using Ubuntu Linux and setting up a machine on [Nimbix](https://www.nimbix.net) or [Amazon EC2](https://aws.amazon.com/ec2/
 ) using the instructions here: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#optional-install-cuda-gpus-on-linux.  If you're using Nimbix, you can skip the install process as there is already a machine pre-installed w/ Tensorflow.  Similarly, for Amazon EC2, there are many existing "images" of machines that have Tensorflow already installed.
+
+
+<a name="testing-it"></a>
+## Testing it
+
+To confirm it worked, try running:
+
+```shell
+$ python3 -c 'import tensorflow as tf; print(tf.__version__)'
+```
+
+You should see 0.9.0 be printed.
