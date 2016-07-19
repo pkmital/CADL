@@ -10,8 +10,11 @@ Then come back here and work through the notebook [session-1.ipynb](session-1.ip
 
 https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info
 
-    * Participation Assessment: Comment on another student's open-ended arrangement (Part 6).  Think about what images they've used in their dataset and how the arrangement reflects what could be represented by that data.
-    * Forum Post - Find artists making use of machine learning to organize data or finding representations within large datasets.
+* Comment on 1 student's open-ended arrangement (Part 6) in the course gallery titled "Creating a Dataset/ Computing with Tensorflow". Think about what images they've used in their dataset and how the arrangement reflects what could be represented by that data.
+* Finally make a forum post in the forum for this assignment "Creating a Dataset/ Computing with Tensorflow".
+    - Including a link to an artist making use of machine learning to organize data or finding representations within large datasets
+    - Tell a little about their work (min 20 words).
+    - Comment on at least 2 other student's forum posts (min 20 words)
 
 If you have any questions, be sure to enroll in the course and ask your peers in the \#CADL community or me on the forums!
 
