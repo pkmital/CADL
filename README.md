@@ -96,6 +96,18 @@ $ pip3 install ipython[notebook]
 $ jupyter notebook
 ```
 
+If you run into issues that say something such as: 
+
+```
+[W 20:37:40.543 NotebookApp] Kernel not found: None
+```
+
+Then please try first running:
+
+```shell
+$ ipython3 kernel install
+```
+
 ### Windows/Docker Containers
 
 For Windows users making use of Docker, or for OSX users that had trouble w/ the pip/Anaconda install, once inside your Docker container as outlined above, you can launch notebook like so:
