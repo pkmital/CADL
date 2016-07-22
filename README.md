@@ -76,7 +76,7 @@ $ cd
 $ docker start -i tf
 ```
 
-You should have a new folder "tensorflow" inside your Home directory.  Please make sure you do everything inside this directory only or else any files you make on your virtual machine WILL BE ERASED once it is shutdown!
+You should have a new folder "tensorflow" inside your Home directory.  This directory will be empty to begin with.  Please make sure you do everything inside this directory only or else any files you make on your virtual machine WILL BE ERASED once it is shutdown!  When you clone the CADL repository, or expand the zip file downloads contents inside this directory via your Windows machine (it will be in your Home directory under a folder "tensorflow"), then you will be able to access it via your Docker instance.
 
 <a name="jupyter-notebook"></a>
 ## Jupyter Notebook
