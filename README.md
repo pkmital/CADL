@@ -48,7 +48,15 @@ Unforunately, at the time of this writing (July 2016), there are no binaries for
 
 https://www.docker.com/products/docker-toolbox
 
-With this installed, you'll then need to run the "Docker Quickstart Terminal" which will launch a Terminal environment running on a virtual Linux machine on your computer. A virtual machine is basically an emulation of another machine. This is important because we'll use this machine to run Linux and install all of the necessary libraries for running Tensorflow.  Once the terminal is launched, run the following command (ignoring the `$` sign at the beginning of each line, which just denote that each line is a terminal command that you should type out exactly and then hit ENTER afterwards):
+With this installed, you'll then need to run the "Docker Quickstart Terminal" which will launch a Terminal environment running on a virtual Linux machine on your computer. A virtual machine is basically an emulation of another machine. This is important because we'll use this machine to run Linux and install all of the necessary libraries for running Tensorflow.
+
+Note, if you have trouble launching the Docker Quickstart Terminal because you have "Hyper-V", try one of the following, as suggested by Danilo Gasques:
+
+1) [Setting up a Windows boot option to run without Hyper-V](http://www.hanselman.com/blog/SwitchEasilyBetweenVirtualBoxAndHyperVWithABCDEditBootEntryInWindows81.aspx)
+
+2) [Running Docker on Windows with Hyper-V installed](http://jayvilalta.com/blog/2016/04/28/installing-docker-toolbox-on-windows-with-hyper-v-installed/)
+
+Once the Docker Quickstart Terminal is launched, run the following command (ignoring the `$` sign at the beginning of each line, which just denote that each line is a terminal command that you should type out exactly and then hit ENTER afterwards):
 
 ```shell
 $ cd
