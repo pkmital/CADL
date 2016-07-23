@@ -29,6 +29,7 @@ This repository contains homework assignments for the <a href="https://www.kaden
 - [Installing Python Packages](#installing-python-packages)
 - [CUDA/GPU instructions](#cudagpu-instructions)
 - [Testing it](#testing-it)
+- [Troubleshooting](#troubleshooting)
 
 <!-- /MarkdownTOC -->
 
@@ -214,3 +215,130 @@ $ python3 -c 'import tensorflow as tf; print(tf.__version__)'
 ```
 
 You should see 0.9.0 be printed.
+
+<a name="troubleshooting"></a>
+## Troubleshooting
+
+### ImportError: No module named 'tensorflow'
+
+You may have different versions of Python installed.  You can troubleshoot this by looking at the output of:
+
+```shell
+$ which python3
+$ which pip3
+$ python3 --version
+$ pip3 --version
+$ which python
+$ which pip
+$ python --version
+$ pip --version
+```
+
+You may simply need to install tensorflow using `pip` instead of `pip3` and/or use `python` instead of `python3`, assuming they point to a version of python which is Python 3 or higher.
+
+### AttributeError: module 'tensorflow' has no attribute '\_\_version\_\_'
+
+You could be running python inside a directory that contains the folder "tensorflow".  Try running python inside a different directory.
+
+
+### GPU-related issues
+
+If you encounter the following when trying to run a TensorFlow program:
+
+```python
+ImportError: libcudart.so.7.0: cannot open shared object file: No such file or directory
+```
+
+Make sure you followed the GPU installation [instructions](#optional-install-cuda-gpus-on-linux).
+If you built from source, and you left the Cuda or cuDNN version empty, try specifying them
+explicitly.
+
+### Protobuf library related issues
+
+TensorFlow pip package depends on protobuf pip package version
+3.0.0b2. Protobuf's pip package downloaded from [PyPI](https://pypi.python.org)
+(when running `pip install protobuf`) is a Python only library, that has
+Python implementations of proto serialization/deserialization which can be 10x-50x
+slower than the C++ implementation. Protobuf also supports a binary extension
+for the Python package that contains fast C++ based proto parsing. This
+extension is not available in the standard Python only PIP package. We have
+created a custom binary pip package for protobuf that contains the binary
+extension. Follow these instructions to install the custom binary protobuf pip
+package :
+
+```bash
+# Ubuntu/Linux 64-bit:
+$ pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/protobuf-3.0.0b2.post2-cp27-none-linux_x86_64.whl
+
+# Mac OS X:
+$ pip install --upgrade https://storage.googleapis.com/tensorflow/mac/protobuf-3.0.0b2.post2-cp27-none-any.whl
+```
+
+and for Python 3 :
+
+```bash
+# Ubuntu/Linux 64-bit:
+$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/protobuf-3.0.0b2.post2-cp34-none-linux_x86_64.whl
+
+# Mac OS X:
+$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/mac/protobuf-3.0.0b2.post2-cp35-none-any.whl
+```
+
+Install the above package _after_ you have installed TensorFlow via pip, as the
+standard `pip install tensorflow` would install the python only pip package. The
+above pip package will over-write the existing protobuf package.
+Note that the binary pip package already has support for protobuf larger than
+64MB, that should fix errors such as these :
+
+```bash
+[libprotobuf ERROR google/protobuf/src/google/protobuf/io/coded_stream.cc:207] A
+protocol message was rejected because it was too big (more than 67108864 bytes).
+To increase the limit (or to disable these warnings), see
+CodedInputStream::SetTotalBytesLimit() in google/protobuf/io/coded_stream.h.
+
+```
+
+### Cannot import name 'descriptor'
+
+```python
+ImportError: Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/tensorflow/core/framework/graph_pb2.py", line 6, in <module>
+    from google.protobuf import descriptor as _descriptor
+ImportError: cannot import name 'descriptor'
+```
+
+If you the above error when upgrading to a newer version of TensorFlow, try
+uninstalling both TensorFlow and protobuf (if installed) and re-installing
+TensorFlow (which will also install the correct protobuf dependency).
+
+### Can't find setup.py
+
+If, during `pip install`, you encounter an error like:
+
+```bash
+...
+IOError: [Errno 2] No such file or directory: '/tmp/pip-o6Tpui-build/setup.py'
+```
+
+Solution: upgrade your version of pip:
+
+```bash
+pip install --upgrade pip
+```
+
+This may require `sudo`, depending on how pip is installed.
+
+### SSLError: SSL_VERIFY_FAILED
+
+If, during pip install from a URL, you encounter an error like:
+
+```bash
+...
+SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed
+```
+
+Solution: Download the wheel manually via curl or wget, and pip install locally.
+
+### Something Else!
+
+Post on the [Forums](https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow-i/forums?sort=recent_activity) or check on the Tensorflow [README](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#pip-installation)
