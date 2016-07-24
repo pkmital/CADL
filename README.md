@@ -67,8 +67,21 @@ $ docker-machine ip
 You should see your virtual machine's IP address as a result of the last command.  This is the location of your virtual machine.  <b>NOTE THIS IP ADDRESS</b>, as we'll need it in a second.  Now run the following command, which will download about ~530 MB containing everything we need to run tensorflow, python, and jupyter notebook (again, ignore the "$" at the beginning of the line only)!
 
 ```shell
+$ cd
+$ mkdir tensorflow
+$ echo /$(pwd)/tensorflow
 $ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tf.0.9.0-py.3.4
 ```
+
+What this is doing is first creating a directory called tensorflow in the home directory, wherever that may be for your computer.  The echo command is showing you exactly where that directory is.  Then we use docker to mirror that directory on a virutal machine.  The location of that echo'ed directory is `/notebooks` on the virtual machine.
+
+You can also try running the docker run command with any other directory. For instance:
+
+```shell
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /Users/YOURUSERNAME/Desktop:/notebooks --name tf pkmital/tf.0.9.0-py.3.4
+```
+
+Which would mean that your Desktop is where you can move files around so that on the virtual machine, you can interact with them under the `/notebooks`directory.
 
 For OSX users, if you are installing Docker because you had installation problems using Anaconda and pip, you would instead write the following command:
 
