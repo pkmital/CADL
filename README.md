@@ -2,6 +2,8 @@
 
 [![coursecard](imgs/cadl-coursecard.png)](https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info)
 
+[![Slack Channel](https://cadl.herokuapp.com/badge.svg)](https://cadl.herokuapp.com)
+
 This repository contains homework assignments for the <a href="https://www.kadenze.com/partners/kadenze-academy">Kadenze Academy</a> course on <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>.
 
 # Overview
@@ -15,7 +17,6 @@ This repository contains homework assignments for the <a href="https://www.kaden
 |3| **[TBA](session-3)** | TBA. |
 |4| **[TBA](session-4)** | TBA. |
 |5| **[TBA](session-5)** | TBA. |
-
 
 <a name="installation-preliminaries"></a>
 # Installation Preliminaries
