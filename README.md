@@ -107,9 +107,11 @@ You should have a new folder "tensorflow" inside your Home directory.  This dire
 
 The easiest way to ensure you have Python 3.4 or higher and Jupter Notebook is to install Anaconda for Python 3.5 located here:
 
-https://www.continuum.io/downloads
+[OSX](https://docs.continuum.io/anaconda/install#anaconda-for-os-x-command-line-install) or [Linux](https://docs.continuum.io/anaconda/install#linux-install)
 
-This package will install both python and the package "ipython[notebook]", along with a ton of other very useful packages such as numpy, matplotlib, scikit-learn, scikit-image, and many others.
+If you already have conda, but only have Python 2, you can very easily [add a new environment w/ Python 3](http://conda.pydata.org/docs/py2or3.html#create-a-python-3-5-environment) and switch back and forth as needed.  Or if you do not have Anaconda, but have a system based install, I'd really recommend either using Anaconda or [pyenv](https://github.com/yyuu/pyenv) to help you manage both python installations.
+
+With Anaconda installed, you will have python and the package "ipython[notebook]", along with a ton of other very useful packages such as numpy, matplotlib, scikit-learn, scikit-image, and many others.
 
 With everything installed, restart your Terminal application (on OSX, you can use Spotlight to find the Terminal application), and then navigate to the directory containing the "ipynb", or "iPython Notebook" file, by "cd'ing" (pronounced, see-dee-ing), into that directory.  This involves typing the command: "cd some_directory".  Once inside the directory of the notebook file, you will then type: "jupyter notebook".  If this command does not work, it means you do not have notebook installed!  Try installed anaconda as above, restart your Terminal application, or manually install notebook like so (ignore the "$" signs which just denote that this is a Terminal command that you should type out exactly and then hit ENTER!):
 
