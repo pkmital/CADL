@@ -65,16 +65,23 @@ $ cd
 $ docker-machine ip
 ```
 
-You should see your virtual machine's IP address as a result of the last command.  This is the location of your virtual machine.  <b>NOTE THIS IP ADDRESS</b>, as we'll need it in a second.  Now run the following command, which will download about ~530 MB containing everything we need to run tensorflow, python, and jupyter notebook (again, ignore the "$" at the beginning of the line only)!
+You should see your virtual machine's IP address as a result of the last command.  This is the location of your virtual machine.  <b>NOTE THIS IP ADDRESS</b>, as we'll need it in a second.  
+
+This next command will move to your Windows home directory, then create a new directory called "tensorflow", and then print out what the full path to that directory is.  PLEASE NOTE DOWN THIS DIRECTORY.  This is where everything will happen, and I'll explain that in a minute.
 
 ```shell
 $ cd
 $ mkdir tensorflow
 $ echo /$(pwd)/tensorflow
+```
+
+Now run the following command, which will download about ~530 MB containing everything we need to run tensorflow, python, and jupyter notebook (again, ignore the "$" at the beginning of the line only)!
+
+```shell
 $ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tf.0.9.0-py.3.4
 ```
 
-What this is doing is first creating a directory called tensorflow in the home directory, wherever that may be for your computer.  The echo command is showing you exactly where that directory is.  Then we use docker to mirror that directory on a virutal machine.  The location of that echo'ed directory is `/notebooks` on the virtual machine.
+What this is doing is first creating a directory called tensorflow in the home directory, wherever that may be for your computer.  The echo command that we just ran, and I asked you note down, is showing you exactly where that directory is.  So on your Windows machine, you will want to put files inside this directory only when coding w/ Tensorflow.  We will use Docker to mirror that directory on a virutal machine which has everything necessary for us to code in Python and Tensorflow.  _Whatever is in that directory will be mirrored on the virtual machine's directory under `/notebooks`._
 
 You can also try running the docker run command with any other directory. For instance:
 
@@ -99,7 +106,21 @@ $ cd
 $ docker start -i tf
 ```
 
-You should have a new folder "tensorflow" inside your Home directory.  This directory will be empty to begin with.  Please make sure you do everything inside this directory only or else any files you make on your virtual machine WILL BE ERASED once it is shutdown!  When you clone the CADL repository, or expand the zip file downloads contents inside this directory via your Windows machine (it will be in your Home directory under a folder "tensorflow"), then you will be able to access it via your Docker instance.
+Notice that the command prompt will now be `#` instead of `$`.  You should have a new folder "tensorflow" inside your Home directory.  This directory will be empty to begin with.  Please make sure you do everything inside this directory only or else any files you make on your virtual machine WILL BE ERASED once it is shutdown!  When you clone the CADL repository, or expand the zip file downloads contents inside this directory via your Windows machine (it will be in your Home directory under a folder "tensorflow"), then you will be able to access it via your Docker instance.
+
+For instance, after running the `docker start -i tf` command, try going into the directory `/notebooks`:
+
+```shell
+# cd /notebooks
+```
+
+And then git cloning this repo:
+
+```shell
+# git clone https://github.com/pkmital/CADL
+```
+
+Now, inside the directory `/notebooks/CADL`, you will have this entire repo.  Alternatively, you could download a zip file of this repo and use Windows to place it in the directory you noted down before.
 
 <a name="jupyter-notebook"></a>
 ## Jupyter Notebook
@@ -136,7 +157,7 @@ $ ipython3 kernel install
 <a name="windows-docker-containers">
 ### Windows/Docker Containers
 
-For Windows users making use of Docker, or for OSX users that had trouble w/ the pip/Anaconda install, once inside your Docker container as outlined above, you can launch notebook like so:
+For users running firewalls, you must make sure you have an exception as per [Jupyter Notebooks Firewall Instructions](http://jupyter-notebook.readthedocs.io/en/latest/public_server.html#firewall-setup) otherwise you may not be able to interact with the notebook.  Namely, you will need to allow connections from 127.0.0.1 (localhost) on ports from 49152 to 65535.  Once inside your Docker container as outlined above, you can now launch notebook like so:
 
 ```shell
 $ cd /notebooks
