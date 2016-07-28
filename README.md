@@ -106,7 +106,7 @@ You should have a new folder "tensorflow" inside your Home directory.  This dire
 
 ### OSX/Linux
 
-The easiest way to ensure you have Python 3.4 or higher and Jupter Notebook is to install Anaconda for Python 3.5 located here:
+Note: Windows/Docker users should scroll past this section to ["Windows/Docker"](#windows-docker-containers).  For OSX/Linux users, the easiest way to ensure you have Python 3.4 or higher and Jupter Notebook is to install Anaconda for Python 3.5 located here:
 
 [OSX](https://docs.continuum.io/anaconda/install#anaconda-for-os-x-command-line-install) or [Linux](https://docs.continuum.io/anaconda/install#linux-install)
 
@@ -133,6 +133,7 @@ Then please try first running:
 $ ipython3 kernel install
 ```
 
+<a name="windows-docker-containers">
 ### Windows/Docker Containers
 
 For Windows users making use of Docker, or for OSX users that had trouble w/ the pip/Anaconda install, once inside your Docker container as outlined above, you can launch notebook like so:
