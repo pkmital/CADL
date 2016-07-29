@@ -133,6 +133,12 @@ Note: Windows/Docker users should scroll past this section to ["Windows/Docker"]
 
 Make sure you restart your Terminal after you install Anaconda as there are some PATH variables that have to be set.
 
+Then run the following:
+
+```shell
+$ curl https://bootstrap.pypa.io/ez_setup.py -o - | python
+```
+
 If you already have conda, but only have Python 2, you can very easily [add a new environment w/ Python 3](http://conda.pydata.org/docs/py2or3.html#create-a-python-3-5-environment) and switch back and forth as needed.  Or if you do not have Anaconda, but have a system based install, I'd really recommend either using Anaconda or [pyenv](https://github.com/yyuu/pyenv) to help you manage both python installations.
 
 With Anaconda installed, you will have python and the package "ipython[notebook]", along with a ton of other very useful packages such as numpy, matplotlib, scikit-learn, scikit-image, and many others.
