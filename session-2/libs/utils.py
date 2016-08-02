@@ -16,10 +16,12 @@ import os
 
 def imcrop_tosquare(img):
     """Make any image a square image.
+
     Parameters
     ----------
     img : np.ndarray
         Input image to crop, assumed at least 2d.
+
     Returns
     -------
     crop : np.ndarray
@@ -31,6 +33,37 @@ def imcrop_tosquare(img):
     for i in np.flatnonzero(extra):
         crop = np.take(crop, extra[i] // 2 + np.r_[:size], axis=i)
     return crop
+
+
+def slice_montage(montage, img_h, img_w, n_imgs):
+    """Slice a montage image into n_img h x w images.
+
+    Performs the opposite of the montage function.  Takes a montage image and
+    slices it back into a N x H x W x C image.
+
+    Parameters
+    ----------
+    montage : np.ndarray
+        Montage image to slice.
+    img_h : int
+        Height of sliced image
+    img_w : int
+        Width of sliced image
+    n_imgs : int
+        Number of images to slice
+
+    Returns
+    -------
+    sliced : np.ndarray
+        Sliced images as 4d array.
+    """
+    sliced_ds = []
+    for i in range(int(np.sqrt(n_imgs))):
+        for j in range(int(np.sqrt(n_imgs))):
+            sliced_ds.append(montage[
+                1 + i + i * img_h:1 + i + (i + 1) * img_h,
+                1 + j + j * img_w:1 + j + (j + 1) * img_w])
+    return np.array(sliced_ds)
 
 
 def montage(images, saveto='montage.png'):
@@ -76,7 +109,7 @@ def montage(images, saveto='montage.png'):
 
 
 def get_celeb_files():
-    """Downloads the first 100 images of the celeb dataset.
+    """Download the first 100 images of the celeb dataset.
 
     Files will be placed in a directory 'img_align_celeba' if one
     doesn't exist.
@@ -112,7 +145,7 @@ def get_celeb_files():
 
 
 def get_celeb_imgs():
-    """Loads the first 100 images of the celeb dataset.
+    """Load the first 100 images of the celeb dataset.
 
     Returns
     -------
@@ -123,7 +156,7 @@ def get_celeb_imgs():
 
 
 def gauss(mean, stddev, ksize):
-    """Uses Tensorflow to compute a Gaussian Kernel.
+    """Use Tensorflow to compute a Gaussian Kernel.
 
     Parameters
     ----------
@@ -149,7 +182,7 @@ def gauss(mean, stddev, ksize):
 
 
 def gauss2d(mean, stddev, ksize):
-    """Uses Tensorflow to compute a 2D Gaussian Kernel.
+    """Use Tensorflow to compute a 2D Gaussian Kernel.
 
     Parameters
     ----------
@@ -173,7 +206,7 @@ def gauss2d(mean, stddev, ksize):
 
 
 def convolve(img, kernel):
-    """Uses Tensorflow to convolve a 4D image with a 4D kernel.
+    """Use Tensorflow to convolve a 4D image with a 4D kernel.
 
     Parameters
     ----------
@@ -197,7 +230,7 @@ def convolve(img, kernel):
 
 
 def gabor(ksize=32):
-    """Uses Tensorflow to compute a 2D Gabor Kernel.
+    """Use Tensorflow to compute a 2D Gabor Kernel.
 
     Parameters
     ----------
@@ -220,7 +253,7 @@ def gabor(ksize=32):
         return gabor.eval()
 
 
-def build_submission(filename, file_list):
+def build_submission(filename, file_list, optional_file_list=[]):
     """Helper utility to check homework assignment submissions and package them.
 
     Parameters
@@ -232,25 +265,98 @@ def build_submission(filename, file_list):
     """
     # check each file exists
     for part_i, file_i in enumerate(file_list):
-        assert os.path.exists(file_i), \
-            '\nYou are missing the file {}.  '.format(file_i) + \
-            'It does not look like you have completed Part {}.'.format(
-                part_i + 1)
-
-    # great, each file exists
-    print('It looks like you have completed each part!')
+        if not os.path.exists(file_i):
+            print('\nYou are missing the file {}.  '.format(file_i) +
+                  'It does not look like you have completed Part {}.'.format(
+                part_i + 1))
 
     def zipdir(path, zf):
         for root, dirs, files in os.walk(path):
             for file in files:
                 # make sure the files are part of the necessary file list
-                if file.endswith(file_list):
+                if file.endswith(file_list) or file.endswith(optional_file_list):
                     zf.write(os.path.join(root, file))
 
     # create a zip file with the necessary files
     zipf = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
     zipdir('.', zipf)
     zipf.close()
-    print('Great job!!!')
+    print('Your assignment zip file has been created!')
     print('Now submit the file:\n{}\nto Kadenze for grading!'.format(
         os.path.abspath(filename)))
+
+
+def linear(x, n_output, name=None, activation=None, reuse=None):
+    """Fully connected layer.
+
+    Parameters
+    ----------
+    x : tf.Tensor
+        Input tensor to connect
+    n_output : int
+        Number of output neurons
+    name : None, optional
+        Scope to apply
+
+    Returns
+    -------
+    op : tf.Tensor
+        Output of fully connected layer.
+    """
+    if len(x.get_shape()) != 2:
+        x = flatten(x, reuse=reuse)
+
+    n_input = x.get_shape().as_list()[1]
+
+    with tf.variable_scope(name or "fc", reuse=reuse):
+        W = tf.get_variable(
+            name='W',
+            shape=[n_input, n_output],
+            dtype=tf.float32,
+            initializer=tf.contrib.layers.xavier_initializer())
+
+        b = tf.get_variable(
+            name='b',
+            shape=[n_output],
+            dtype=tf.float32,
+            initializer=tf.constant_initializer(0.0))
+
+        h = tf.nn.bias_add(
+            name='h',
+            value=tf.matmul(x, W),
+            bias=b)
+
+        if activation:
+            h = activation(h)
+
+        return h, W
+
+
+def flatten(x, name=None, reuse=None):
+    """Flatten Tensor to 2-dimensions.
+
+    Parameters
+    ----------
+    x : tf.Tensor
+        Input tensor to flatten.
+    name : None, optional
+        Variable scope for flatten operations
+
+    Returns
+    -------
+    flattened : tf.Tensor
+        Flattened tensor.
+    """
+    with tf.variable_scope('flatten'):
+        dims = x.get_shape().as_list()
+        if len(dims) == 4:
+            flattened = tf.reshape(
+                x,
+                shape=[-1, dims[1] * dims[2] * dims[3]])
+        elif len(dims) == 2 or len(dims) == 1:
+            flattened = x
+        else:
+            raise ValueError('Expected n dimensions of 1, 2 or 4.  Found:',
+                             len(dims))
+
+        return flattened
