@@ -56,7 +56,16 @@ def build_gif(imgs, interval=0.1, dpi=72,
         fig, axs, interval=interval, repeat_delay=0, blit=False)
 
     if save_gif:
-        ani.save(saveto, writer='imagemagick', dpi=dpi)
+        try:
+            ani.save(saveto, writer='imagemagick', dpi=dpi)
+        except:
+            print('You do not have imagemagick installed.\n\nOn OSX ' +
+                  'you can install this by first installing homebrew: ' +
+                  'http://brew.sh\nThen run: "brew install imagemagick".\n' +
+                  'Windows users can obtain a binary installation here: ' +
+                  'https://www.imagemagick.org/script/binary-releases.php\n' +
+                  'And Linux users should be able to install imagemagick using ' +
+                  'their package manager, e.g.: sudo apt-get install imagemagick.')
 
     if show_gif:
         plt.show()
