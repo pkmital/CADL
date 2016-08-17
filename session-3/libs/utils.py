@@ -369,7 +369,7 @@ def gabor(ksize=32):
         return gabor.eval()
 
 
-def build_submission(filename, file_list, optional_file_list=[]):
+def build_submission(filename, file_list, optional_file_list=()):
     """Helper utility to check homework assignment submissions and package them.
 
     Parameters
