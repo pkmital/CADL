@@ -12,9 +12,9 @@ This repository contains homework assignments for the <a href="https://www.kaden
 | --- | --- | --- |
 |Installation| **[Installation](#installation-preliminaries)** | Setting up Python/Notebook and necessary Libraries. |
 |Preliminaries| **[Preliminaries with Python](session-0)** | Basics of working with Python and images. |
-|1| **[Creating a dataset/Computing with Tensorflow](session-1)** | Working with a small dataset of images.  Dataset preprocessing.  Tensorflow basics.  Sorting/organizing a dataset. |
-|2| **[Training a network/Teaching a network to paint](session-2)** | Learn how to create a Neural Network.  Learn to use a neural network to paint an image.  Apply creative thinking to the inputs, outputs, and definition of a network. |
-|3| **[TBA](session-3)** | TBA. |
+|1| **[Computing with Tensorflow](session-1)** | Working with a small dataset of images.  Dataset preprocessing.  Tensorflow basics.  Sorting/organizing a dataset. |
+|2| **[Basics of Neural Networks](session-2)** | Learn how to create a Neural Network.  Learn to use a neural network to paint an image.  Apply creative thinking to the inputs, outputs, and definition of a network. |
+|3| **[Unsupervised and Supervised Learning](session-3)** | Build an autoencoder.  Extend it with convolution, denoising, and variational layers.  Build a deep classification network.  Apply softmax and onehot encodings to classify audio using a Deep Convolutional Network. |
 |4| **[TBA](session-4)** | TBA. |
 |5| **[TBA](session-5)** | TBA. |
 
