@@ -24,9 +24,9 @@ def VAE(input_shape=[None, 784],
         convolutional=False,
         variational=False):
     """(Variational) (Convolutional) (Denoising) Autoencoder.
-    
+
     Uses tied weights.
-    
+
     Parameters
     ----------
     input_shape : list, optional
@@ -73,7 +73,7 @@ def VAE(input_shape=[None, 784],
         layer, then another fully connected layer.  The size of the fully
         connected layers are determined by `n_hidden`, and the size of the
         sampling layer is determined by `n_code`.
-    
+
     Returns
     -------
     model : dict
@@ -245,9 +245,9 @@ def train_vae(files,
               save_step=100,
               ckpt_name="vae.ckpt"):
     """General purpose training of a (Variational) (Convolutional) Autoencoder.
-    
+
     Supply a list of file paths to images, and this will do everything else.
-    
+
     Parameters
     ----------
     files : list of strings
@@ -351,14 +351,18 @@ def train_vae(files,
     test_xs = sess.run(batch) / 255.0
     utils.montage(test_xs, 'test_xs.png')
     try:
-        while not coord.should_stop():
+        while not coord.should_stop() and epoch_i < n_epochs:
             batch_i += 1
             batch_xs = sess.run(batch) / 255.0
             train_cost = sess.run([ae['cost'], optimizer], feed_dict={
                 ae['x']: batch_xs, ae['train']: True,
                 ae['keep_prob']: keep_prob})[0]
+            print(batch_i, train_cost)
             cost += train_cost
             if batch_i % n_files == 0:
+                print('epoch:', epoch_i)
+                print('average cost:', cost / batch_i)
+                cost = 0
                 batch_i = 0
                 epoch_i += 1
 
@@ -377,6 +381,8 @@ def train_vae(files,
                     ae['y'], feed_dict={ae['x']: test_xs,
                                         ae['train']: False,
                                         ae['keep_prob']: 1.0})
+                print('reconstruction (min, max, mean):',
+                    recon.min(), recon.max(), recon.mean())
                 utils.montage(recon.reshape([-1] + crop_shape),
                               'reconstruction_%08d.png' % t_i)
                 t_i += 1
@@ -403,7 +409,7 @@ def train_vae(files,
 # %%
 def test_mnist():
     """Train an autoencoder on MNIST.
-    
+
     This function will train an autoencoder on MNIST and also
     save many image files during the training process, demonstrating
     the latent space of the inner most dimension of the encoder,
@@ -412,7 +418,7 @@ def test_mnist():
 
     # load MNIST
     n_code = 2
-    mnist = MNIST()
+    mnist = MNIST(split=[0.8, 0.1, 0.1])
     ae = VAE(input_shape=[None, 784], n_filters=[512, 256],
              n_hidden=64, n_code=n_code, activation=tf.nn.sigmoid,
              convolutional=False, variational=True)
@@ -438,6 +444,7 @@ def test_mnist():
     test_xs = mnist.test.images[:n_examples]
     utils.montage(test_xs.reshape((-1, 28, 28)), 'test_xs.png')
     for epoch_i in range(n_epochs):
+        train_i = 0
         train_cost = 0
         for batch_xs, _ in mnist.train.next_batch(batch_size):
             train_cost += sess.run([ae['cost'], optimizer], feed_dict={
@@ -449,21 +456,24 @@ def test_mnist():
                         ae['z']: zs,
                         ae['train']: False,
                         ae['keep_prob']: 1.0})
-                utils.montage(recon.reshape(
-                    (-1, 28, 28)), 'manifold_%08d.png' % t_i)
+                m = utils.montage(recon.reshape((-1, 28, 28)),
+                    'manifold_%08d.png' % t_i)
                 # Plot example reconstructions
                 recon = sess.run(
                     ae['y'], feed_dict={ae['x']: test_xs,
                                         ae['train']: False,
                                         ae['keep_prob']: 1.0})
-                utils.montage(recon.reshape(
+                m = utils.montage(recon.reshape(
                     (-1, 28, 28)), 'reconstruction_%08d.png' % t_i)
                 t_i += 1
             batch_i += 1
+
+        valid_i = 0
         valid_cost = 0
         for batch_xs, _ in mnist.valid.next_batch(batch_size):
             valid_cost += sess.run([ae['cost']], feed_dict={
                 ae['x']: batch_xs, ae['train']: False, ae['keep_prob']: 1.0})[0]
+        print('train:', train_cost / train_i, 'valid:', valid_cost / valid_i)
 
 
 def test_celeb():
