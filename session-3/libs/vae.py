@@ -357,8 +357,12 @@ def train_vae(files,
             train_cost = sess.run([ae['cost'], optimizer], feed_dict={
                 ae['x']: batch_xs, ae['train']: True,
                 ae['keep_prob']: keep_prob})[0]
+            print(batch_i, train_cost)
             cost += train_cost
             if batch_i % n_files == 0:
+                print('epoch:', epoch_i)
+                print('average cost:', cost / batch_i)
+                cost = 0
                 batch_i = 0
                 epoch_i += 1
 
@@ -377,6 +381,8 @@ def train_vae(files,
                     ae['y'], feed_dict={ae['x']: test_xs,
                                         ae['train']: False,
                                         ae['keep_prob']: 1.0})
+                print('reconstruction (min, max, mean):',
+                    recon.min(), recon.max(), recon.mean())
                 utils.montage(recon.reshape([-1] + crop_shape),
                               'reconstruction_%08d.png' % t_i)
                 t_i += 1
