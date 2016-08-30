@@ -46,7 +46,7 @@ def create_input_pipeline(files, batch_size, n_epochs, shape, crop_shape=None,
     # It will generate the list of file names.
     # We also specify it's capacity beforehand.
     producer = tf.train.string_input_producer(
-        files, capacity=len(files), num_epochs=n_epochs)
+        files, capacity=len(files))
 
     # We need something which can open the files and read its contents.
     reader = tf.WholeFileReader()
