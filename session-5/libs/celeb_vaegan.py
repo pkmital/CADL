@@ -5,9 +5,9 @@ Copyright Parag K. Mital, June 2016.
 """
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.platform import gfile
 from .utils import download
 from skimage.transform import resize as imresize
-from libs import vaegan as V
 
 
 def celeb_vaegan_download():
@@ -26,10 +26,9 @@ def celeb_vaegan_download():
     # path1 = download('https://s3.amazonaws.com/cadl/models/celeb_vaegan.tfmodel')
 
     # Load the checkpoint
-    path1 = download('https://s3.amazonaws.com/cadl/models/celeb_vaegan.ckpt')
-    path2 = download('https://s3.amazonaws.com/cadl/models/celeb_vaegan.meta')
-    path3 = download('https://s3.amazonaws.com/cadl/celeb-align/list_attr_celeba.txt')
-    return path1, path2, path3
+    model = download('https://s3.amazonaws.com/cadl/models/celeb.vaegan.tfmodel')
+    labels = download('https://s3.amazonaws.com/cadl/celeb-align/list_attr_celeba.txt')
+    return model, labels
 
 
 def get_celeb_vaegan_model():
@@ -50,7 +49,7 @@ def get_celeb_vaegan_model():
         map an integer label from 0-1000 to a list of names
     """
     # Download the trained net
-    model, meta, labels = celeb_vaegan_download()
+    model, labels = celeb_vaegan_download()
 
     # Parse the ids and synsets
     txt = open(labels).readlines()
@@ -61,12 +60,24 @@ def get_celeb_vaegan_model():
     for i, txt_i in enumerate(txt[2:]):
         attributes[i] = (np.array(txt_i.strip().split()[1:]).astype(int) > 0)
 
-    return {
-        'meta': meta,
-        'model': model,
+    # Load the saved graph
+    with gfile.GFile(model, 'rb') as f:
+        graph_def = tf.GraphDef()
+        try:
+            graph_def.ParseFromString(f.read())
+        except:
+            print('try adding PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python' +
+                  'to environment.  e.g.:\n' +
+                  'PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python ipython\n' +
+                  'See here for info: ' +
+                  'https://github.com/tensorflow/tensorflow/issues/582')
+    net = {
+        'graph_def': graph_def,
         'labels': labels,
-        'attributes': attributes
+        'attributes': attributes,
+        'preprocess': preprocess,
     }
+    return net
 
 
 def preprocess(img, crop_factor=0.8):

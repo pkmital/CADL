@@ -654,7 +654,7 @@ def test_celeb():
         input_shape=[218, 178, 3],
         convolutional=True,
         variational=True,
-        n_filters=[128, 192, 256, 384, 512],
+        n_filters=[256, 384, 512, 1024, 2048],
         n_hidden=None,
         n_code=512,
         filter_sizes=[3, 3, 3, 3, 3],
