@@ -42,7 +42,7 @@ This github contains lecture transcripts from the Kadenze videos and homeworks c
 |2| **[Basics of Neural Networks](session-2)** | Learn how to create a Neural Network.  Learn to use a neural network to paint an image.  Apply creative thinking to the inputs, outputs, and definition of a network. |
 |3| **[Unsupervised and Supervised Learning](session-3)** | Build an autoencoder.  Extend it with convolution, denoising, and variational layers.  Build a deep classification network.  Apply softmax and onehot encodings to classify audio using a Deep Convolutional Network. |
 |4| **[Visualizing Representations](session-4)** | Visualize backpropped gradients, use them to create Deep Dream, extend Deep Dream w/ regularization.  Stylize images or synthesize new images with painterly or hallucinated aesthetics of another image. |
-|5| **[TBA](session-5)** | TBA. |
+|5| **[Generative Models](session-5)** | Build a Generative Adversarial Network and extend it with a Variational Autoencoder.  Use the latent space of this network to perform latent arithmetic.  Build a character level Recurrent Neural Network using LSTMs.  Understand different ways of inferring with Recurrent Networks.  |
 
 <a name="installation-preliminaries"></a>
 # Installation Preliminaries
