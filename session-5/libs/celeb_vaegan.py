@@ -11,42 +11,31 @@ from skimage.transform import resize as imresize
 
 
 def celeb_vaegan_download():
-    """Download a pretrained inception network.
+    """Download a pretrained celeb vae/gan network."""
 
-    Parameters
-    ----------
-    data_dir : str, optional
-        Location of the pretrained inception network download.
-    version : str, optional
-        Version of the model: ['v3'] or 'v5'.
-    """
-    # For some reason, models w/ batch norm aren't working w/ tensorflow
-    # right now.  A few bug tickets still open for this.  We'll have to
-    # use the trainable checkpoint instead.
-    # path1 = download('https://s3.amazonaws.com/cadl/models/celeb_vaegan.tfmodel')
-
-    # Load the checkpoint
+    # Load the model and labels
     model = download('https://s3.amazonaws.com/cadl/models/celeb.vaegan.tfmodel')
     labels = download('https://s3.amazonaws.com/cadl/celeb-align/list_attr_celeba.txt')
     return model, labels
 
 
 def get_celeb_vaegan_model():
-    """Get a pretrained model  network.
-
-    Parameters
-    ----------
-    data_dir : str, optional
-        Location of the pretrained inception network download.
-    version : str, optional
-        Version of the model: ['v3'] or 'v5'.
+    """Get a pretrained model.
 
     Returns
     -------
     net : dict
-        {'graph_def': graph_def, 'labels': synsets}
-        where the graph_def is a tf.GraphDef and the synsets
-        map an integer label from 0-1000 to a list of names
+        {
+            'graph_def': tf.GraphDef
+                The graph definition
+            'labels': list
+                List of different possible attributes from celeb
+            'attributes': np.ndarray
+                One hot encoding of the attributes per image
+                [n_els x n_labels]
+            'preprocess': function
+                Preprocess function
+        }
     """
     # Download the trained net
     model, labels = celeb_vaegan_download()
