@@ -137,18 +137,27 @@ def train(txt, batch_size=100, sequence_length=150, n_cells=100, n_layers=3,
             if (it_i + 1) % print_step == 0:
                 p = sess.run(model['probs'], feed_dict={
                     model['X']: np.array(Xs[-1])[np.newaxis], model['keep_prob']: 1.0})
-                ps = [np.random.choice(range(model['vocab_size']), p=p_i.ravel())
-                      for p_i in p]
-                p = [np.argmax(p_i) for p_i in p]
+                print(p.shape, 'min:', np.min(p), 'max:', np.max(p),
+                      'mean:', np.mean(p), 'std:', np.std(p))
                 if isinstance(txt[0], str):
+                    # Print original string
                     print('original:', "".join(
                         [model['decoder'][ch] for ch in Xs[-1]]))
-                    print('synth(samp):', "".join(
-                        [model['decoder'][ch] for ch in ps]))
-                    print('synth(amax):', "".join(
-                        [model['decoder'][ch] for ch in p]))
-                else:
-                    print([model['decoder'][ch] for ch in ps])
+
+                    # Print max guess
+                    amax = []
+                    for p_i in p:
+                        amax.append(model['decoder'][np.argmax(p_i)])
+                    print('synth(amax):', "".join(amax))
+
+                    # Print w/ sampling
+                    samp = []
+                    for p_i in p:
+                        p_i = p_i.astype(np.float64)
+                        p_i = p_i / p_i.sum()
+                        idx = np.argmax(np.random.multinomial(1, p_i.ravel()))
+                        samp.append(model['decoder'][idx])
+                    print('synth(samp):', "".join(samp))
 
                 print(it_i, avg_cost / print_step)
                 avg_cost = 0
@@ -250,4 +259,4 @@ def test_wtc():
 
 
 if __name__ == '__main__':
-    test_trump()
+    test_alice()
