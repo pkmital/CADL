@@ -91,10 +91,13 @@ def get_celeb_files():
         os.mkdir('img_align_celeba')
 
     # Now perform the following 100 times:
-    for img_i in range(1, 100):
+    for img_i in range(1, 101):
 
         # create a string using the current loop counter
         f = '000%03d.jpg' % img_i
+        
+        if os.path.exists('img_align_celeba/'+f):
+            continue
 
         # and get the url with that string appended the end
         url = 'https://s3.amazonaws.com/cadl/celeb-align/' + f
