@@ -13,21 +13,19 @@ This course introduces you to deep learning: the state-of-the-art approach to bu
 
 # Schedule
 
-Course runs July 21, 2016 - December 31, 2016
-
-## Session 1: Introduction To Tensorflow (July 21, 2016)
+## Session 1: Introduction To Tensorflow
 We'll cover the importance of data with machine and deep learning algorithms, the basics of creating a dataset, how to preprocess datasets, then jump into Tensorflow, a library for creating computational graphs built by Google Research. We'll learn the basic components of Tensorflow and see how to use it to filter images.
 
-## Session 2: Training A Network W/ Tensorflow (August 2, 2016)
+## Session 2: Training A Network W/ Tensorflow
 We'll see how neural networks work, how they are "trained", and see the basic components of training a neural network. We'll then build our first neural network and use it for a fun application of teaching a neural network how to paint an image, and explore such a network can be extended to produce different aesthetics.
 
-## Session 3: Unsupervised And Supervised Learning (August 18, 2016)
+## Session 3: Unsupervised And Supervised Learning
 We explore deep neural networks capable of encoding a large dataset, and see how we can use this encoding to explore "latent" dimensions of a dataset or for generating entirely new content. We'll see what this means, how "autoencoders" can be built, and learn a lot of state-of-the-art extensions that make them incredibly powerful. We'll also learn about another type of model that performs discriminative learning and see how this can be used to predict labels of an image.
 
-## Session 4: Visualizing And Hallucinating Representations (August 30, 2016)
+## Session 4: Visualizing And Hallucinating Representations
 This sessions works with state of the art networks and sees how to understand what "representations" they learn. We'll see how this process actually allows us to perform some really fun visualizations including "Deep Dream" which can produce infinite generative fractals, or "Style Net" which allows us to combine the content of one image and the style of another to produce widely different painterly aesthetics automatically.
 
-## Session 5: Generative Models (September 13, 2016)
+## Session 5: Generative Models
 The last session offers a teaser into some of the future directions of generative modeling, including some state of the art models such as the "generative adversarial network", and its implementation within a "variational autoencoder", which allows for some of the best encodings and generative modeling of datasets that currently exist. We also see how to begin to model time, and give neural networks memory by creating "recurrent neural networks" and see how to use such networks to create entirely generative text.
 
 # Github Contents Overview
@@ -104,7 +102,7 @@ $ echo /$(pwd)/tensorflow
 Now run the following command, which will download about ~530 MB containing everything we need to run tensorflow, python, and jupyter notebook (again, ignore the "$" at the beginning of the line only)!
 
 ```shell
-$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tf.0.9.0-py.3.4
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tensorflow-python3-jupyter
 ```
 
 What this is doing is first creating a directory called tensorflow in the home directory, wherever that may be for your computer.  The echo command that we just ran, and I asked you note down, is showing you exactly where that directory is.  So on your Windows machine, you will want to put files inside this directory only when coding w/ Tensorflow.  We will use Docker to mirror that directory on a virutal machine which has everything necessary for us to code in Python and Tensorflow.  _Whatever is in that directory will be mirrored on the virtual machine's directory under `/notebooks`._
@@ -112,7 +110,7 @@ What this is doing is first creating a directory called tensorflow in the home d
 You can also try running the docker run command with any other directory. For instance:
 
 ```shell
-$ docker run -it -p 8888:8888 -p 6006:6006 -v /Users/YOURUSERNAME/Desktop:/notebooks --name tf pkmital/tf.0.9.0-py.3.4
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /Users/YOURUSERNAME/Desktop:/notebooks --name tf pkmital/tensorflow-python3-jupyter
 ```
 
 Which would mean that your Desktop is where you can move files around so that on the virtual machine, you can interact with them under the `/notebooks`directory.
@@ -120,7 +118,7 @@ Which would mean that your Desktop is where you can move files around so that on
 For OSX users, if you are installing Docker because you had installation problems using Anaconda and pip, you would instead write the following command:
 
 ```shell
-$ docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/Desktop/tensorflow:/notebooks --name tf pkmital/tf.0.9.0-py.3.4
+$ docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/Desktop/tensorflow:/notebooks --name tf pkmital/tensorflow-python3-jupyter
 ```
 
 This command will download everything you need to run Tensorflow on your virtual machine.
@@ -200,7 +198,7 @@ $ jupyter notebook &
 
 Note on Virtual versus Windows Directories:
 
-This is tricky to grasp, mostly because I didn't explain it. Docker is "virtual" computer running inside your computer. It has its own filesystem and its own directories. So you can't reference your Windows machine's directories inside this machine. When you first ran docker (e.g. `$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tf.0.9.0-py.3.4`) it included as part of its command: `-v /$(pwd)/tensorflow:/notebooks`. What that was doing is "mirroring" a directory on your Windows machine inside your Virtual machine. So whatever was in your Windows machine under the directory `/$(pwd)/tensorflow` would appear in the Virtual machine under `/notebooks`. That Windows directory is likely `/Users/<YOURUSERNAME>/tensorflow`. So _ONLY_ inside that directory, create it if it doesn't exist, should you put files in order to access it on the Virtual machine.
+This is tricky to grasp, mostly because I didn't explain it. Docker is "virtual" computer running inside your computer. It has its own filesystem and its own directories. So you can't reference your Windows machine's directories inside this machine. When you first ran docker (e.g. `$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tensorflow-python3-jupyter`) it included as part of its command: `-v /$(pwd)/tensorflow:/notebooks`. What that was doing is "mirroring" a directory on your Windows machine inside your Virtual machine. So whatever was in your Windows machine under the directory `/$(pwd)/tensorflow` would appear in the Virtual machine under `/notebooks`. That Windows directory is likely `/Users/<YOURUSERNAME>/tensorflow`. So _ONLY_ inside that directory, create it if it doesn't exist, should you put files in order to access it on the Virtual machine.
 
 So let's say your Username was "pkmital". Then your home directory would be `/Users/pkmital`, and you would have mirrored `/Users/pkmital/tensorflow` on your Windows Machine to the Virtual machine under `/notebook`. Now let's say I create a directory `/Users/pkmital/tensorflow/images` on my Windows Machine, and then put a bunch of png files in there. I will then see them in my Virtual machine under `/notebook/images`.  If I put the CADL repository inside `/Users/pkmital/tensorflow`, then I should have `/Users/pkmital/tensorflow/CADL/session-1/session-1.ipynb` and on the Virtual machine, it will be in `/notebooks/CADL/session-1/session-1.ipynb` - From this notebook, running on the virtual machine, accessed with Jupyter Notebook, I would access my images like so:
 
@@ -274,19 +272,19 @@ This should get you all of the libraries we need for the course, EXCEPT for tens
 ### Ubuntu/Linux 64-bit for Python 3.4
 
 ```shell
-$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp34-cp34m-linux_x86_64.whl
+$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0rc1-cp34-cp34m-linux_x86_64.whl
 ```
 
 ### Ubuntu/Linux 64-bit for Python 3.5
 
 ```shell
-$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp35-cp35m-linux_x86_64.whl
+$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0rc1-cp35-cp35m-linux_x86_64.whl
 ```
 
 ### OSX for Python 3.4 or Python 3.5
 
 ```shell
-$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/mac/tensorflow-0.9.0-py3-none-any.whl
+$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/mac/tensorflow-0.11.0rc1-py3-none-any.whl
 ```
 
 ### Other Linux/OSX varieties
@@ -312,7 +310,7 @@ To confirm it worked, try running:
 $ python3 -c 'import tensorflow as tf; print(tf.__version__)'
 ```
 
-You should see 0.9.0 be printed.
+You should see 0.9.0 or 0.10.0 or 0.11.0rc1 printed, depending on which version you have installed.
 
 <a name="troubleshooting"></a>
 ## Troubleshooting
