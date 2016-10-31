@@ -284,7 +284,7 @@ $ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/ten
 ### OSX for Python 3.4 or Python 3.5
 
 ```shell
-$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/mac/tensorflow-0.11.0rc1-py3-none-any.whl
+$ pip3 install --upgrade https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-0.11.0rc1-py3-none-any.whl
 ```
 
 ### Other Linux/OSX varieties
