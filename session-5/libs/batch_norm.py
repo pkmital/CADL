@@ -3,7 +3,7 @@ Parag K. Mital, Jan 2016.
 """
 
 import tensorflow as tf
-from tensorflow.python import control_flow_ops
+from tensorflow.python.ops import control_flow_ops
 
 
 def batch_norm(x, phase_train, name='bn', decay=0.9, reuse=None,
