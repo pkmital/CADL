@@ -32,15 +32,15 @@ The last session offers a teaser into some of the future directions of generativ
 
 This github contains lecture transcripts from the Kadenze videos and homeworks contained in Jupyter Notebooks in the following folders:
 
-| | Session | Description |
-| --- | --- | --- |
-|Installation| **[Installation](#installation-preliminaries)** | Setting up Python/Notebook and necessary Libraries. |
-|Preliminaries| **[Preliminaries with Python](session-0)** | Basics of working with Python and images. |
-|1| **[Computing with Tensorflow](session-1)** | Working with a small dataset of images.  Dataset preprocessing.  Tensorflow basics.  Sorting/organizing a dataset. |
-|2| **[Basics of Neural Networks](session-2)** | Learn how to create a Neural Network.  Learn to use a neural network to paint an image.  Apply creative thinking to the inputs, outputs, and definition of a network. |
-|3| **[Unsupervised and Supervised Learning](session-3)** | Build an autoencoder.  Extend it with convolution, denoising, and variational layers.  Build a deep classification network.  Apply softmax and onehot encodings to classify audio using a Deep Convolutional Network. |
-|4| **[Visualizing Representations](session-4)** | Visualize backpropped gradients, use them to create Deep Dream, extend Deep Dream w/ regularization.  Stylize images or synthesize new images with painterly or hallucinated aesthetics of another image. |
-|5| **[Generative Models](session-5)** | Build a Generative Adversarial Network and extend it with a Variational Autoencoder.  Use the latent space of this network to perform latent arithmetic.  Build a character level Recurrent Neural Network using LSTMs.  Understand different ways of inferring with Recurrent Networks.  |
+| | Session | Description | Transcript | Homework |
+| --- | --- | --- | --- | --- |
+|Installation| **[Installation](#installation-preliminaries)** | Setting up Python/Notebook and necessary Libraries. | N/A | N/A |
+|Preliminaries| **[Preliminaries with Python](session-0)** | Basics of working with Python and images. | N/A | N/A |
+|1| **[Computing with Tensorflow](session-1)** | Working with a small dataset of images.  Dataset preprocessing.  Tensorflow basics.  Sorting/organizing a dataset. | [lecture-1.ipynb](session-1/lecture-1.ipynb) | [session-1.ipynb](session-1/session-1.ipynb) |
+|2| **[Basics of Neural Networks](session-2)** | Learn how to create a Neural Network.  Learn to use a neural network to paint an image.  Apply creative thinking to the inputs, outputs, and definition of a network. | [lecture-2.ipynb](session-2/lecture-2.ipynb) | [session-2.ipynb](session-2/session-2.ipynb) |
+|3| **[Unsupervised and Supervised Learning](session-3)** | Build an autoencoder.  Extend it with convolution, denoising, and variational layers.  Build a deep classification network.  Apply softmax and onehot encodings to classify audio using a Deep Convolutional Network. | [lecture-3.ipynb](session-3/lecture-3.ipynb) | [session-3.ipynb](session-3/session-3.ipynb) |
+|4| **[Visualizing Representations](session-4)** | Visualize backpropped gradients, use them to create Deep Dream, extend Deep Dream w/ regularization.  Stylize images or synthesize new images with painterly or hallucinated aesthetics of another image. | [lecture-4.ipynb](session-4/lecture-4.ipynb) | [session-4.ipynb](session-4/session-4.ipynb) |
+|5| **[Generative Models](session-5)** | Build a Generative Adversarial Network and extend it with a Variational Autoencoder.  Use the latent space of this network to perform latent arithmetic.  Build a character level Recurrent Neural Network using LSTMs.  Understand different ways of inferring with Recurrent Networks.  | [lecture-5.ipynb](session-5/lecture-5.ipynb) | [session-5-part-1.ipynb](session-5/session-5-part-1.ipynb), [session-5-part-2.ipynb](session-5/session-5-part-2.ipynb) |
 
 <a name="installation-preliminaries"></a>
 # Installation Preliminaries
