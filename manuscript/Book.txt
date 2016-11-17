@@ -1,4 +1,0 @@
-lecture-1.md
-lecture-2.md
-lecture-3.md
-lecture-4.md
