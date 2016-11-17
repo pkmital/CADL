@@ -233,7 +233,11 @@ z_2d = tf.matmul(tf.reshape(z, [ksize, 1]), tf.reshape(z, [1, ksize]))
 <a name="activation-function"></a>
 # Activation Function
 
-The activation function, also known as the non-linearity, describes the non-linear operation in a Neural Network.  Neural Networks gain the power to describe very complex functions by performing series of linear + nonlinear operations.  Typical activation functions include the [sigmoid](#sigmoid), [TanH](#tanh), or [ReLu](#relu).
+The activation function, also known as the non-linearity, describes the non-linear operation in a Neural Network.  Neural Networks gain the power to describe very complex functions by performing series of linear + nonlinear operations.  These two series of operations, linear followed by a nonlinear operation, are typically grouped together in a single layer, and a neural network is composed of many layers.  Typical activation functions include the [sigmoid](#sigmoid), [TanH](#tanh), or [ReLu](#relu), as shown below:
+
+![imgs/activation.png](imgs/activation.png)
+
+This graph depicts three activation functions.  Any value on the x, horizontal axis, is transformed by the value on the y, vertical axis.
 
 <a name="accuracy"></a>
 # Accuracy
@@ -444,6 +448,8 @@ Deep Learning is a type of Machine Learning algorithm that uses Neural Networks 
 <a name="gabor"></a>
 # Gabor
 
+![imgs/gabor.png](imgs/gabor.png)
+
 <a name="gan"></a>
 # GAN
 
@@ -467,6 +473,8 @@ Deep Learning is a type of Machine Learning algorithm that uses Neural Networks 
 
 <a name="gradient-descent"></a>
 # Gradient Descent
+
+![imgs/gradient-descent.png](imgs/gradient-descent.png)
 
 <a name="graph-definition"></a>
 # Graph Definition
@@ -541,6 +549,8 @@ We usually describe the factors which represent something "invariances". That ju
 
 <a name="learning-rate"></a>
 # Learning Rate
+
+![imgs/learning-rate.png](imgs/learning-rate.png)
 
 <a name="linear-regression"></a>
 # Linear Regression
