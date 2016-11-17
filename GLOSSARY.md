@@ -28,6 +28,7 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 - [Char-RNN](#char-rnn)
 - [Character Language Model](#character-language-model)
 - [Checkpoint](#checkpoint)
+- [Classification](#classification)
 - [Classification Network](#classification-network)
 - [Clip](#clip)
 - [Complex Cell](#complex-cell)
@@ -242,6 +243,19 @@ This graph depicts three activation functions.  Any value on the x, horizontal a
 <a name="accuracy"></a>
 # Accuracy
 
+In [classification](#classification) tasks, the accuracy describes how well a network does at predicting the correct class.
+
+In Tensorflow, we might calculate it like so, assuming we have the true output of the network in `Y`, and a predicted output in `Y_pred`:
+
+```python
+predicted_y = tf.argmax(Y_pred, 1)
+actual_y = tf.argmax(Y, 1)
+
+# We can then measure the accuracy by seeing whenever these are equal.
+correct_prediction = tf.equal(predicted_y, actual_y)
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+```
+
 <a name="adversarial-network"></a>
 # Adversarial Network
 
@@ -307,6 +321,9 @@ Celeb Dataset describes a dataset of over 200,000 images of celebrity faces: htt
 
 <a name="checkpoint"></a>
 # Checkpoint
+
+<a name="classification"></a>
+# Classification
 
 <a name="classification-network"></a>
 # Classification Network
