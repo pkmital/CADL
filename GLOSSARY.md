@@ -6,7 +6,7 @@
 - [2-D Gaussian Kernel](#2-d-gaussian-kernel)
 - [Activation Function](#activation-function)
 - [Autoencoders](#autoencoders)
-- [Backpropagation](#backpropagation)
+- [Back-propagation](#back-propagation)
 - [Batch Dimension](#batch-dimension)
 - [Batch Normalization](#batch-normalization)
 - [Batches](#batches)
@@ -100,8 +100,10 @@
 - [Recurrent Neural Networks](#recurrent-neural-networks)
 - [Regression](#regression)
 - [Reinforcement Learning](#reinforcement-learning)
+- [ReLu](#relu)
 - [RNN](#rnn)
 - [Sessions](#sessions)
+- [Sigmoid](#sigmoid)
 - [Softmax Layer](#softmax-layer)
 - [Standard Deviation](#standard-deviation)
 - [Stochastic](#stochastic)
@@ -109,6 +111,7 @@
 - [Style Loss](#style-loss)
 - [Style Net](#style-net)
 - [Supervised Learning](#supervised-learning)
+- [TanH](#tanh)
 - [Temperature](#temperature)
 - [Tensor](#tensor)
 - [Tensor Shapes](#tensor-shapes)
@@ -138,27 +141,33 @@
 <a name="1x1-convolutions"></a>
 # 1x1 Convolutions
 
-This defines an operation where the height and width of the kernel of a convolution operation are set to 1.  This is useful because the depth dimension of the convolution operation can still be used to reduce the dimensionality (or increase it).  So for instance, if we have batch number of 100 x 100 images w/ 3 color channels, we can define a 1x1 convolution which reduces the 3 color channels to just 1 channel of information.  This is often applied before a much more expensive operation to reduce the number of overall parameters.
+This defines an operation where the height and width of the kernel of a [convolution](#convolution) operation are set to 1.  This is useful because the depth dimension of the convolution operation can still be used to reduce the dimensionality (or increase it).  So for instance, if we have batch number of 100 x 100 images w/ 3 color channels, we can define a 1x1 convolution which reduces the 3 color channels to just 1 channel of information.  This is often applied before a much more expensive operation to reduce the number of overall parameters.
 
 <a name="2-d-gaussian-kernel"></a>
 # 2-D Gaussian Kernel
 
 A Gaussian Kernel in 2-dimensions has its peak in the middle and curves outwards.  The image below depicts a 1-dimensional Gaussian.
 
-![imgs/1d-gaussian.png](1d-gaussian)
+![imgs/1d-gaussian.png](imgs/1d-gaussian)
 
 When matrix multiplied with the transpose of itself, the 1-d Gaussian can be depicted in 2-dimensions as such:
 
-![imgs/2d-gaussian.png](2d-gaussian)
+![imgs/2d-gaussian.png](imgs/2d-gaussian)
 
 <a name="activation-function"></a>
 # Activation Function
 
+The activation function, also known as the non-linearity, or sometimes transfer function, describes the non-linear operation in a Neural Network.  Typical activation functions include the [sigmoid](#sigmoid), [TanH](#tanh), or [ReLu](#relu).
+
 <a name="autoencoders"></a>
 # Autoencoders
 
-<a name="backpropagation"></a>
-# Backpropagation
+An autoencoder describes a network which [encodes](#encoder) its input to some [latent encoding](#latent-encoding) layer of smaller dimensions, and then [decodes](#decoder) this [latent layer](#latent-layer) back to the original input space dimensions.  The purpose of such a network is usually to compress the information in a large dataset such that the inner most, or the layer just following the encoder, is capable of retaining as much of the information necessary to reconstitute the original dataset.  For instance, an image of 256 x 256 x 3 dimensions may be encoded to merely 2 values describing any image's latent encoding. The decoder is then capable of taking these 2 values and creating an image resembling the original image, depending on how well the network is trained/performs.
+
+<a name="back-propagation"></a>
+# Back-propagation
+
+This describes the process of the backwards propagation of the training signal, or error, from a neural network, to each of the gradients in a network using the [chain rule of calculus](https://en.wikipedia.org/wiki/Chain_rule).  This process is used with an optimization technique such as Gradient Descent.
 
 <a name="batch-dimension"></a>
 # Batch Dimension
@@ -443,11 +452,17 @@ We usually describe the factors which represent something "invariances". That ju
 <a name="reinforcement-learning"></a>
 # Reinforcement Learning
 
+<a name="relu"></a>
+# ReLu
+
 <a name="rnn"></a>
 # RNN
 
 <a name="sessions"></a>
 # Sessions
+
+<a name="sigmoid"></a>
+# Sigmoid
 
 <a name="softmax-layer"></a>
 # Softmax Layer
@@ -469,6 +484,9 @@ We usually describe the factors which represent something "invariances". That ju
 
 <a name="supervised-learning"></a>
 # Supervised Learning
+
+<a name="tanh"></a>
+# TanH
 
 <a name="temperature"></a>
 # Temperature
