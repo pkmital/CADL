@@ -76,20 +76,16 @@ https://www.docker.com/products/docker-toolbox
 
 With this installed, you'll then need to run the "Docker Quickstart Terminal" which will launch a Terminal environment running on a virtual Linux machine on your computer. A virtual machine is basically an emulation of another machine. This is important because we'll use this machine to run Linux and install all of the necessary libraries for running Tensorflow.
 
-Note, if you have trouble launching the Docker Quickstart Terminal because you have "Hyper-V", try one of the following, as suggested by Danilo Gasques:
+Note, if you have trouble launching the Docker Quickstart Terminal because you have "Hyper-V", please instead try using https://docs.docker.com/docker-for-windows/.  Then launch the newly installed "Docker CLI" program.
 
-1) [Setting up a Windows boot option to run without Hyper-V](http://www.hanselman.com/blog/SwitchEasilyBetweenVirtualBoxAndHyperVWithABCDEditBootEntryInWindows81.aspx)
-
-2) [Running Docker on Windows with Hyper-V installed](http://jayvilalta.com/blog/2016/04/28/installing-docker-toolbox-on-windows-with-hyper-v-installed/)
-
-Once the Docker Quickstart Terminal is launched, run the following command (ignoring the `$` sign at the beginning of each line, which just denote that each line is a terminal command that you should type out exactly and then hit ENTER afterwards):
+Once the Terminal is launched, either via Docker CLI or Docker Quickstart Terminal, run the following command (ignoring the `$` sign at the beginning of each line, which just denote that each line is a terminal command that you should type out exactly and then hit ENTER afterwards):
 
 ```shell
 $ cd
 $ docker-machine ip
 ```
 
-You should see your virtual machine's IP address as a result of the last command.  This is the location of your virtual machine.  <b>NOTE THIS IP ADDRESS</b>, as we'll need it in a second.  
+If you are using Docker Toolbox, you should see your virtual machine's IP address as a result of the last command.  This is the location of your virtual machine.  <b>NOTE THIS IP ADDRESS</b>, as we'll need it in a second.  If you are using "Docker for Windows" instead, then you won't need this IP as we'll just use "localhost".
 
 This next command will move to your Windows home directory, then create a new directory called "tensorflow", and then print out what the full path to that directory is.  PLEASE NOTE DOWN THIS DIRECTORY.  This is where everything will happen, and I'll explain that in a minute.
 
@@ -105,7 +101,7 @@ Now run the following command, which will download about ~530 MB containing ever
 $ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tensorflow-python3-jupyter
 ```
 
-What this is doing is first creating a directory called tensorflow in the home directory, wherever that may be for your computer.  The echo command that we just ran, and I asked you note down, is showing you exactly where that directory is.  So on your Windows machine, you will want to put files inside this directory only when coding w/ Tensorflow.  We will use Docker to mirror that directory on a virutal machine which has everything necessary for us to code in Python and Tensorflow.  _Whatever is in that directory will be mirrored on the virtual machine's directory under `/notebooks`._
+What this is doing is first creating a directory called tensorflow in the home directory, wherever that may be for your computer.  The echo command that we just ran, and I asked you note down, is showing you exactly where that directory is.  So on your Windows machine, you will want to put files inside this directory only when coding w/ Tensorflow.  We will use Docker to mirror that directory on a virtual machine which has everything necessary for us to code in Python and Tensorflow.  _Whatever is in that directory will be mirrored on the virtual machine's directory under `/notebooks`._
 
 You can also try running the docker run command with any other directory. For instance:
 

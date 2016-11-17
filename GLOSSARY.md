@@ -58,6 +58,7 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 - [Denoising Autoencoder](#denoising-autoencoder)
 - [Deprocessing](#deprocessing)
 - [Deviation](#deviation)
+- [Discriminator](#discriminator)
 - [Distributed Representation](#distributed-representation)
 - [Dot Product](#dot-product)
 - [DRAW](#draw)
@@ -80,6 +81,7 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 - [Gaussian Kernel](#gaussian-kernel)
 - [Generalized Matrix Multiplication](#generalized-matrix-multiplication)
 - [Generative Adversarial Networks](#generative-adversarial-networks)
+- [Generator](#generator)
 - [Gradient](#gradient)
 - [Gradient Clipping](#gradient-clipping)
 - [Gradient Descent](#gradient-descent)
@@ -259,8 +261,20 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 <a name="adversarial-network"></a>
 # Adversarial Network
 
+This network described by [1] is composed of two networks, a [Generator](#generator) and a [Discriminator](#discriminator).  Together, they are known as the Generative Adversarial Network.  The basic idea is the generator is trying to create things which look like the training data. So for images, more images that look like the training data. The discriminator has to guess whether what its given is a real training example. Or whether its the output of the generator. By training one after another, you ensure neither are ever too strong, but both grow stronger together. The discriminator is also learning a distance function! This is pretty cool because we no longer need to measure pixel-based distance, but we learn the distance function entirely!
+
+The Generative Adversarial Network, or GAN, for short, are in a way, very similar to autoencoders. Or at least the implementation of it is. The discriminator is a lot like the encoder part of the network, except it reduces the input down to a single value, yes or no, 0 or 1, denoting yes its a true training example, or no, it's a generated one.
+
+And the generator network is exactly like the decoder of the autoencoder. Except, there is nothing feeding into this inner layer. It is just on its own. From whatever vector of hidden values it starts off with, it will generate a new example meant to look just like the training data. One pitfall of this model is there is no explicit encoding of an input. Meaning, you can't take an input and find what would possibly generate it. However, there are recent extensions to this model which make it more like the autoencoder framework, allowing it to do this, such as the [VAEGAN](#vaegan) model.
+
+![imgs/gan-1.png](imgs/gan-1.png)
+
+[1]. Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozair, S., … Bengio, Y. (2014). Generative Adversarial Networks, 1–9. Retrieved from http://arxiv.org/abs/1406.2661
+
 <a name="adversarial-training"></a>
 # Adversarial Training
+
+This describes the process of training a network like the [Adversarial Network](#adversarial-network).  It is usually composed of two networks whose loss functions are to fool one another.  It is related to game theory in that there should be an equilibrium that allows both models to get stronger together.  If that 
 
 <a name="ann"></a>
 # ANN
@@ -414,6 +428,9 @@ Deep Learning is a type of Machine Learning algorithm that uses Neural Networks 
 <a name="deviation"></a>
 # Deviation
 
+<a name="discriminator"></a>
+# Discriminator
+
 <a name="distributed-representation"></a>
 # Distributed Representation
 
@@ -481,6 +498,9 @@ Deep Learning is a type of Machine Learning algorithm that uses Neural Networks 
 
 <a name="generative-adversarial-networks"></a>
 # Generative Adversarial Networks
+
+<a name="generator"></a>
+# Generator
 
 <a name="gradient"></a>
 # Gradient
