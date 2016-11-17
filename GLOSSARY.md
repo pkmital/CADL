@@ -69,6 +69,7 @@
 - [Latent Encoding](#latent-encoding)
 - [Latent Feature Arithmetic](#latent-feature-arithmetic)
 - [Latent-Space](#latent-space)
+- [Layer](#layer)
 - [Learning From Data](#learning-from-data)
 - [Learning Rate](#learning-rate)
 - [Loading a Pretrained Network](#loading-a-pretrained-network)
@@ -78,6 +79,7 @@
 - [Matrix](#matrix)
 - [Matrix Multiplication](#matrix-multiplication)
 - [Mean](#mean)
+- [Mini Batch](#mini-batch)
 - [Mini Batch Gradient Descent](#mini-batch-gradient-descent)
 - [MNIST](#mnist)
 - [Models](#models)
@@ -148,11 +150,11 @@ This defines an operation where the height and width of the kernel of a [convolu
 
 A Gaussian Kernel in 2-dimensions has its peak in the middle and curves outwards.  The image below depicts a 1-dimensional Gaussian.
 
-![imgs/1d-gaussian.png](imgs/1d-gaussian)
+![imgs/1d-gaussian.png](imgs/1d-gaussian.png)
 
 When matrix multiplied with the transpose of itself, the 1-d Gaussian can be depicted in 2-dimensions as such:
 
-![imgs/2d-gaussian.png](imgs/2d-gaussian)
+![imgs/2d-gaussian.png](imgs/2d-gaussian.png)
 
 <a name="activation-function"></a>
 # Activation Function
@@ -172,8 +174,12 @@ This describes the process of the backwards propagation of the training signal, 
 <a name="batch-dimension"></a>
 # Batch Dimension
 
+The "batch" dimension is often the first, but not necessarily the first, dimension of a [Tensor](#tensor).  For example, a 10 x 256 x 256 x 3 dimension Tensor has 10 images of 256 x 256 x 3 dimensions.  The batch dimensions indexes all the observations in a ["mini-batch"](#mini-batch), or a small subset of examples from a larger dataset.  This is used during [Mini Batch Gradient Descent](#mini-batch-gradient-descent) to train a network on the entire contents of a larger dataset.
+
 <a name="batch-normalization"></a>
 # Batch Normalization
+
+Batch Normalization describes a technique for [regularization](#regularization) which effectively smooths the gradient updates during [back-propagation](#back-propagation).  It is suggested by the authors of the technique that it should be applied just before the [activation function](#activation-function) of a layer.
 
 <a name="batches"></a>
 # Batches
@@ -359,6 +365,9 @@ We usually describe the factors which represent something "invariances". That ju
 <a name="latent-space"></a>
 # Latent-Space
 
+<a name="layer"></a>
+# Layer
+
 <a name="learning-from-data"></a>
 # Learning From Data
 
@@ -385,6 +394,9 @@ We usually describe the factors which represent something "invariances". That ju
 
 <a name="mean"></a>
 # Mean
+
+<a name="mini-batch"></a>
+# Mini Batch
 
 <a name="mini-batch-gradient-descent"></a>
 # Mini Batch Gradient Descent
