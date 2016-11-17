@@ -7,6 +7,7 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 <!-- MarkdownTOC autolink=true autohref=ture -->
 
 - [1x1 Convolutions](#1x1-convolutions)
+- [1-D Gaussian Kernel](#1-d-gaussian-kernel)
 - [2-D Gaussian Kernel](#2-d-gaussian-kernel)
 - [Activation Function](#activation-function)
 - [Accuracy](#accuracy)
@@ -195,21 +196,44 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 
 This defines an operation where the height and width of the kernel of a [convolution](#convolution) operation are set to 1.  This is useful because the depth dimension of the convolution operation can still be used to reduce the dimensionality (or increase it).  So for instance, if we have batch number of 100 x 100 images w/ 3 color channels, we can define a 1x1 convolution which reduces the 3 color channels to just 1 channel of information.  This is often applied before a much more expensive operation to reduce the number of overall parameters.
 
-<a name="2-d-gaussian-kernel"></a>
-# 2-D Gaussian Kernel
+<a name="1-d-gaussian-kernel"></a>
+# 1-D Gaussian Kernel
 
-A Gaussian Kernel in 2-dimensions has its peak in the middle and curves outwards.  The image below depicts a 1-dimensional Gaussian.
+The image below depicts a 1-D Gaussian Kernel:
 
 ![imgs/1d-gaussian.png](imgs/1d-gaussian.png)
 
-When matrix multiplied with the transpose of itself, the 1-d Gaussian can be depicted in 2-dimensions as such:
+In Tensorflow, the 1-D Gaussian can be computed by specifying the two parameters, `mean` and the standard deviation, which is commonly denoted by the name `sigma`.
+
+```python
+mean = 0.0
+sigma = 1.0
+z = (tf.exp(tf.neg(tf.pow(x - mean, 2.0) /
+                   (2.0 * tf.pow(sigma, 2.0)))) *
+     (1.0 / (sigma * tf.sqrt(2.0 * 3.1415))))
+```
+
+<a name="2-d-gaussian-kernel"></a>
+# 2-D Gaussian Kernel
+
+Like the 1-D Gaussian Kernel, the 2-D Gaussian Kernel has its peak in the middle and reduces in value exponentially as you move outside the center.  When the 1-D Gaussian is [matrix multiplied](#matrix-multiplication) with the [matrix transpose](#matrix-transpose) of itself, the 1-D Gaussian can be depicted in 2-dimensions as such:
 
 ![imgs/2d-gaussian.png](imgs/2d-gaussian.png)
+
+Following from the definition of the 1-D Gaussian Kernel, the 2-D Gaussian Kernel can be computed in Tensorflow as such:
+
+```python
+# Let's store the number of values in our Gaussian curve.
+ksize = z.get_shape().as_list()[0]
+
+# Let's multiply the two to get a 2d gaussian
+z_2d = tf.matmul(tf.reshape(z, [ksize, 1]), tf.reshape(z, [1, ksize]))
+```
 
 <a name="activation-function"></a>
 # Activation Function
 
-The activation function, also known as the non-linearity, or sometimes transfer function, describes the non-linear operation in a Neural Network.  Typical activation functions include the [sigmoid](#sigmoid), [TanH](#tanh), or [ReLu](#relu).
+The activation function, also known as the non-linearity, describes the non-linear operation in a Neural Network.  Neural Networks gain the power to describe very complex functions by performing series of linear + nonlinear operations.  Typical activation functions include the [sigmoid](#sigmoid), [TanH](#tanh), or [ReLu](#relu).
 
 <a name="accuracy"></a>
 # Accuracy
