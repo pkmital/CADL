@@ -238,7 +238,7 @@ The activation function, also known as the non-linearity, describes the non-line
 
 ![imgs/activation.png](imgs/activation.png)
 
-This graph depicts three activation functions.  Any value on the x, horizontal axis, is transformed by the value on the y, vertical axis.
+This graph depicts three activation functions.  Any value on the x, horizontal axis, is transformed "nonlinearly" as the value on the y, vertical axis.
 
 <a name="accuracy"></a>
 # Accuracy
@@ -677,6 +677,16 @@ We usually describe the factors which represent something "invariances". That ju
 <a name="rectified-linear-unit"></a>
 # Rectified Linear Unit
 
+A common type of [Activation Function](#activation-function) which performs the nonlinear operation in Tensorflow as:
+
+```python
+tf.maximum(0, x)
+```
+
+It is linear except for a discontinuity at 0 and can effectively learn nonlinear patterns with less computation than a sigmoid or tanh function requires.  It can also lead to [sparse](#sparse) activations, meaning not all the weights in a network are active.
+
+There are also many extensions to ReLus, such as Leaky ReLus, Parametric ReLus, and Noisy ReLus.
+
 <a name="recurrent-neural-networks"></a>
 # Recurrent Neural Networks
 
@@ -688,6 +698,8 @@ We usually describe the factors which represent something "invariances". That ju
 
 <a name="relu"></a>
 # ReLu
+
+Abbreviation of [Rectified Linear Unit](#rectified-linear-unit).
 
 <a name="rnn"></a>
 # RNN
@@ -781,6 +793,8 @@ We usually describe the factors which represent something "invariances". That ju
 
 <a name="unsupervised-vs-supervised-learning"></a>
 # Unsupervised vs. Supervised Learning
+
+Machine learning research in deep networks performs one of two types of learning. You either have a lot of data and you want the computer to reason about it, maybe to encode the data using less data, and just explore what patterns there might be. That's useful for clustering data, reducing the dimensionality of the data, or even for generating new data. That's generally known as unsupervised learning. In the supervised case, you actually know what you want out of your data. You have something like a label or a class that is paired with every single piece of data.
 
 <a name="vaegan"></a>
 # VAEGAN
