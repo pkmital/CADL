@@ -11,7 +11,7 @@
 - [Batch Normalization](#batch-normalization)
 - [Batches](#batches)
 - [Blur](#blur)
-- [Celeb Net](#celeb-net)
+- [Celeb Dataset](#celeb-dataset)
 - [Char-RNN](#char-rnn)
 - [Character Language Model](#character-language-model)
 - [Checkpoint](#checkpoint)
@@ -184,11 +184,17 @@ Batch Normalization describes a technique for [regularization](#regularization) 
 <a name="batches"></a>
 # Batches
 
+Batches describe the individual mini-batches in [mini batch gradient descent](#mini-batch-gradient-descent) used during [training](#training).
+
 <a name="blur"></a>
 # Blur
 
-<a name="celeb-net"></a>
-# Celeb Net
+Blurring is a technique which effectively smooths a signal, reducing "high-frequencies", or sharp discontinuities in a signal.  It is often used a technique for [regularization](#regularization), for instance during [Deep Dream](#deep-dream) or [Style Net](#style-net), on the overall activations of a gradient or the final result.
+
+<a name="celeb-dataset"></a>
+# Celeb Dataset
+
+Celeb Dataset describes a dataset of over 200,000 images of celebrity faces: http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html - a popular choice of dataset for image networks as it contains a version of the dataset which has been "frontally aligned", meaning a computer vision technique was used to find the faces in various photos and align and warp them so that it looks like the faces are looking straight into the camera.  This effectively reduces the overall [invariances](#invariances) in the dataset, making it a simpler dataset to learn.
 
 <a name="char-rnn"></a>
 # Char-RNN
