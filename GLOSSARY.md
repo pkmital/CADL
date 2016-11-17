@@ -1,6 +1,10 @@
+# Glossary
+
+This glossary tries to index the terms used throughout the course.  This is a work in progress and contributions are welcomed.
+
 # Table of Contents
 
-<!-- MarkdownTOC autolink=true -->
+<!-- MarkdownTOC autolink=true autohref=ture -->
 
 - [1x1 Convolutions](#1x1-convolutions)
 - [2-D Gaussian Kernel](#2-d-gaussian-kernel)
