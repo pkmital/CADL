@@ -435,6 +435,7 @@ Solution: Download the wheel manually via curl or wget, and pip install locally.
 If your have installed Docker Toolbox on Windows but your jupyter notebook doesn't run properly (the notebook kernel keeps busy all the time when you open any file) then you might need to try different browsers (One guy tried Edge and it solved his problem after struggling for long time on Chrome/Firefox).
 
 And you should also enable port forwarding by:
+
 1. Open VirtualBox
 2. Click on your default docker image.
 3. Click Settings.
