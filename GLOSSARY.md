@@ -148,9 +148,11 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 - [Rectified Linear Unit](#rectified-linear-unit)
 - [Recurrent Neural Networks](#recurrent-neural-networks)
 - [Regression](#regression)
+- [Regularization](#regularization)
 - [Reinforcement Learning](#reinforcement-learning)
 - [ReLu](#relu)
 - [RNN](#rnn)
+- [RL](#rl)
 - [Saturation](#saturation)
 - [Scalar](#scalar)
 - [Sessions](#sessions)
@@ -171,8 +173,6 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 - [Tensor](#tensor)
 - [Tensor Shapes](#tensor-shapes)
 - [Tensorboard](#tensorboard)
-- [TensorFlow Basics](#tensorflow-basics)
-- [Tensors](#tensors)
 - [Testing](#testing)
 - [Total Variation Loss](#total-variation-loss)
 - [Training](#training)
@@ -816,6 +816,11 @@ There are also many extensions to ReLus, such as Leaky ReLus, Parametric ReLus, 
 <a name="regression"></a>
 # Regression
 
+<a name="regularization"></a>
+# Regularization
+
+Regularization aids in cases of [overfitting](#overfitting), or when parameters are tuned in a way that describes noise in the data rather than an underlying cause.  This can easily happen in neural networks as there are many parameters. Some common techniques for regularizing networks include applying l2-norm penalties to weights, [dropout](#dropout), [batch normalization](#batch-normalization), and increased [mini-batch](#mini-batch) sizes.
+
 <a name="reinforcement-learning"></a>
 # Reinforcement Learning
 
@@ -826,6 +831,13 @@ Abbreviation of [Rectified Linear Unit](#rectified-linear-unit).
 
 <a name="rnn"></a>
 # RNN
+
+Abbreviation of [Recurrent Neural Network](#recurrent-neural-networks).
+
+<a name="rl"></a>
+# RL
+
+Abbreviation of [Reinforcement Learning](#reinforcement-learning).
 
 <a name="saturation"></a>
 # Saturation
@@ -838,8 +850,12 @@ Describes what many non-linear [activation functions](#activation-function) do, 
 <a name="sessions"></a>
 # Sessions
 
+In order to actually compute anything in TensorFlow, we use a `tf.Session` to manage and evaluating the [computational graph](#computational-graph), `tf.Graph`.
+
 <a name="sigmoid"></a>
 # Sigmoid
+
+The sigmoid function is a common [activation function](#activation-function): `y = 1 / (1 + exp(-x))`.  It has the range of [0, 1] and is a s-shaped function.  In TensorFlow, it can be used by calling `tf.nn.sigmoid`.
 
 <a name="simple-cell"></a>
 # Simple Cell
@@ -897,17 +913,17 @@ A supervised learning algorithm tries to optimize the conditional probability `p
 <a name="tensor"></a>
 # Tensor
 
+A Tensor describes a geometric object which is an N-dimensional array.  For instance, a 1-dimensional Tensor is also known as a Vector.  A 2-dimensional Tensor is also known as a Matrix.  Thinking of Tensors as geometric objects affords us to think about linear relationships between Tensors, such as the dot product or the cross product.  In TensorFlow, Tensors are described by a name which states what operation they are the result of, their shape, e.g. `(100, 100)`, and their `dtype`, such as `tf.float32` or `tf.int32`.
+
 <a name="tensor-shapes"></a>
 # Tensor Shapes
+
+A Tensor's shape describes the number of elements in each dimension.  It is similar to a numpy array's shape and can be accessed as `x.get_shape()` or `x.get_shape().as_list()`.
 
 <a name="tensorboard"></a>
 # Tensorboard
 
-<a name="tensorflow-basics"></a>
-# TensorFlow Basics
-
-<a name="tensors"></a>
-# Tensors
+Tensorboard is a web application provided by Tensorflow for monitoring the training of a computational graph.  It requires you to write Summary objects such as `tf.scalar_summary` or `tf.histogram_summary`, and to create a `tf.train.SummaryWriter` for writing summaries to a given destination, e.g. `path/to/log-directory`.  It can then be started using the command line like so: `tensorboard --logdir=path/to/log-directory` and then accessed using the webbrowser at the default port of 6006, e.g. `http://localhost:6006`.
 
 <a name="testing"></a>
 # Testing
