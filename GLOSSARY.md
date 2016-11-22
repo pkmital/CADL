@@ -4,7 +4,7 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 
 # Table of Contents
 
-<!-- MarkdownTOC autolink=true autohref=ture -->
+<!-- MarkdownTOC -->
 
 - [1x1 Convolutions](#1x1-convolutions)
 - [1-D Gaussian Kernel](#1-d-gaussian-kernel)
@@ -101,7 +101,6 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 - [Inception Network](#inception-network)
 - [Inference](#inference)
 - [Information Theory](#information-theory)
-- [Input's Representation](#inputs-representation)
 - [Invariances](#invariances)
 - [Kernel](#kernel)
 - [LAPGAN](#lapgan)
@@ -549,8 +548,12 @@ An embedding typically describes a transformation of input data prior to further
 <a name="filter"></a>
 # Filter
 
+Filter is often used in the field of Signal Processing to describe a similar idea as the [convolution](#convolution) [kernel](#kernel).
+
 <a name="fine-tuning"></a>
 # Fine Tuning
+
+Fine tuning describes the process of loading an existing trained model and continuing the training of this model.  Often this continuation can lead to improvements in the model's performance when used alongside model improvements, training modifications, or dataset augmentation.  The continuation of the training may be on an entirely different dataset in which case it is also related to Transfer Learning.
 
 <a name="forward-propagation"></a>
 # Forward Propagation
@@ -671,9 +674,6 @@ g[0].eval()
 
 A field of study popularized in the 1940s by Claude Shannon, Norbert Weiner, Alan Turing, et al.
 
-<a name="inputs-representation"></a>
-# Input's Representation
-
 <a name="invariances"></a>
 # Invariances
 
@@ -699,6 +699,8 @@ We usually describe the factors which represent something "invariances". That ju
 
 <a name="layer"></a>
 # Layer
+
+A layer is a convenience for grouping together a common set of operations.  For instance, a fully-connected layer is usually comprised of a matrix multiplication and a bias addition.  A convolution layer is comprised of a convolution with a kernel and a bias addition.
 
 <a name="learning-from-data"></a>
 # Learning From Data
@@ -733,6 +735,8 @@ The final cost is then used to [optimize](#optimization) the parameters in a neu
 
 <a name="lstm"></a>
 # LSTM
+
+Abbreviation for [Long Short Term Memory](#long-short-term-memory).
 
 <a name="machine-learning"></a>
 # Machine Learning
@@ -778,6 +782,8 @@ The final cost is then used to [optimize](#optimization) the parameters in a neu
 
 <a name="nonlinearities"></a>
 # Nonlinearities
+
+Nonlinearities are another way to describe [activation functions](#activation-function) in a neural network.  They are called nonlinearities since its outputs are not linear transformations of an input, i.e. not directly proportional to its input.  Visually, its function is not a straight line but one with curves.
 
 <a name="norm"></a>
 # Norm
@@ -872,6 +878,8 @@ Describes what many non-linear [activation functions](#activation-function) do, 
 
 <a name="scalar"></a>
 # Scalar
+
+A scalar is simply a single value, e.g. -2, 0, 1, 1.4, 500.
 
 <a name="sessions"></a>
 # Sessions
