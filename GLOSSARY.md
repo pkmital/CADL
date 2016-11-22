@@ -15,6 +15,7 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 - [Adversarial Training](#adversarial-training)
 - [ANN](#ann)
 - [Artificial Intelligence](#artificial-intelligence)
+- [Artificial Neural Network](#artificial-neural-network)
 - [Autoencoders](#autoencoders)
 - [Back-prop](#back-prop)
 - [Back-propagation](#back-propagation)
@@ -52,6 +53,7 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 - [DCGAN](#dcgan)
 - [Decoder](#decoder)
 - [Deep Convolutional Networks](#deep-convolutional-networks)
+- [Deep Convolutional Generative Adversarial Network](#deep-convolutional-generative-adversarial-network)
 - [Deep Dream](#deep-dream)
 - [Deep Dreaming](#deep-dreaming)
 - [Deep Learning vs. Machine Learning](#deep-learning-vs-machine-learning)
@@ -138,7 +140,7 @@ This glossary tries to index the terms used throughout the course.  This is a wo
 - [Operations](#operations)
 - [Optimization](#optimization)
 - [Optimizers](#optimizers)
-- [Over vs. Underfitting](#over-vs-underfitting)
+- [Overfitting](#overfitting)
 - [Preprocess](#preprocess)
 - [Preprocessing](#preprocessing)
 - [Pretrained Networks](#pretrained-networks)
@@ -267,15 +269,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 <a name="adversarial-network"></a>
 # Adversarial Network
 
-This network described by [1] is composed of two networks, a [Generator](#generator) and a [Discriminator](#discriminator).  Together, they are known as the Generative Adversarial Network.  The basic idea is the generator is trying to create things which look like the training data. So for images, more images that look like the training data. The discriminator has to guess whether what its given is a real training example. Or whether its the output of the generator. By training one after another, you ensure neither are ever too strong, but both grow stronger together. The discriminator is also learning a distance function! This is pretty cool because we no longer need to measure pixel-based distance, but we learn the distance function entirely!
-
-The Generative Adversarial Network, or GAN, for short, are in a way, very similar to autoencoders. Or at least the implementation of it is. The discriminator is a lot like the encoder part of the network, except it reduces the input down to a single value, yes or no, 0 or 1, denoting yes its a true training example, or no, it's a generated one.
-
-And the generator network is exactly like the decoder of the autoencoder. Except, there is nothing feeding into this inner layer. It is just on its own. From whatever vector of hidden values it starts off with, it will generate a new example meant to look just like the training data. One pitfall of this model is there is no explicit encoding of an input. Meaning, you can't take an input and find what would possibly generate it. However, there are recent extensions to this model which make it more like the autoencoder framework, allowing it to do this, such as the [VAEGAN](#vaegan) model.
-
-![imgs/gan-1.png](imgs/gan-1.png)
-
-[1]. Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozair, S., … Bengio, Y. (2014). Generative Adversarial Networks, 1–9. Retrieved from http://arxiv.org/abs/1406.2661
+See [Generative Adversarial Network](#generative-adversarial-networks).
 
 <a name="adversarial-training"></a>
 # Adversarial Training
@@ -285,8 +279,13 @@ This describes the process of training a network like the [Adversarial Network](
 <a name="ann"></a>
 # ANN
 
+Abbreviation of [Artificial Neural Network](#artificial-neural-network).
+
 <a name="artificial-intelligence"></a>
 # Artificial Intelligence
+
+<a name="artificial-neural-network"></a>
+# Artificial Neural Network
 
 <a name="autoencoders"></a>
 # Autoencoders
@@ -295,6 +294,8 @@ An autoencoder describes a network which [encodes](#encoder) its input to some [
 
 <a name="back-prop"></a>
 # Back-prop
+
+Abbreviation of [Back-propagation](#back-propagation).
 
 <a name="back-propagation"></a>
 # Back-propagation
@@ -432,6 +433,8 @@ The act/operation of [convolution](#convolution).  I.e. convolution is performed
 <a name="cost"></a>
 # Cost
 
+Cost measures the overall performance of a network and is used during optimization to train the parameters of a network.  It can sometimes be used interchangeably with [loss](#loss).  In this course, I've chosen to use cost as the final loss measure as a result of average across batches, while loss is reserved for single observation measures of loss, such as l2, l1, or cross-entropy.
+
 <a name="cross-entropy"></a>
 # Cross Entropy
 
@@ -445,6 +448,8 @@ assuming that `Y` is the "true" distribution, and `Y_pred` is a predicted distri
 
 <a name="cross-validation"></a>
 # Cross Validation
+
+Cross validation is a common technique for [validation](#validation).
 
 <a name="dataset"></a>
 # Dataset
@@ -469,11 +474,16 @@ Flickr 30k
 <a name="dcgan"></a>
 # DCGAN
 
+Abbreviation of [Deep Convolutional Generative Adversarial Network](#deep-convolutional-generative-adversarial-network).
+
 <a name="decoder"></a>
 # Decoder
 
 <a name="deep-convolutional-networks"></a>
 # Deep Convolutional Networks
+
+<a name="deep-convolutional-generative-adversarial-network"></a>
+# Deep Convolutional Generative Adversarial Network
 
 <a name="deep-dream"></a>
 # Deep Dream
@@ -560,6 +570,8 @@ Fully connected, sometime denoted as affine or linear layers, are layers  which 
 <a name="gan"></a>
 # GAN
 
+Abbreviation of [Generative Adversarial Networks](#generative-adversarial-networks).
+
 <a name="gaussian"></a>
 # Gaussian
 
@@ -572,8 +584,20 @@ Fully connected, sometime denoted as affine or linear layers, are layers  which 
 <a name="generative-adversarial-networks"></a>
 # Generative Adversarial Networks
 
+This network described by [1] is composed of two networks, a [Generator](#generator) and a [Discriminator](#discriminator).  Together, they are known as the Generative Adversarial Network.  The basic idea is the generator is trying to create things which look like the training data. So for images, more images that look like the training data. The discriminator has to guess whether what its given is a real training example. Or whether its the output of the generator. By training one after another, you ensure neither are ever too strong, but both grow stronger together. The discriminator is also learning a distance function! This is pretty cool because we no longer need to measure pixel-based distance, but we learn the distance function entirely!
+
+The Generative Adversarial Network, or GAN, for short, are in a way, very similar to autoencoders. Or at least the implementation of it is. The discriminator is a lot like the encoder part of the network, except it reduces the input down to a single value, yes or no, 0 or 1, denoting yes its a true training example, or no, it's a generated one.
+
+And the generator network is exactly like the decoder of the autoencoder. Except, there is nothing feeding into this inner layer. It is just on its own. From whatever vector of hidden values it starts off with, it will generate a new example meant to look just like the training data. One pitfall of this model is there is no explicit encoding of an input. Meaning, you can't take an input and find what would possibly generate it. However, there are recent extensions to this model which make it more like the autoencoder framework, allowing it to do this, such as the [VAEGAN](#vaegan) model.
+
+![imgs/gan-1.png](imgs/gan-1.png)
+
+[1]. Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozair, S., … Bengio, Y. (2014). Generative Adversarial Networks, 1–9. Retrieved from http://arxiv.org/abs/1406.2661
+
 <a name="generator"></a>
 # Generator
+
+One component of the [Generative Adversarial Network](#generative-adversarial-networks), built using a [decoder](#decoder) from a latent feature layer to a [Tensor](#tensor) of B x H x W x C images.
 
 <a name="gradient"></a>
 # Gradient
@@ -776,8 +800,10 @@ The final cost is then used to [optimize](#optimization) the parameters in a neu
 <a name="optimizers"></a>
 # Optimizers
 
-<a name="over-vs-underfitting"></a>
-# Over vs. Underfitting
+<a name="overfitting"></a>
+# Overfitting
+
+Overfitting describes what happens when a model tends to model noise more than the underlying cause of the data.  This can easily happen in neural networks as there are many parameters.  A common technique for ensuring this does not happen is to use [regularization](#regularization).
 
 <a name="preprocess"></a>
 # Preprocess
@@ -962,8 +988,12 @@ Machine learning research in deep networks generally performs one of two types o
 <a name="validation"></a>
 # Validation
 
+Validation describes a method of measuring the performance of an algorithm.  There are many kinds of validation, for instance k-fold validation or crossfold validation.  In Deep Learning, there is often enough data to perform a simpler form of validation which holds out portions of a dataset for training, validation, and testing.  While a model is being trained, only the portion of the dataset designated for training, e.g. 80% of the entire dataset, is used.  While training the model in iterations, another portion of the dataset is used to monitor the progress of training, e.g. 10%.  Finally, once the model is finished training, the last portion of the dataset can be used to assess a final test performance.  Ideally, the process is repeated over a number of k-folds, e.g. k=2 or k=5, such that every k-partitions of a dataset is used as a test.  However, Deep Learning datasets are often large enough to assume that a test partition has enough variance, and in practice, it is also often far too painful to consider the idea of training a model in k-folds.
+
 <a name="validation-error"></a>
 # Validation Error
+
+Validation error describes the error of a validation set during training.  Ideally, this error stays close to the training error, and both drop over more and more iterations.  If this is not the case, for instance if the training error continues to drop but not the validation error, it is possible the model is [overfitting](#overfitting).  See [validation](#validation) for more details.
 
 <a name="vanishing-gradient"></a>
 # Vanishing Gradient
