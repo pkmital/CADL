@@ -928,7 +928,7 @@ A transformation of a batch number of features using a [Softmax](#softmax) trans
 <a name="supervised-learning"></a>
 # Supervised Learning
 
-A supervised learning algorithm tries to optimize the conditional probability `p(y|x)`.  For example, it may try to optimize the prediction of an image label given the pixels of the image.
+In probabilistic terms, a supervised learning algorithm tries to optimize the joint probability `p(x, y)` or the conditional probability `p(y|x)`.  For example, it may try to optimize the prediction of an image label given the pixels of the image.
 
 <a name="tanh"></a>
 # TanH
@@ -975,7 +975,7 @@ Tensorboard is a web application provided by Tensorflow for monitoring the train
 <a name="unsupervised-learning"></a>
 # Unsupervised Learning
 
-Unsupervised learning tries to model `p(x)`, the probability of observing some data `x`.  
+In probabilistic terms, unsupervised learning tries to model `p(x)`, the probability of observing some data `x`.  
 
 <a name="unsupervised-vs-supervised-learning"></a>
 # Unsupervised vs. Supervised Learning
