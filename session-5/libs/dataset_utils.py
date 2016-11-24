@@ -360,8 +360,10 @@ class Dataset(object):
         self.train_idxs = idxs[:round(split[0] * n_idxs)]
         self.valid_idxs = idxs[len(self.train_idxs):
                                len(self.train_idxs) + round(split[1] * n_idxs)]
-        self.test_idxs = idxs[len(self.valid_idxs):
-                              len(self.valid_idxs) + round(split[2] * n_idxs)]
+        self.test_idxs = idxs[
+            (len(self.valid_idxs) + len(self.train_idxs)):
+            (len(self.valid_idxs) + len(self.train_idxs)) +
+             round(split[2] * n_idxs)]
 
     @property
     def X(self):
