@@ -449,6 +449,7 @@ def test_mnist():
         for batch_xs, _ in mnist.train.next_batch(batch_size):
             train_cost += sess.run([ae['cost'], optimizer], feed_dict={
                 ae['x']: batch_xs, ae['train']: True, ae['keep_prob']: 1.0})[0]
+            train_i += 1
             if batch_i % 10 == 0:
                 # Plot example reconstructions from latent layer
                 recon = sess.run(
@@ -473,6 +474,7 @@ def test_mnist():
         for batch_xs, _ in mnist.valid.next_batch(batch_size):
             valid_cost += sess.run([ae['cost']], feed_dict={
                 ae['x']: batch_xs, ae['train']: False, ae['keep_prob']: 1.0})[0]
+            valid_i += 1
         print('train:', train_cost / train_i, 'valid:', valid_cost / valid_i)
 
 
