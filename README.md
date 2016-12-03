@@ -53,6 +53,7 @@ This github contains lecture transcripts from the Kadenze videos and homeworks c
 - [Navigating to Notebook](#navigating-to-notebook)
 - [Installing Python Packages](#installing-python-packages)
 - [CUDA/GPU instructions](#cudagpu-instructions)
+- [CUDA/GPU instructions for MacOS](#cudagpu-mac)
 - [Testing it](#testing-it)
 - [Troubleshooting](#troubleshooting)
 
@@ -307,6 +308,73 @@ $ python3 -c 'import tensorflow as tf; print(tf.__version__)'
 ```
 
 You should see 0.9.0 or 0.10.0 or 0.11.0rc1 printed, depending on which version you have installed.
+
+
+<a name="cudagpu-mac"></a>
+## CUDA/GPU instructions for MacOS
+
+When your Mac is equipped with a NVidia graphics card, you can use the GPU for computing with Tensorflow. GPU enabled computing is not supported for Macs with ATI or Intel graphics cards. 
+
+If you have a previous cpu installation of tensorflow, uninstall it first:
+
+```
+$ pip3 uninstall tensorflow
+```
+
+Using homebrew, install the following packages:
+
+```
+$ brew install coreutils
+$ brew tap caskroom/cask
+$ brew cask install cuda
+```
+Once you have the CUDA Toolkit installed you will need to setup the required environment variables by adding the 
+following to your `~/.profile`:
+```
+export CUDA_HOME=/usr/local/cuda
+export DYLD_LIBRARY_PATH="$DYLD_LIBRARY_PATH:$CUDA_HOME/lib"
+export PATH="$CUDA_HOME/bin:$PATH"
+```
+Tensorflow needs the library libcuda.1.dylib, so we have to create an additional symbolic link:
+```
+sudo ln -sf /usr/local/cuda/lib/libcuda.dylib /usr/local/cuda/lib/libcuda.1.dylib
+```
+Finally, you will also want to install the **CUDA Deep Neural Network** (cuDNN v5) library which currently requires an 
+[_Accelerated Computing Developer Program_](https://developer.nvidia.com/cudnn) account. Once you have it downloaded 
+locally, you can unzip and move the header and libraries to your local CUDA Toolkit folder:
+```
+$ sudo mv include/cudnn.h /Developer/NVIDIA/CUDA-8.0/include/
+$ sudo mv lib/libcudnn* /Developer/NVIDIA/CUDA-8.0/lib
+$ sudo ln -s /Developer/NVIDIA/CUDA-8.0/lib/libcudnn* /usr/local/cuda/lib/
+```
+Then, finally, install tensorflow with GPU support with:
+```
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/gpu/tensorflow_gpu-0.12.0rc0-py3-none-any.whl`
+$ pip3 install --ignore-installed --upgrade $TF_BINARY_URL
+```
+
+According to the instructions of the TensorFlow website, this should work. However, on MacOS 10.11 (El Capitan) and 
+above, the environment variable `DYLD_LIBRARY_PATH` is ignored, resulting in an error in the interactive python console 
+and JetBrains PyCharm IDE. The dynamic library `libcudart.8.0.dylib` fails to load. This
+is due to a new protection meganism in MacOS 10.11 and higher. El Capitan ships with a new OS X feature: System 
+Integrity Protection (SIP), also known as “rootless” mode. This reduces the attack surface for malware that relies on 
+modifying system files by preventing any user, whether with system administrator (“root”) privileges or not from 
+modifying a number of operating system directories and files.
+
+**Warning:** The point of SIP is to prevent malware and other unwanted modifications into system files. Consider whether 
+or not you want to dispense with this protection.
+Follow these steps to disable SIP:
+
+* Restart your Mac.
+* Before OS X starts up, hold down Command-R and keep it held down until you see an Apple icon and a progress bar. Release. This boots you into Recovery.
+* From the Utilities menu, select Terminal.
+* At the prompt type exactly the following and then press Return: `csrutil disable`
+* Terminal should display a message that SIP was disabled.
+* From the  menu, select Restart.
+
+You can re-enable SIP by following the above steps, but using `csrutil enable` instead.
+
+
 
 <a name="troubleshooting"></a>
 ## Troubleshooting
