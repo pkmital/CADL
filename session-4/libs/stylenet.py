@@ -93,8 +93,8 @@ def stylize(content_img, style_img, base_img=None, saveto=None, gif_step=5,
         content_features = g.get_tensor_by_name(
             content_layer).eval(feed_dict={
                 x: content_img,
-                'vgg/dropout_1/random_uniform:0': [[1.0]],
-                'vgg/dropout/random_uniform:0': [[1.0]]})
+                'vgg/dropout_1/random_uniform:0': [[1.0] * 4096],
+                'vgg/dropout/random_uniform:0': [[1.0] * 4096]})
         style_layers = ['vgg/conv1_1/conv1_1:0',
                         'vgg/conv2_1/conv2_1:0',
                         'vgg/conv3_1/conv3_1:0',
@@ -105,8 +105,8 @@ def stylize(content_img, style_img, base_img=None, saveto=None, gif_step=5,
             style_activation_i = g.get_tensor_by_name(style_i).eval(
                 feed_dict={
                     x: style_img,
-                    'vgg/dropout_1/random_uniform:0': [[1.0]],
-                    'vgg/dropout/random_uniform:0': [[1.0]]})
+                    'vgg/dropout_1/random_uniform:0': [[1.0] * 4096],
+                    'vgg/dropout/random_uniform:0': [[1.0] * 4096]})
             style_activations.append(style_activation_i)
         style_features = []
         for style_activation_i in style_activations:
@@ -299,13 +299,13 @@ def test():
          'Claude_Monet%2C_Impression%2C_soleil_levant.jpg/617px-Claude_Monet' +
          '%2C_Impression%2C_soleil_levant.jpg?download')
     filepath, _ = urllib.request.urlretrieve(f, f.split('/')[-1], None)
-    style = plt.imread(filepath)
+    style = plt.imread(filepath).astype(np.float32) / 255.0
 
     f = ('https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/' +
          'El_jard%C3%ADn_de_las_Delicias%2C_de_El_Bosco.jpg/640px-El_jard' +
          '%C3%ADn_de_las_Delicias%2C_de_El_Bosco.jpg')
     filepath, _ = urllib.request.urlretrieve(f, f.split('/')[-1], None)
-    content = plt.imread(filepath)
+    content = plt.imread(filepath).astype(np.float32) / 255.0
 
     stylize(content, style)
 
