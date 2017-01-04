@@ -61,6 +61,43 @@ This github contains lecture transcripts from the Kadenze videos and homeworks c
 
 We will be using Jupyter Notebook.  This will be necessary for submitting the homeworks and interacting with the guided session notebooks I will provide for each assignment.  Follow along this guide and we'll see how to obtain all of the necessary libraries that we'll be using.  By the end of this, you'll have installed Jupyter Notebook, NumPy, SciPy, and Matplotlib.  While many of these libraries aren't necessary for performing the Deep Learning which we'll get to in later lectures, they are incredibly useful for manipulating data on your computer, preparing data for learning, and exploring results.
 
+For those of you proficient w/ Docker and Jupyter, the quickstart guide is simply:
+
+```bash
+$ git clone git@github.com:pkmital/CADL.git
+$ cd CADL
+$ docker build -t cadl .
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks cadl /bin/bash
+```
+
+This will give you a bash prompt with the files for session-1:
+
+```bash
+root@39c4441bcde8:/notebooks# ls
+README.md  lecture-1.ipynb  libs  session-1.ipynb  tests
+```
+
+Which you can use to launch jupyter like so:
+
+```bash
+root@39c4441bcde8:/notebooks# jupyter notebook
+[I 01:45:27.712 NotebookApp] [nb_conda_kernels] enabled, 2 kernels found
+[I 01:45:27.715 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
+[W 01:45:27.729 NotebookApp] WARNING: The notebook server is listening on all IP addresses and not using encryption. This is not recommended.
+[I 01:45:27.799 NotebookApp] [nb_anacondacloud] enabled
+[I 01:45:27.802 NotebookApp] [nb_conda] enabled
+[I 01:45:27.856 NotebookApp] ✓ nbpresent HTML export ENABLED
+[W 01:45:27.856 NotebookApp] ✗ nbpresent PDF export DISABLED: No module named 'nbbrowserpdf'
+[I 01:45:27.858 NotebookApp] Serving notebooks from local directory: /notebooks
+[I 01:45:27.858 NotebookApp] 0 active kernels
+[I 01:45:27.858 NotebookApp] The Jupyter Notebook is running at: http://[all ip addresses on your system]:8888/?token=dd68eeffd8f227dd789327c981d16b24631866e909bd6469
+[I 01:45:27.858 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+```
+
+Be sure to replace "session-1" with whichever session you are working on.
+
+If you had any trouble w/ this setup then please go through the rest of this document!
+
 <a name="what-is-notebook"></a>
 ## What is Notebook?
 
