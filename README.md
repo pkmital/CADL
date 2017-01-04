@@ -65,10 +65,17 @@ We will be using Jupyter Notebook.  This will be necessary for submitting the ho
 For those of you proficient w/ Docker and Jupyter, the quickstart guide is simply:
 
 ```bash
+$ cd
 $ git clone git@github.com:pkmital/CADL.git
 $ cd CADL
 $ docker build -t cadl .
-$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks cadl /bin/bash
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf cadl /bin/bash
+```
+
+Note that you can skip the build step and download from docker hub instead like so:
+
+```bash
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf pkmital/cadl /bin/bash
 ```
 
 Be sure to replace "session-1" with whichever session you are working on, e.g. "session-2", "session-3"...  This will give you a bash prompt with the files for each session:
@@ -93,6 +100,14 @@ root@39c4441bcde8:/notebooks# jupyter notebook
 [I 01:45:27.858 NotebookApp] 0 active kernels
 [I 01:45:27.858 NotebookApp] The Jupyter Notebook is running at: http://[all ip addresses on your system]:8888/?token=dd68eeffd8f227dd789327c981d16b24631866e909bd6469
 [I 01:45:27.858 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+```
+
+You can then launch the docker image again using
+
+```bash
+$ cd
+$ cd CADL
+$ docker start -i tf
 ```
 
 If you had any trouble w/ this setup then please go through the rest of this document!
