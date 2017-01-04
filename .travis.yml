@@ -11,6 +11,7 @@ install:
 
 script:
     - docker run -it -v /$(pwd)/session-1:/notebooks cadl py.test 
+    - docker run -it -v /$(pwd)/session-2:/notebooks cadl py.test 
 
 after_failure:
     - docker logs cadl
