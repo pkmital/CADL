@@ -6,6 +6,7 @@ import numpy as np
 from libs import utils
 from libs import dataset_utils
 from libs import vgg16, inception, i2v
+from libs import stylenet
 
 
 def test_libraries():
@@ -70,3 +71,6 @@ def test_inception():
         assert(np.argmax(res[0][:1000]) == 834)
     return
 
+
+def test_stylenet():
+    stylenet.test()

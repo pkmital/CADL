@@ -636,7 +636,7 @@ def train_vaegan(files,
     sess.close()
 
 
-def test_celeb():
+def test_celeb(n_epochs=100):
     """Summary
 
     Returns
@@ -648,21 +648,21 @@ def test_celeb():
     train_vaegan(
         files=files,
         batch_size=64,
-        n_epochs=100,
+        n_epochs=n_epochs,
         crop_shape=[100, 100, 3],
         crop_factor=0.8,
         input_shape=[218, 178, 3],
         convolutional=True,
         variational=True,
-        n_filters=[256, 384, 512, 1024, 2048],
+        n_filters=[100, 100, 100, 100],
         n_hidden=None,
-        n_code=512,
-        filter_sizes=[3, 3, 3, 3, 3],
+        n_code=64,
+        filter_sizes=[3, 3, 3, 3],
         activation=tf.nn.elu,
         ckpt_name='celeb.ckpt')
 
 
-def test_sita():
+def test_sita(n_epochs=100):
     """Summary
 
     Returns
@@ -680,7 +680,7 @@ def test_sita():
     train_vaegan(
         files=files,
         batch_size=64,
-        n_epochs=50,
+        n_epochs=n_epochs,
         crop_shape=[90, 160, 3],
         crop_factor=1.0,
         input_shape=[218, 178, 3],

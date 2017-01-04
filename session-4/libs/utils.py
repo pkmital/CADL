@@ -511,7 +511,7 @@ def bias_variable(shape, **kwargs):
     return tf.Variable(initial, **kwargs)
 
 
-def binary_cross_entropy(z, x):
+def binary_cross_entropy(z, x, name=None):
     """Binary Cross Entropy measures cross entropy of a binary variable.
 
     loss(x, z) = - sum_i (x[i] * log(z[i]) + (1 - x[i]) * log(1 - z[i]))
@@ -523,9 +523,10 @@ def binary_cross_entropy(z, x):
     x : tf.Tensor
         A `Tensor` of type `float32` or `float64`.
     """
-    eps = 1e-12
-    return (-(x * tf.log(z + eps) +
-              (1. - x) * tf.log(1. - z + eps)))
+    with tf.variable_scope(name or 'bce'):
+        eps = 1e-12
+        return (-(x * tf.log(z + eps) +
+                  (1. - x) * tf.log(1. - z + eps)))
 
 
 def conv2d(x, n_output,

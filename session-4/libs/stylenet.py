@@ -75,12 +75,12 @@ def stylize(content_img, style_img, base_img=None, saveto=None, gif_step=5,
         Final iteration of the stylization.
     """
     # Preprocess both content and style images
-    content_img = make_4d(content_img)
-    style_img = make_4d(style_img)
+    content_img = vgg16.preprocess(content_img, dsize=(224, 224))[np.newaxis]
+    style_img = vgg16.preprocess(style_img, dsize=(224, 224))[np.newaxis]
     if base_img is None:
         base_img = content_img
     else:
-        base_img = make_4d(base_img)
+        base_img = make_4d(vgg16.preprocess(base_img, dsize=(224, 224)))
 
     # Get Content and Style features
     net = vgg16.get_vgg_model()
@@ -307,7 +307,7 @@ def test():
     filepath, _ = urllib.request.urlretrieve(f, f.split('/')[-1], None)
     content = plt.imread(filepath).astype(np.float32) / 255.0
 
-    stylize(content, style)
+    stylize(content, style, n_iterations=20)
 
 
 if __name__ == '__main__':

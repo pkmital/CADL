@@ -232,18 +232,16 @@ def infer(txt, ckpt_name, n_iterations, n_cells=512, n_layers=3,
     return [model['decoder'][ch] for ch in np.concatenate(synth)]
 
 
-def test_alice():
+def test_alice(max_iter=50000):
     with gzip.open('alice.txt.gz', 'rb') as fp:
         txt = fp.read().decode('utf-8')
-    # try with more than 100 iterations, e.g. 50k - 200k
-    train(txt, max_iter=100)
+    train(txt, max_iter=max_iter)
 
 
-def test_trump():
+def test_trump(max_iter=50000):
     with open('trump.txt', 'r') as fp:
         txt = fp.read()
-    # train(txt, max_iter=50000)
-    # try with more than 100 iterations, e.g. 50k - 200k
+    # train(txt, max_iter=max_iter)
     print(infer(txt, './trump.ckpt', 100))
 
 

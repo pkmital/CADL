@@ -4,7 +4,6 @@ Kadenze, Inc.
 Copyright Parag K. Mital, June 2016.
 """
 import tensorflow as tf
-import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
