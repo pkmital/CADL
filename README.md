@@ -102,7 +102,9 @@ root@39c4441bcde8:/notebooks# jupyter notebook
 [I 01:45:27.858 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
 ```
 
-You can then launch the docker image again using
+Jupyter should then be running if you navigate Google Chrome (suggested!) to "http://localhost:8888".  If you navigate to the session-1.ipynb file, you will see the homework, or to "lecture-1.ipynb", to find the lecture transcripts.  The same goes for every other session.
+
+If you need to relaunch the docker image again, you can write:
 
 ```bash
 $ cd
@@ -110,7 +112,7 @@ $ cd CADL
 $ docker start -i tf
 ```
 
-If you had any trouble w/ this setup then please go through the rest of this document!
+If you had any trouble w/ this setup then please go through the rest of this document which provides much more in depth details.
 
 <a name="what-is-notebook"></a>
 ## What is Notebook?
