@@ -7,10 +7,10 @@ services:
     - docker
 
 install:
-    - docker build -t cadl -v /$(pwd):/notebooks .
+    - docker build -t cadl . 
 
 script:
-    - docker run -d --name cadl run_tests.sh 
+    - docker run -it -v /$(pwd)/session-1:/notebooks cadl py.test 
 
 after_failure:
     - docker logs cadl
