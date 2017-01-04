@@ -14,6 +14,7 @@ import os
 import sys
 from six.moves import urllib
 import collections
+import gzip
 
 
 def build_model(txt,
@@ -232,18 +233,18 @@ def infer(txt, ckpt_name, n_iterations, n_cells=512, n_layers=3,
 
 
 def test_alice():
-    f, _ = urllib.request.urlretrieve(
-        'https://www.gutenberg.org/cache/epub/11/pg11.txt', 'alice.txt')
-    with open(f, 'r') as fp:
-        txt = fp.read()
-    train(txt, max_iter=50000)
+    with gzip.open('alice.txt.gz', 'rb') as fp:
+        txt = fp.read().decode('utf-8')
+    # try with more than 100 iterations, e.g. 50k - 200k
+    train(txt, max_iter=100)
 
 
 def test_trump():
     with open('trump.txt', 'r') as fp:
         txt = fp.read()
     # train(txt, max_iter=50000)
-    print(infer(txt, 'trump.ckpt', 50000))
+    # try with more than 100 iterations, e.g. 50k - 200k
+    print(infer(txt, './trump.ckpt', 100))
 
 
 def test_wtc():
@@ -251,8 +252,9 @@ def test_wtc():
     rate, aud = read('wtc.wav')
     txt = np.int8(np.round(aud / 16384.0 * 128.0))
     txt = np.squeeze(txt).tolist()
-    train(txt, sequence_length=250, n_layers=3, n_cells=512, max_iter=100000)
-    synthesis = infer(txt, 'model.ckpt', 8000 * 30, n_layers=3,
+    # try with more than 100 iterations, e.g. 50k - 200k
+    train(txt, sequence_length=250, n_layers=3, n_cells=512, max_iter=100)
+    synthesis = infer(txt, './model.ckpt', 8000 * 30, n_layers=3,
                       n_cells=150, keep_prob=1.0, sampling='prob')
     snd = np.int16(np.array(synthesis) / 128.0 * 16384.0)
     write('wtc-synth.wav', 8000, snd)
