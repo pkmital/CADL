@@ -1,0 +1,16 @@
+language: python
+
+python:
+    - 3.5
+
+services:
+    - docker
+
+install:
+    - docker build -t cadl -v /$(pwd):/notebooks .
+
+script:
+    - docker run -d --name cadl run_tests.sh 
+
+after_failure:
+    - docker logs cadl
