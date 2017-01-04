@@ -2,6 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 import tensorflow as tf
 import numpy as np
+from libs import utils
 
 
 def test_flatten():
