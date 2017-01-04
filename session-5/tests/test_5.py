@@ -1,0 +1,10 @@
+import matplotlib
+matplotlib.use('Agg')
+import tensorflow as tf
+import numpy as np
+from libs import import utils
+from libs import import dataset_utils
+
+
+def test_charrnn():
+    return
