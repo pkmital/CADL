@@ -14,6 +14,7 @@ import os
 import sys
 from six.moves import urllib
 import collections
+import gzip
 
 
 def build_model(txt,
@@ -107,8 +108,8 @@ def train(txt, batch_size=100, sequence_length=150, n_cells=100, n_layers=3,
                             gradient_clip=gradient_clip,
                             learning_rate=learning_rate)
 
-        init_op = tf.initialize_all_variables()
-        saver = tf.train.Saver()
+        init_op = tf.global_variables_initializer()
+        saver = tf.train.Saver(write_version=1)
         sess.run(init_op)
         if os.path.exists(ckpt_name):
             saver.restore(sess, ckpt_name)
@@ -174,7 +175,6 @@ def train(txt, batch_size=100, sequence_length=150, n_cells=100, n_layers=3,
 def infer(txt, ckpt_name, n_iterations, n_cells=512, n_layers=3,
           learning_rate=0.001, max_iter=5000, gradient_clip=10.0,
           init_value=[0], keep_prob=1.0, sampling='prob', temperature=1.0):
-
     g = tf.Graph()
     with tf.Session(graph=g) as sess:
         sequence_length = len(init_value)
@@ -186,7 +186,7 @@ def infer(txt, ckpt_name, n_iterations, n_cells=512, n_layers=3,
                             gradient_clip=gradient_clip,
                             learning_rate=learning_rate)
 
-        init_op = tf.initialize_all_variables()
+        init_op = tf.global_variables_initializer()
         saver = tf.train.Saver()
         sess.run(init_op)
         if os.path.exists(ckpt_name):
@@ -232,18 +232,18 @@ def infer(txt, ckpt_name, n_iterations, n_cells=512, n_layers=3,
 
 
 def test_alice():
-    f, _ = urllib.request.urlretrieve(
-        'https://www.gutenberg.org/cache/epub/11/pg11.txt', 'alice.txt')
-    with open(f, 'r') as fp:
-        txt = fp.read()
-    train(txt, max_iter=50000)
+    with gzip.open('alice.txt.gz', 'rb') as fp:
+        txt = fp.read().decode('utf-8')
+    # try with more than 100 iterations, e.g. 50k - 200k
+    train(txt, max_iter=100)
 
 
 def test_trump():
     with open('trump.txt', 'r') as fp:
         txt = fp.read()
     # train(txt, max_iter=50000)
-    print(infer(txt, 'trump.ckpt', 50000))
+    # try with more than 100 iterations, e.g. 50k - 200k
+    print(infer(txt, './trump.ckpt', 100))
 
 
 def test_wtc():
@@ -251,8 +251,9 @@ def test_wtc():
     rate, aud = read('wtc.wav')
     txt = np.int8(np.round(aud / 16384.0 * 128.0))
     txt = np.squeeze(txt).tolist()
-    train(txt, sequence_length=250, n_layers=3, n_cells=512, max_iter=100000)
-    synthesis = infer(txt, 'model.ckpt', 8000 * 30, n_layers=3,
+    # try with more than 100 iterations, e.g. 50k - 200k
+    train(txt, sequence_length=250, n_layers=3, n_cells=512, max_iter=100)
+    synthesis = infer(txt, './model.ckpt', 8000 * 30, n_layers=3,
                       n_cells=150, keep_prob=1.0, sampling='prob')
     snd = np.int16(np.array(synthesis) / 128.0 * 16384.0)
     write('wtc-synth.wav', 8000, snd)
