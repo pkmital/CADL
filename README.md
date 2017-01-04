@@ -1,15 +1,12 @@
-# <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>
-
-[![coursecard](imgs/cadl-coursecard.png)](https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info)
-
 [![Build Status](https://travis-ci.org/pkmital/CADL.svg?branch=master)](https://travis-ci.org/pkmital/CADL) [![Slack Channel](https://cadl.herokuapp.com/badge.svg)](https://cadl.herokuapp.com)
 
-This repository contains homework assignments for the <a href="https://www.kadenze.com/partners/kadenze-academy">Kadenze Academy</a> course on <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>.
+# <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>
 
-
-# Course Description
+This repository contains lecture transcripts and homework assignments as Jupyter Notebooks for the <a href="https://www.kadenze.com/partners/kadenze-academy">Kadenze Academy</a> course on <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>.
 
 This course introduces you to deep learning: the state-of-the-art approach to building artificial intelligence algorithms. We cover the basic components of deep learning, what it means, how it works, and develop code necessary to build various algorithms such as deep convolutional networks, variational autoencoders, generative adversarial networks, and recurrent neural networks. A major focus of this course will be to not only understand how to build the necessary components of these algorithms, but also how to apply them for exploring creative applications. We'll see how to train a computer to recognize objects in an image and use this knowledge to drive new and interesting behaviors, from understanding the similarities and differences in large datasets and using them to self-organize, to understanding how to infinitely generate entirely new content or match the aesthetics or contents of another image. Deep learning offers enormous potential for creative applications and in this course we interrogate what's possible. Through practical applications and guided homework assignments, you'll be expected to create datasets, develop and train neural networks, explore your own media collections using existing state-of-the-art deep nets, synthesize new content from generative algorithms, and understand deep learning's potential for creating entirely new aesthetics and new ways of interacting with large amounts of data.
+
+[Join our Slack channel.](https://cadl.herokuapp.com)
 
 # Schedule
 
@@ -47,30 +44,41 @@ This github contains lecture transcripts from the Kadenze videos and homeworks c
 
 <!-- MarkdownTOC autolink=true autoanchor=true bracket=round -->
 
+- [Quickstart Guide](#quickstart-guide)
 - [What is Notebook?](#what-is-notebook)
 - [Docker Toolbox](#docker-toolbox)
 - [Jupyter Notebook](#jupyter-notebook)
 - [Navigating to Notebook](#navigating-to-notebook)
 - [Installing Python Packages](#installing-python-packages)
 - [CUDA/GPU instructions](#cudagpu-instructions)
-- [CUDA/GPU instructions for MacOS](#cudagpu-mac)
 - [Testing it](#testing-it)
+- [CUDA/GPU instructions for MacOS](#cudagpu-instructions-for-macos)
 - [Troubleshooting](#troubleshooting)
 
 <!-- /MarkdownTOC -->
 
 We will be using Jupyter Notebook.  This will be necessary for submitting the homeworks and interacting with the guided session notebooks I will provide for each assignment.  Follow along this guide and we'll see how to obtain all of the necessary libraries that we'll be using.  By the end of this, you'll have installed Jupyter Notebook, NumPy, SciPy, and Matplotlib.  While many of these libraries aren't necessary for performing the Deep Learning which we'll get to in later lectures, they are incredibly useful for manipulating data on your computer, preparing data for learning, and exploring results.
 
+<a name="quickstart-guide"></a>
+## Quickstart Guide
+
 For those of you proficient w/ Docker and Jupyter, the quickstart guide is simply:
 
 ```bash
+$ cd
 $ git clone git@github.com:pkmital/CADL.git
 $ cd CADL
 $ docker build -t cadl .
-$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks cadl /bin/bash
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf cadl /bin/bash
 ```
 
-This will give you a bash prompt with the files for session-1:
+Note that you can skip the build step and download from docker hub instead like so:
+
+```bash
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf pkmital/cadl /bin/bash
+```
+
+Be sure to replace "session-1" with whichever session you are working on, e.g. "session-2", "session-3"...  This will give you a bash prompt with the files for each session:
 
 ```bash
 root@39c4441bcde8:/notebooks# ls
@@ -94,9 +102,17 @@ root@39c4441bcde8:/notebooks# jupyter notebook
 [I 01:45:27.858 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
 ```
 
-Be sure to replace "session-1" with whichever session you are working on.
+Jupyter should then be running if you navigate Google Chrome (suggested!) to "http://localhost:8888".  If you navigate to the session-1.ipynb file, you will see the homework, or to "lecture-1.ipynb", to find the lecture transcripts.  The same goes for every other session.
 
-If you had any trouble w/ this setup then please go through the rest of this document!
+If you need to relaunch the docker image again, you can write:
+
+```bash
+$ cd
+$ cd CADL
+$ docker start -i tf
+```
+
+If you had any trouble w/ this setup then please go through the rest of this document which provides much more in depth details.
 
 <a name="what-is-notebook"></a>
 ## What is Notebook?
@@ -108,13 +124,17 @@ In order to interact with notebook and start coding, you will need to launch Ter
 <a name="docker-toolbox"></a>
 ## Docker Toolbox
 
-Unforunately, at the time of this writing (July 2016), there are no binaries for Tensorflow available for Windows users.  The easiest way to get up an running is to use Docker.  Docker is a way of managing a "virtual" Linux machine on your computer which will aid the creation a machine capable of running Tensorflow.  First, please download and install the Docker Toolbox:
+Currently, Windows users can only install Tensorflow via [pip using a 64-bit Python 3.5 environment](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#pip-installation-on-windows) or using Docker, as outlined below.
+
+The easiest way to get up an running on any type of system is to use Docker.  Docker is a way of managing a "virtual" Linux machine on your computer which will aid the creation a machine capable of running Tensorflow.  First, please download and install the Docker Toolbox:
 
 https://www.docker.com/products/docker-toolbox
 
-With this installed, you'll then need to run the "Docker Quickstart Terminal" which will launch a Terminal environment running on a virtual Linux machine on your computer. A virtual machine is basically an emulation of another machine. This is important because we'll use this machine to run Linux and install all of the necessary libraries for running Tensorflow.
+Linux users can install docker using their favorite package manager.
 
-Note, if you have trouble launching the Docker Quickstart Terminal because you have "Hyper-V", please instead try using https://docs.docker.com/docker-for-windows/.  Then launch the newly installed "Docker CLI" program.
+For OSX and Windows users, you'll then need to run the "Docker Quickstart Terminal" which will launch a Terminal environment running on a virtual Linux machine on your computer. A virtual machine is basically an emulation of another machine. This is important because we'll use this machine to run Linux and install all of the necessary libraries for running Tensorflow.
+
+Note for Windows users, if you have trouble launching the Docker Quickstart Terminal because you have "Hyper-V", please instead try using https://docs.docker.com/docker-for-windows/.  Then launch the newly installed "Docker CLI" program.
 
 Once the Terminal is launched, either via Docker CLI or Docker Quickstart Terminal, run the following command (ignoring the `$` sign at the beginning of each line, which just denote that each line is a terminal command that you should type out exactly and then hit ENTER afterwards):
 
@@ -125,37 +145,47 @@ $ docker-machine ip
 
 If you are using Docker Toolbox, you should see your virtual machine's IP address as a result of the last command.  This is the location of your virtual machine.  <b>NOTE THIS IP ADDRESS</b>, as we'll need it in a second.  If you are using "Docker for Windows" instead, then you won't need this IP as we'll just use "localhost".
 
-This next command will move to your Windows home directory, then create a new directory called "tensorflow", and then print out what the full path to that directory is.  PLEASE NOTE DOWN THIS DIRECTORY.  This is where everything will happen, and I'll explain that in a minute.
+This next command will move to your "home" directory.  We'll then "clone" the github repo.  This will download everything for the course using "git".  If you have trouble w/ this step, make sure you have installed [git](https://git-scm.com/downloads).
 
 ```shell
 $ cd
-$ mkdir tensorflow
-$ echo /$(pwd)/tensorflow
+$ git clone git@github.com:pkmital/CADL.git
 ```
 
-Now run the following command, which will download about ~530 MB containing everything we need to run tensorflow, python, and jupyter notebook (again, ignore the "$" at the beginning of the line only)!
+We'll now print out what the full path to that directory is.  PLEASE NOTE DOWN THIS DIRECTORY.  This is where everything will happen, and I'll explain that in a minute.
 
 ```shell
-$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tensorflow-python3-jupyter
+$ echo /$(pwd)/CADL
 ```
 
-What this is doing is first creating a directory called tensorflow in the home directory, wherever that may be for your computer.  The echo command that we just ran, and I asked you note down, is showing you exactly where that directory is.  So on your Windows machine, you will want to put files inside this directory only when coding w/ Tensorflow.  We will use Docker to mirror that directory on a virtual machine which has everything necessary for us to code in Python and Tensorflow.  _Whatever is in that directory will be mirrored on the virtual machine's directory under `/notebooks`._
+Now run the following command, which will download everything we need to run tensorflow, python, and jupyter notebook (again, ignore the "$" at the beginning of the line only)!
+
+```shell
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/CADL:/notebooks --name tf pkmital/cadl
+```
+
+What this is doing is:
+    * Running the docker image [pkmital/cadl](https://hub.docker.com/r/pkmital/cadl/)
+    * --name is giving it a shorthand name of "tf"
+    * -v is mirroring the directory "/$(pwd)/CADL" to the virtual machine's directory of "/notebooks"
+    * -p is forwarding ports from the virtual machine to your local machine so that you can access the virtual machine's port
+    * -it is running it as an interactive process
+
+You will want to put files inside the "/notebooks" directory *only*.  If you place files on the virtual machine outside of the "/notebooks" directory, which is the SAME as the "CADL" directory on your local machine, they will *not* be saved.  We are using Docker to mirror the "CADL" directory on a virtual machine which has everything necessary for us to code in Python and Tensorflow.  _Whatever is in that directory will be mirrored on the virtual machine's directory under `/notebooks`._
 
 You can also try running the docker run command with any other directory. For instance:
 
 ```shell
-$ docker run -it -p 8888:8888 -p 6006:6006 -v /Users/YOURUSERNAME/Desktop:/notebooks --name tf pkmital/tensorflow-python3-jupyter
+$ docker run -it -p 8888:8888 -p 6006:6006 -v /Users/YOURUSERNAME/Desktop:/notebooks --name tf pkmital/cadl
 ```
 
 Which would mean that your Desktop is where you can move files around so that on the virtual machine, you can interact with them under the `/notebooks`directory.
 
-For OSX users, if you are installing Docker because you had installation problems using Anaconda and pip, you would instead write the following command:
+For OSX users, if you are installing Docker because you had installation problems using Anaconda and pip, you would instead write the following command (note the missing slash):
 
 ```shell
-$ docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/Desktop/tensorflow:/notebooks --name tf pkmital/tensorflow-python3-jupyter
+$ docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/CADL:/notebooks --name tf pkmital/cadl
 ```
-
-This command will download everything you need to run Tensorflow on your virtual machine.
 
 When you want to start this machine, you will launch the Docker Quickstart Terminal and then write:
 
@@ -164,21 +194,13 @@ $ cd
 $ docker start -i tf
 ```
 
-Notice that the command prompt will now be `#` instead of `$`.  You should have a new folder "tensorflow" inside your Home directory.  This directory will be empty to begin with.  Please make sure you do everything inside this directory only or else any files you make on your virtual machine WILL BE ERASED once it is shutdown!  When you clone the CADL repository, or expand the zip file downloads contents inside this directory via your Windows machine (it will be in your Home directory under a folder "tensorflow"), then you will be able to access it via your Docker instance.
+Notice that the command prompt will now be `#` instead of `$`.  You should have a new folder "tensorflow" inside your Home directory.  This directory will be empty to begin with.  Please make sure you do everything inside this directory only or else any files you make on your virtual machine WILL BE ERASED once it is shutdown!  When you clone the CADL repository, or expand the zip file downloads contents inside this directory via your Windows machine (it will be in your Home directory under a folder "cadl"), then you will be able to access it via your Docker instance.
 
 For instance, after running the `docker start -i tf` command, try going into the directory `/notebooks`:
 
 ```shell
 # cd /notebooks
 ```
-
-And then git cloning this repo:
-
-```shell
-# git clone https://github.com/pkmital/CADL
-```
-
-Now, inside the directory `/notebooks/CADL`, you will have this entire repo.  Alternatively, you could download a zip file of this repo and use Windows to place it in the directory you noted down before.
 
 <a name="jupyter-notebook"></a>
 ## Jupyter Notebook
@@ -232,7 +254,7 @@ $ jupyter notebook &
 
 Note on Virtual versus Windows Directories:
 
-This is tricky to grasp, mostly because I didn't explain it. Docker is "virtual" computer running inside your computer. It has its own filesystem and its own directories. So you can't reference your Windows machine's directories inside this machine. When you first ran docker (e.g. `$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/tensorflow-python3-jupyter`) it included as part of its command: `-v /$(pwd)/tensorflow:/notebooks`. What that was doing is "mirroring" a directory on your Windows machine inside your Virtual machine. So whatever was in your Windows machine under the directory `/$(pwd)/tensorflow` would appear in the Virtual machine under `/notebooks`. That Windows directory is likely `/Users/<YOURUSERNAME>/tensorflow`. So _ONLY_ inside that directory, create it if it doesn't exist, should you put files in order to access it on the Virtual machine.
+This is tricky to grasp, mostly because I didn't explain it. Docker is "virtual" computer running inside your computer. It has its own filesystem and its own directories. So you can't reference your Windows machine's directories inside this machine. When you first ran docker (e.g. `$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/cadl`) it included as part of its command: `-v /$(pwd)/tensorflow:/notebooks`. What that was doing is "mirroring" a directory on your Windows machine inside your Virtual machine. So whatever was in your Windows machine under the directory `/$(pwd)/tensorflow` would appear in the Virtual machine under `/notebooks`. That Windows directory is likely `/Users/<YOURUSERNAME>/tensorflow`. So _ONLY_ inside that directory, create it if it doesn't exist, should you put files in order to access it on the Virtual machine.
 
 So let's say your Username was "pkmital". Then your home directory would be `/Users/pkmital`, and you would have mirrored `/Users/pkmital/tensorflow` on your Windows Machine to the Virtual machine under `/notebook`. Now let's say I create a directory `/Users/pkmital/tensorflow/images` on my Windows Machine, and then put a bunch of png files in there. I will then see them in my Virtual machine under `/notebook/images`.  If I put the CADL repository inside `/Users/pkmital/tensorflow`, then I should have `/Users/pkmital/tensorflow/CADL/session-1/session-1.ipynb` and on the Virtual machine, it will be in `/notebooks/CADL/session-1/session-1.ipynb` - From this notebook, running on the virtual machine, accessed with Jupyter Notebook, I would access my images like so:
 
@@ -347,7 +369,7 @@ $ python3 -c 'import tensorflow as tf; print(tf.__version__)'
 You should see 0.9.0 or 0.10.0 or 0.11.0rc1 printed, depending on which version you have installed.
 
 
-<a name="cudagpu-mac"></a>
+<a name="cudagpu-instructions-for-macos"></a>
 ## CUDA/GPU instructions for MacOS
 
 When your Mac is equipped with a NVidia graphics card, you can use the GPU for computing with Tensorflow. GPU enabled computing is not supported for Macs with ATI or Intel graphics cards. 
