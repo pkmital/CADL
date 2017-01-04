@@ -107,7 +107,7 @@ def train(txt, batch_size=100, sequence_length=150, n_cells=100, n_layers=3,
                             gradient_clip=gradient_clip,
                             learning_rate=learning_rate)
 
-        init_op = tf.initialize_all_variables()
+        init_op = tf.global_variables_initializer()
         saver = tf.train.Saver()
         sess.run(init_op)
         if os.path.exists(ckpt_name):
@@ -186,7 +186,7 @@ def infer(txt, ckpt_name, n_iterations, n_cells=512, n_layers=3,
                             gradient_clip=gradient_clip,
                             learning_rate=learning_rate)
 
-        init_op = tf.initialize_all_variables()
+        init_op = tf.global_variables_initializer()
         saver = tf.train.Saver()
         sess.run(init_op)
         if os.path.exists(ckpt_name):

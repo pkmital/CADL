@@ -397,7 +397,7 @@ def guided_dream(input_img,
         l2_loss = l2_loss_weight * tf.reduce_mean(tf.nn.l2_loss(x))
 
         ascent = tf.gradients(feature_loss + softmax_loss + tv_loss + l2_loss, x)[0]
-        sess.run(tf.initialize_all_variables())
+        sess.run(tf.global_variables_initializer())
         imgs = []
         for it_i in range(n_iterations):
             this_res, this_feature_loss, this_softmax_loss, this_tv_loss, this_l2_loss = sess.run(

@@ -328,7 +328,7 @@ def train_vae(files,
     # We create a session to use the graph
     sess = tf.Session()
     saver = tf.train.Saver()
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
 
     # This will handle our threaded image pipeline
     coord = tf.train.Coordinator()
@@ -434,7 +434,7 @@ def test_mnist():
 
     # We create a session to use the graph
     sess = tf.Session()
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
 
     # Fit all training data
     t_i = 0

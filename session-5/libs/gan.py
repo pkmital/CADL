@@ -436,7 +436,7 @@ def train_ds():
     # %%
     # We create a session to use the graph
     sess = tf.Session()
-    init_op = tf.initialize_all_variables()
+    init_op = tf.global_variables_initializer()
 
     saver = tf.train.Saver()
     sums = gan['sums']

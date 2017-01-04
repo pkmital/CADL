@@ -142,7 +142,7 @@ def stylize(content_img, style_img, base_img=None, saveto=None, gif_step=5,
         loss = content_weight * content_loss + style_weight * style_loss
         optimizer = tf.train.AdamOptimizer(0.01).minimize(loss)
 
-        sess.run(tf.initialize_all_variables())
+        sess.run(tf.global_variables_initializer())
         imgs = []
         for it_i in range(n_iterations):
             _, this_loss, synth = sess.run(

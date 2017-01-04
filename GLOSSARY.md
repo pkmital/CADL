@@ -617,7 +617,7 @@ y = x * 5
 g = tf.gradients(y, x)
 
 sess = tf.InteractiveSession()
-sess.run(tf.initialize_all_variables())
+sess.run(tf.global_variables_initializer())
 g[0].eval()
 # prints 5
 ```

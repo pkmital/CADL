@@ -531,7 +531,7 @@ def train_vaegan(files,
 
     sess = tf.Session()
     saver = tf.train.Saver()
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
     coord = tf.train.Coordinator()
     tf.get_default_graph().finalize()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
