@@ -618,7 +618,7 @@ def train_vaegan(files,
 
             if batch_i % 100 == 0:
                 # Save the variables to disk.
-                save_path = saver.save(sess, "./" + ckpt_name,
+                save_path = saver.save(sess, ckpt_name,
                                        global_step=batch_i,
                                        write_meta_graph=False)
                 print("Model saved in file: %s" % save_path)

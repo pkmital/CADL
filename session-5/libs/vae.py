@@ -389,7 +389,7 @@ def train_vae(files,
 
             if batch_i % save_step == 0:
                 # Save the variables to disk.
-                saver.save(sess, "./" + ckpt_name,
+                saver.save(sess, ckpt_name,
                            global_step=batch_i,
                            write_meta_graph=False)
     except tf.errors.OutOfRangeError:

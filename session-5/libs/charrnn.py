@@ -163,7 +163,7 @@ def train(txt, batch_size=100, sequence_length=150, n_cells=100, n_layers=3,
                 print(it_i, avg_cost / print_step)
                 avg_cost = 0
 
-                save_path = saver.save(sess, "./" + ckpt_name, global_step=it_i)
+                save_path = saver.save(sess, ckpt_name, global_step=it_i)
                 print("Model saved in file: %s" % save_path)
 
             print(it_i, out[0], end='\r')
