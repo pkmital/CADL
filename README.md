@@ -62,11 +62,29 @@ We will be using Jupyter Notebook.  This will be necessary for submitting the ho
 <a name="quickstart-guide"></a>
 ## Quickstart Guide
 
-For those of you proficient w/ Docker and Jupyter, the quickstart guide is simply:
+You can get started with a native pip installation or w/ Docker.  There is a quickstart guide for both methods below.  If you have trouble with these, then please skip to the more in depth guides below these sections.
+
+### pip Install
+
+For those of you that are proficient w/ Python programming, you'll need Python 3.4+ and the latest TensorFlow which you can install via pip, e.g.:
+
+```bash
+$ pip install tensorflow
+```
+
+or w/ CUDA as:
+
+```bash
+$ pip install tensorflow-gpu
+```
+
+### Docker Installation
+
+If you want a controlled environment w/ all dependencies installed for you, and are proficient w/ Docker and Jupyter, you can get started w/ this repo like so:
 
 ```bash
 $ cd
-$ git clone git@github.com:pkmital/CADL.git
+$ git clone https://github.com/pkmital/CADL.git
 $ cd CADL
 $ docker build -t cadl .
 $ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf cadl /bin/bash
