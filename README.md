@@ -45,15 +45,32 @@ This github contains lecture transcripts from the Kadenze videos and homeworks c
 <!-- MarkdownTOC autolink=true autoanchor=true bracket=round -->
 
 - [Quickstart Guide](#quickstart-guide)
+    - [pip Install](#pip-install)
+    - [Docker Installation](#docker-installation)
 - [What is Notebook?](#what-is-notebook)
 - [Docker Toolbox](#docker-toolbox)
 - [Jupyter Notebook](#jupyter-notebook)
+    - [OSX/Linux](#osxlinux)
+    - [Windows/Docker Containers](#windowsdocker-containers)
 - [Navigating to Notebook](#navigating-to-notebook)
 - [Installing Python Packages](#installing-python-packages)
+    - [Ubuntu/Linux 64-bit for Python 3.4](#ubuntulinux-64-bit-for-python-34)
+    - [Ubuntu/Linux 64-bit for Python 3.5](#ubuntulinux-64-bit-for-python-35)
+    - [OSX for Python 3.4 or Python 3.5](#osx-for-python-34-or-python-35)
+    - [Other Linux/OSX varieties](#other-linuxosx-varieties)
 - [CUDA/GPU instructions](#cudagpu-instructions)
 - [Testing it](#testing-it)
 - [CUDA/GPU instructions for MacOS](#cudagpu-instructions-for-macos)
 - [Troubleshooting](#troubleshooting)
+    - [ImportError: No module named 'tensorflow'](#importerror-no-module-named-tensorflow)
+    - [AttributeError: module 'tensorflow' has no attribute '\_\_version\_\_'](#attributeerror-module-tensorflow-has-no-attribute-\\version\\)
+    - [GPU-related issues](#gpu-related-issues)
+    - [Protobuf library related issues](#protobuf-library-related-issues)
+    - [Cannot import name 'descriptor'](#cannot-import-name-descriptor)
+    - [Can't find setup.py](#cant-find-setuppy)
+    - [SSLError: SSL_VERIFY_FAILED](#sslerror-sslverifyfailed)
+    - [Jupyter Notebook Kernel is always busy \(Windows\)](#jupyter-notebook-kernel-is-always-busy-windows)
+    - [Something Else!](#something-else)
 
 <!-- /MarkdownTOC -->
 
@@ -62,8 +79,11 @@ We will be using Jupyter Notebook.  This will be necessary for submitting the ho
 <a name="quickstart-guide"></a>
 ## Quickstart Guide
 
-You can get started with a native pip installation or w/ Docker.  There is a quickstart guide for both methods below.  If you have trouble with these, then please skip to the more in depth guides below these sections.
+Important! Please skip this section and read the rest of this readme if you are unfamiliar w/ Jupyter Notebook or installing Python libraries.  This section is only for advanced users who want to get started quickly.
 
+There are two ways to get started.  You can use a native pip installation or use Docker.  There is a quickstart guide for both methods below.  If you have trouble with these, then please skip to the more in depth guides below these sections.
+
+<a name="pip-install"></a>
 ### pip Install
 
 For those of you that are proficient w/ Python programming, you'll need Python 3.4+ and the latest TensorFlow which you can install via pip, e.g.:
@@ -78,6 +98,7 @@ or w/ CUDA as:
 $ pip install tensorflow-gpu
 ```
 
+<a name="docker-installation"></a>
 ### Docker Installation
 
 If you want a controlled environment w/ all dependencies installed for you, and are proficient w/ Docker and Jupyter, you can get started w/ this repo like so:
@@ -223,6 +244,7 @@ For instance, after running the `docker start -i tf` command, try going into the
 <a name="jupyter-notebook"></a>
 ## Jupyter Notebook
 
+<a name="osxlinux"></a>
 ### OSX/Linux
 
 Note: Windows/Docker users should scroll past this section to ["Windows/Docker"](#windows-docker-containers).  For OSX/Linux users, the easiest way to ensure you have Python 3.4 or higher and Jupter Notebook is to install Anaconda for Python 3.5 located here:
@@ -261,6 +283,7 @@ $ ipython3 kernel install
 ```
 
 <a name="windows-docker-containers">
+<a name="windowsdocker-containers"></a>
 ### Windows/Docker Containers
 
 For users running firewalls, you must make sure you have an exception as per [Jupyter Notebooks Firewall Instructions](http://jupyter-notebook.readthedocs.io/en/latest/public_server.html#firewall-setup) otherwise you may not be able to interact with the notebook.  Namely, you will need to allow connections from 127.0.0.1 (localhost) on ports from 49152 to 65535.  Once inside your Docker container as outlined above, you can now launch notebook like so:
@@ -343,24 +366,28 @@ $ pip3 install "scikit-image>=0.11.3" "numpy>=1.11.0" "matplotlib>=1.5.1" "sciki
 
 This should get you all of the libraries we need for the course, EXCEPT for tensorflow.  Tensorflow is a special case, but can be `pip` installed in much the same way by pointing pip to the github repo corresponding to your OS like so.
 
+<a name="ubuntulinux-64-bit-for-python-34"></a>
 ### Ubuntu/Linux 64-bit for Python 3.4
 
 ```shell
 $ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0rc1-cp34-cp34m-linux_x86_64.whl
 ```
 
+<a name="ubuntulinux-64-bit-for-python-35"></a>
 ### Ubuntu/Linux 64-bit for Python 3.5
 
 ```shell
 $ pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0rc1-cp35-cp35m-linux_x86_64.whl
 ```
 
+<a name="osx-for-python-34-or-python-35"></a>
 ### OSX for Python 3.4 or Python 3.5
 
 ```shell
 $ pip3 install --upgrade https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-0.11.0rc1-py3-none-any.whl
 ```
 
+<a name="other-linuxosx-varieties"></a>
 ### Other Linux/OSX varieties
 
 You can pip install Tensorflow for most OSX/Linux setups including those that are making use of NVIDIA GPUs and CUDA using one the packages listed on this link:
@@ -456,6 +483,7 @@ You can re-enable SIP by following the above steps, but using `csrutil enable` i
 <a name="troubleshooting"></a>
 ## Troubleshooting
 
+<a name="importerror-no-module-named-tensorflow"></a>
 ### ImportError: No module named 'tensorflow'
 
 You may have different versions of Python installed.  You can troubleshoot this by looking at the output of:
@@ -473,11 +501,13 @@ $ pip --version
 
 You may simply need to install tensorflow using `pip` instead of `pip3` and/or use `python` instead of `python3`, assuming they point to a version of python which is Python 3 or higher.
 
+<a name="attributeerror-module-tensorflow-has-no-attribute-\\version\\"></a>
 ### AttributeError: module 'tensorflow' has no attribute '\_\_version\_\_'
 
 You could be running python inside a directory that contains the folder "tensorflow".  Try running python inside a different directory.
 
 
+<a name="gpu-related-issues"></a>
 ### GPU-related issues
 
 If you encounter the following when trying to run a TensorFlow program:
@@ -490,6 +520,7 @@ Make sure you followed the GPU installation [instructions](#optional-install-cud
 If you built from source, and you left the Cuda or cuDNN version empty, try specifying them
 explicitly.
 
+<a name="protobuf-library-related-issues"></a>
 ### Protobuf library related issues
 
 TensorFlow pip package depends on protobuf pip package version
@@ -535,6 +566,7 @@ CodedInputStream::SetTotalBytesLimit() in google/protobuf/io/coded_stream.h.
 
 ```
 
+<a name="cannot-import-name-descriptor"></a>
 ### Cannot import name 'descriptor'
 
 ```python
@@ -548,6 +580,7 @@ If you the above error when upgrading to a newer version of TensorFlow, try
 uninstalling both TensorFlow and protobuf (if installed) and re-installing
 TensorFlow (which will also install the correct protobuf dependency).
 
+<a name="cant-find-setuppy"></a>
 ### Can't find setup.py
 
 If, during `pip install`, you encounter an error like:
@@ -565,6 +598,7 @@ pip install --upgrade pip
 
 This may require `sudo`, depending on how pip is installed.
 
+<a name="sslerror-sslverifyfailed"></a>
 ### SSLError: SSL_VERIFY_FAILED
 
 If, during pip install from a URL, you encounter an error like:
@@ -576,6 +610,7 @@ SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed
 
 Solution: Download the wheel manually via curl or wget, and pip install locally.
 
+<a name="jupyter-notebook-kernel-is-always-busy-windows"></a>
 ### Jupyter Notebook Kernel is always busy (Windows)
 If your have installed Docker Toolbox on Windows but your jupyter notebook doesn't run properly (the notebook kernel keeps busy all the time when you open any file) then you might need to try different browsers (One guy tried Edge and it solved his problem after struggling for long time on Chrome/Firefox).
 
@@ -589,6 +624,7 @@ And you should also enable port forwarding by:
 6. Add a new rule named jupyter with host ip=127.0.0.1 and host/guess port=8888
 7. Now you should be able to browse your notebook app via localhost:8888 (instead of having to browse 192.168.xx.xx:8888)
 
+<a name="something-else"></a>
 ### Something Else!
 
 Post on the [Forums](https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow-i/forums?sort=recent_activity) or check on the Tensorflow [README](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md#pip-installation)
