@@ -339,7 +339,7 @@ def train_vae(files,
     # Start up the queues for handling the image pipeline
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-    if os.path.exists(ckpt_name + '.index'):
+    if os.path.exists(ckpt_name + '.index') or os.path.exists(ckpt_name):
         saver.restore(sess, ckpt_name)
 
     # Fit all training data

@@ -111,7 +111,7 @@ def train(txt, batch_size=100, sequence_length=150, n_cells=100, n_layers=3,
         init_op = tf.global_variables_initializer()
         saver = tf.train.Saver()
         sess.run(init_op)
-        if os.path.exists(ckpt_name + '.index'):
+        if os.path.exists(ckpt_name + '.index') or os.path.exists(ckpt_name):
             saver.restore(sess, ckpt_name)
             print("Model restored.")
 
@@ -190,7 +190,7 @@ def infer(txt, ckpt_name, n_iterations, n_cells=512, n_layers=3,
         init_op = tf.global_variables_initializer()
         saver = tf.train.Saver()
         sess.run(init_op)
-        if os.path.exists(ckpt_name + '.index'):
+        if os.path.exists(ckpt_name + '.index') or os.path.exists(ckpt_name):
             saver.restore(sess, ckpt_name)
             print("Model restored.")
 

@@ -536,7 +536,7 @@ def train_vaegan(files,
     tf.get_default_graph().finalize()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-    if os.path.exists(ckpt_name + '.index'):
+    if os.path.exists(ckpt_name + '.index') or os.path.exists(ckpt_name):
         saver.restore(sess, ckpt_name)
         print("VAE model restored.")
 
