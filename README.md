@@ -188,7 +188,7 @@ This next command will move to your "home" directory.  We'll then "clone" the gi
 
 ```shell
 $ cd
-$ git clone git@github.com:pkmital/CADL.git
+$ git clone https://github.com/pkmital/CADL.git
 ```
 
 We'll now print out what the full path to that directory is.  PLEASE NOTE DOWN THIS DIRECTORY.  This is where everything will happen, and I'll explain that in a minute.
