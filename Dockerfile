@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install tensorflow 
-RUN conda update conda; conda update --all
+# RUN conda update conda; conda update --all
 
 COPY jupyter_notebook_config.py /root/.jupyter/
 
