@@ -151,7 +151,18 @@ $ cd CADL
 $ docker start -i tf
 ```
 
+If you want to use a GPU version, and have a Linux machine, and have an NVIDIA GPU, you can use [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) (this only works for Linux machines! for non-Linux machines that want to use GPU, please follow the expanded directions below, or the quickstart pip installation above):
+
+```bash
+$ wget -P /tmp https://github.com/NVIDIA/nvidia-docker/releases/download/v1.0.0-rc.3/nvidia-docker_1.0.0.rc.3-1_amd64.deb
+$ sudo dpkg -i /tmp/nvidia-docker*.deb && rm /tmp/nvidia-docker*.deb
+$ nvidia-docker build -t cadl-gpu -f Dockerfile-gpu .
+$ nvidia-docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf cadl-gpu /bin/bash 
+$ nvidia-docker start -i tf
+```
+
 If you had any trouble w/ this setup then please go through the rest of this document which provides much more in depth details.
+
 
 <a name="what-is-notebook"></a>
 ## What is Notebook?
