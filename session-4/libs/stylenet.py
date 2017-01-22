@@ -194,7 +194,7 @@ def warp_img(img, dx, dy):
     return warped
 
 
-def test_video(style_img='arles.jpg', videodir='kurosawa'):
+def test_video(style_img='arles.png', videodir='kurosawa'):
     r"""Test for artistic stylization using video.
 
     This requires the python installation of OpenCV for the Deep Flow algorithm.
@@ -253,10 +253,10 @@ def test_video(style_img='arles.jpg', videodir='kurosawa'):
     except ImportError:
         has_cv2 = False
 
-    style_img = plt.imread(style_img)
+    style_img = vgg16.preprocess(plt.imread(style_img)[..., :3])
     content_files = [os.path.join(videodir, f)
                      for f in os.listdir(videodir) if f.endswith('.png')]
-    content_img = plt.imread(content_files[0])
+    content_img = plt.imread(content_files[0])[..., :3]
     from scipy.misc import imresize
     style_img = imresize(style_img, (448, 448)).astype(np.float32) / 255.0
     content_img = imresize(content_img, (448, 448)).astype(np.float32) / 255.0
@@ -272,7 +272,7 @@ def test_video(style_img='arles.jpg', videodir='kurosawa'):
     plt.imsave(fname=content_files[0] + 'stylized.png', arr=stylized)
     imgs.append(stylized)
     for f in content_files[1:]:
-        content_img = plt.imread(f)
+        content_img = plt.imread(f)[..., :3]
         content_img = imresize(content_img, (448, 448)).astype(np.float32) / 255.0
         if has_cv2:
             lum = cv2.cvtColor(content_img, cv2.COLOR_RGB2HSV)[:, :, 2]
