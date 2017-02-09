@@ -620,7 +620,7 @@ def deconv2d(x, n_output_h, n_output_w, n_output_ch, n_input_ch=None,
     with tf.variable_scope(name or 'deconv2d', reuse=reuse):
         W = tf.get_variable(
             name='W',
-            shape=[k_h, k_h, n_output_ch, n_input_ch or x.get_shape()[-1]],
+            shape=[k_h, k_w, n_output_ch, n_input_ch or x.get_shape()[-1]],
             initializer=tf.contrib.layers.xavier_initializer_conv2d())
 
         conv = tf.nn.conv2d_transpose(
