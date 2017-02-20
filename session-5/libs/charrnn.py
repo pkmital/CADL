@@ -241,7 +241,7 @@ def test_alice(max_iter=100):
 def test_trump(max_iter=100):
     with open('trump.txt', 'r') as fp:
         txt = fp.read()
-    # train(txt, max_iter=max_iter)
+    train(txt, max_iter=max_iter)
     print(infer(txt, './trump.ckpt', 100))
 
 
