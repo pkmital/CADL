@@ -74,3 +74,7 @@ def test_inception():
 
 def test_stylenet():
     stylenet.test()
+
+
+def test_stylenet_video():
+    stylenet.test_video()

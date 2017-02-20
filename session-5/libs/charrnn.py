@@ -40,23 +40,23 @@ def build_model(txt,
         # Each sequence element will be connected to n_cells
         Xs = tf.nn.embedding_lookup(embedding, X)
         # Then slice each sequence element
-        Xs = tf.split(1, sequence_length, Xs)
+        Xs = tf.split(axis=1, num_or_size_splits=sequence_length, value=Xs)
         # Get rid of singleton sequence element dimension
         Xs = [tf.squeeze(X_i, [1]) for X_i in Xs]
 
     with tf.variable_scope('rnn'):
-        cells = tf.nn.rnn_cell.BasicLSTMCell(
+        cells = tf.contrib.rnn.BasicLSTMCell(
             num_units=n_cells, forget_bias=0.0, state_is_tuple=True)
         initial_state = cells.zero_state(tf.shape(X)[0], tf.float32)
         if n_layers > 1:
-            cells = tf.nn.rnn_cell.MultiRNNCell(
+            cells = tf.contrib.rnn.MultiRNNCell(
                 [cells] * n_layers, state_is_tuple=True)
             initial_state = cells.zero_state(tf.shape(X)[0], tf.float32)
-        cells = tf.nn.rnn_cell.DropoutWrapper(
+        cells = tf.contrib.rnn.DropoutWrapper(
             cells, output_keep_prob=keep_prob)
-        outputs, final_state = tf.nn.rnn(
+        outputs, final_state = tf.contrib.rnn.static_rnn(
             cells, Xs, initial_state=initial_state)
-        outputs_flat = tf.reshape(tf.concat(1, outputs), [-1, n_cells])
+        outputs_flat = tf.reshape(tf.concat(axis=1, values=outputs), [-1, n_cells])
 
     with tf.variable_scope('prediction'):
         W = tf.get_variable(
@@ -72,10 +72,10 @@ def build_model(txt,
         Y_pred = tf.argmax(probs, 1)
 
     with tf.variable_scope('loss'):
-        loss = tf.nn.seq2seq.sequence_loss_by_example(
-            [logits],
-            [tf.reshape(tf.concat(1, Y), [-1])],
-            [tf.ones([batch_size * sequence_length])])
+        loss = tf.contrib.seq2seq.sequence_loss(
+            tf.reshape(logits, (batch_size, sequence_length, n_chars)),
+            Y,
+            tf.ones((batch_size, sequence_length)))
         cost = tf.reduce_sum(loss) / batch_size
 
     with tf.name_scope('optimizer'):

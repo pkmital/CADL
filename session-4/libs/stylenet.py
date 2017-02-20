@@ -271,7 +271,7 @@ def test_video(style_img='arles.png', videodir='kurosawa'):
                        style_weight=0.5, n_iterations=50)
     plt.imsave(fname=content_files[0] + 'stylized.png', arr=stylized)
     imgs.append(stylized)
-    for f in content_files[1:]:
+    for f in content_files[1:5]:
         content_img = plt.imread(f)[..., :3]
         content_img = imresize(content_img, (448, 448)).astype(np.float32) / 255.0
         if has_cv2:

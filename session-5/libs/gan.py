@@ -305,29 +305,29 @@ def GAN(input_shape, n_latent, n_features, rgb, debug=True):
     # n_features is either the image dimension or flattened number of features
     x = tf.placeholder(tf.float32, input_shape, 'x')
     x = (x / 127.5) - 1.0
-    sum_x = tf.image_summary("x", x)
+    sum_x = tf.summary.image("x", x)
     phase_train = tf.placeholder(tf.bool, name='phase_train')
 
     # Discriminator for real input samples
     D_real_logits = discriminator(
         x, phase_train, n_features=n_features, rgb=rgb)
     D_real = tf.nn.sigmoid(D_real_logits)
-    sum_D_real = tf.histogram_summary("D_real", D_real)
+    sum_D_real = tf.summary.histogram("D_real", D_real)
 
     # Generator tries to recreate input samples using latent feature vector
     z = tf.placeholder(tf.float32, [None, n_latent], 'z')
-    sum_z = tf.histogram_summary("z", z)
+    sum_z = tf.summary.histogram("z", z)
     G = generator(
         z, phase_train,
         output_h=input_shape[1], output_w=input_shape[2],
         n_features=n_features, rgb=rgb)
-    sum_G = tf.image_summary("G", G)
+    sum_G = tf.summary.image("G", G)
 
     # Discriminator for generated samples
     D_fake_logits = discriminator(
         G, phase_train, n_features=n_features, rgb=rgb, reuse=True)
     D_fake = tf.nn.sigmoid(D_fake_logits)
-    sum_D_fake = tf.histogram_summary("D_fake", D_fake)
+    sum_D_fake = tf.summary.histogram("D_fake", D_fake)
 
     with tf.variable_scope('loss'):
         # Loss functions
@@ -340,12 +340,12 @@ def GAN(input_shape, n_latent, n_features, rgb, debug=True):
             D_fake, tf.ones_like(D_fake), name='loss_G'))
 
         # Summaries
-        sum_loss_D_real = tf.histogram_summary("loss_D_real", loss_D_real)
-        sum_loss_D_fake = tf.histogram_summary("loss_D_fake", loss_D_fake)
-        sum_loss_D = tf.scalar_summary("loss_D", loss_D)
-        sum_loss_G = tf.scalar_summary("loss_G", loss_G)
-        sum_D_real = tf.histogram_summary("D_real", D_real)
-        sum_D_fake = tf.histogram_summary("D_fake", D_fake)
+        sum_loss_D_real = tf.summary.histogram("loss_D_real", loss_D_real)
+        sum_loss_D_fake = tf.summary.histogram("loss_D_fake", loss_D_fake)
+        sum_loss_D = tf.summary.scalar("loss_D", loss_D)
+        sum_loss_G = tf.summary.scalar("loss_G", loss_G)
+        sum_D_real = tf.summary.histogram("D_real", D_real)
+        sum_D_fake = tf.summary.histogram("D_fake", D_fake)
 
     return {
         'loss_D': loss_D,
@@ -440,13 +440,13 @@ def train_ds():
 
     saver = tf.train.Saver()
     sums = gan['sums']
-    G_sum_op = tf.merge_summary([
+    G_sum_op = tf.summary.merge([
         sums['G'], sums['loss_G'], sums['z'],
         sums['loss_D_fake'], sums['D_fake']])
-    D_sum_op = tf.merge_summary([
+    D_sum_op = tf.summary.merge([
         sums['loss_D'], sums['loss_D_real'], sums['loss_D_fake'],
         sums['z'], sums['x'], sums['D_real'], sums['D_fake']])
-    writer = tf.train.SummaryWriter("./logs", sess.graph_def)
+    writer = tf.summary.FileWriter("./logs", sess.graph_def)
 
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)

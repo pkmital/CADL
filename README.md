@@ -422,7 +422,7 @@ To confirm it worked, try running:
 $ python3 -c 'import tensorflow as tf; print(tf.__version__)'
 ```
 
-You should see 0.9.0 or 0.10.0 or 0.11.0rc1 printed, depending on which version you have installed.
+You should see 1.0.0 printed, depending on which version you have installed.
 
 
 <a name="cudagpu-instructions-for-macos"></a>
@@ -464,8 +464,7 @@ $ sudo ln -s /Developer/NVIDIA/CUDA-8.0/lib/libcudnn* /usr/local/cuda/lib/
 ```
 Then, finally, install tensorflow with GPU support with:
 ```
-$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/gpu/tensorflow_gpu-0.12.0rc0-py3-none-any.whl`
-$ pip3 install --ignore-installed --upgrade $TF_BINARY_URL
+$ pip3 install --ignore-installed --upgrade tensorflow-gpu
 ```
 
 According to the instructions of the TensorFlow website, this should work. However, on MacOS 10.11 (El Capitan) and 

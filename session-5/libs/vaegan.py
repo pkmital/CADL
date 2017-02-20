@@ -131,7 +131,7 @@ def decoder(z, shapes, n_hidden=None,
         if convolutional:
             current_input = tf.reshape(
                 current_input,
-                tf.pack([tf.shape(current_input)[0], dims[1], dims[2], dims[3]]))
+                tf.stack([tf.shape(current_input)[0], dims[1], dims[2], dims[3]]))
 
     Ws = []
     hs = []
@@ -180,10 +180,10 @@ def variational_bayes(h, n_code):
     z_log_sigma = 0.5 * tf.nn.tanh(linear(h, n_code, name='log_sigma')[0])
 
     # Sample from noise distribution p(eps) ~ N(0, 1)
-    epsilon = tf.random_normal(tf.pack([tf.shape(h)[0], n_code]))
+    epsilon = tf.random_normal(tf.stack([tf.shape(h)[0], n_code]))
 
     # Sample from posterior
-    z = tf.add(z_mu, tf.mul(epsilon, tf.exp(z_log_sigma)), name='z')
+    z = tf.add(z_mu, tf.multiply(epsilon, tf.exp(z_log_sigma)), name='z')
     # -log(p(z)/q(z|x)), bits by coding.
     # variational bound coding costs kl(p(z|x)||q(z|x))
     # d_kl(q(z|x)||p(z))

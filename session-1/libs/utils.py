@@ -145,7 +145,7 @@ def gauss(mean, stddev, ksize):
     g = tf.Graph()
     with tf.Session(graph=g):
         x = tf.linspace(-3.0, 3.0, ksize)
-        z = (tf.exp(tf.neg(tf.pow(x - mean, 2.0) /
+        z = (tf.exp(tf.negative(tf.pow(x - mean, 2.0) /
                            (2.0 * tf.pow(stddev, 2.0)))) *
              (1.0 / (stddev * tf.sqrt(2.0 * 3.1415))))
         return z.eval()
@@ -219,7 +219,7 @@ def gabor(ksize=32):
         ys = tf.sin(tf.linspace(-3.0, 3.0, ksize))
         ys = tf.reshape(ys, [ksize, 1])
         wave = tf.matmul(ys, ones)
-        gabor = tf.mul(wave, z_2d)
+        gabor = tf.multiply(wave, z_2d)
         return gabor.eval()
 
 
