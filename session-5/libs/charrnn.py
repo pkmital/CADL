@@ -12,7 +12,6 @@ import tensorflow as tf
 import numpy as np
 import os
 import sys
-from six.moves import urllib
 import collections
 import gzip
 
@@ -39,7 +38,8 @@ def build_model(txt,
         embedding = tf.get_variable("embedding", [n_chars, n_cells])
         # Each sequence element will be connected to n_cells
         Xs = tf.nn.embedding_lookup(embedding, X)
-        # Then slice each sequence element
+        # Then slice each sequence element, giving us sequence number of
+        # batch x 1 x n_chars Tensors
         Xs = tf.split(axis=1, num_or_size_splits=sequence_length, value=Xs)
         # Get rid of singleton sequence element dimension
         Xs = [tf.squeeze(X_i, [1]) for X_i in Xs]
@@ -54,9 +54,13 @@ def build_model(txt,
             initial_state = cells.zero_state(tf.shape(X)[0], tf.float32)
         cells = tf.contrib.rnn.DropoutWrapper(
             cells, output_keep_prob=keep_prob)
+        # returns a length sequence length list of outputs, one for each input
         outputs, final_state = tf.contrib.rnn.static_rnn(
             cells, Xs, initial_state=initial_state)
-        outputs_flat = tf.reshape(tf.concat(axis=1, values=outputs), [-1, n_cells])
+        # now concat the sequence length number of batch x n_cells Tensors to
+        # give [sequence_length x batch, n_cells]
+        outputs_flat = tf.reshape(
+            tf.concat(axis=1, values=outputs), [-1, n_cells])
 
     with tf.variable_scope('prediction'):
         W = tf.get_variable(
@@ -72,10 +76,10 @@ def build_model(txt,
         Y_pred = tf.argmax(probs, 1)
 
     with tf.variable_scope('loss'):
-        loss = tf.contrib.seq2seq.sequence_loss(
-            tf.reshape(logits, (batch_size, sequence_length, n_chars)),
-            Y,
-            tf.ones((batch_size, sequence_length)))
+        loss = tf.contrib.legacy_seq2seq.sequence_loss_by_example(
+            [logits],
+            [tf.reshape(tf.concat(axis=1, values=Y), [-1])],
+            [tf.ones([batch_size * sequence_length])])
         cost = tf.reduce_sum(loss) / batch_size
 
     with tf.name_scope('optimizer'):
@@ -94,7 +98,7 @@ def build_model(txt,
     return model
 
 
-def train(txt, batch_size=100, sequence_length=150, n_cells=100, n_layers=3,
+def train(txt, batch_size=100, sequence_length=150, n_cells=200, n_layers=3,
           learning_rate=0.00001, max_iter=50000, gradient_clip=5.0,
           ckpt_name="model.ckpt", keep_prob=1.0):
 
@@ -117,7 +121,7 @@ def train(txt, batch_size=100, sequence_length=150, n_cells=100, n_layers=3,
 
         cursor = 0
         it_i = 0
-        print_step = 100
+        print_step = 1000
         avg_cost = 0
         while it_i < max_iter:
             Xs, Ys = [], []
@@ -131,13 +135,17 @@ def train(txt, batch_size=100, sequence_length=150, n_cells=100, n_layers=3,
                 if (cursor + 1) >= len(txt) - sequence_length - 1:
                     cursor = np.random.randint(0, high=sequence_length)
 
-            feed_dict = {model['X']: Xs, model['Y']: Ys, model['keep_prob']: keep_prob}
-            out = sess.run([model['cost'], model['updates']], feed_dict=feed_dict)
+            feed_dict = {model['X']: Xs,
+                         model['Y']: Ys,
+                         model['keep_prob']: keep_prob}
+            out = sess.run([model['cost'], model['updates']],
+                           feed_dict=feed_dict)
             avg_cost += out[0]
 
             if (it_i + 1) % print_step == 0:
                 p = sess.run(model['probs'], feed_dict={
-                    model['X']: np.array(Xs[-1])[np.newaxis], model['keep_prob']: 1.0})
+                    model['X']: np.array(Xs[-1])[np.newaxis],
+                    model['keep_prob']: 1.0})
                 print(p.shape, 'min:', np.min(p), 'max:', np.max(p),
                       'mean:', np.mean(p), 'std:', np.std(p))
                 if isinstance(txt[0], str):
@@ -206,7 +214,8 @@ def infer(txt, ckpt_name, n_iterations, n_cells=512, n_layers=3,
                          model['keep_prob']: keep_prob}
             state_updates = []
             for state_i in range(n_layers):
-                feed_dict[model['initial_state'][state_i].c] = state[state_i * 2]
+                feed_dict[model['initial_state'][state_i].c] = \
+                    state[state_i * 2]
                 feed_dict[model['initial_state'][state_i].h] = state[state_i * 2 + 1]
                 state_updates.append(model['final_state'][state_i].c)
                 state_updates.append(model['final_state'][state_i].h)
@@ -241,7 +250,7 @@ def test_alice(max_iter=100):
 def test_trump(max_iter=100):
     with open('trump.txt', 'r') as fp:
         txt = fp.read()
-    train(txt, max_iter=max_iter)
+    train(txt, ckpt_name='trump.ckpt', max_iter=max_iter)
     print(infer(txt, './trump.ckpt', 100))
 
 
