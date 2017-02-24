@@ -19,7 +19,10 @@ def test_trump():
 
 def test_vaegan_training():
     utils.get_celeb_files()
-    vaegan.test_celeb(1)
+    vaegan.test_celeb(n_epochs=1,
+                      crop_shape=[32, 32, 3],
+                      n_filters=[10],
+                      filter_sizes=[3])
 
 
 def test_celeb_vaegan():

@@ -636,7 +636,8 @@ def train_vaegan(files,
     sess.close()
 
 
-def test_celeb(n_epochs=100):
+def test_celeb(n_epochs=100, crop_shape=[100, 100, 3],
+               n_filters=[100, 100, 100, 100], filter_sizes=[3, 3, 3, 3]):
     """Summary
 
     Returns

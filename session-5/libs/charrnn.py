@@ -250,8 +250,8 @@ def test_alice(max_iter=100):
 def test_trump(max_iter=100):
     with open('trump.txt', 'r') as fp:
         txt = fp.read()
-    train(txt, ckpt_name='trump.ckpt', max_iter=max_iter)
-    print(infer(txt, './trump.ckpt', 100))
+    # train(txt, ckpt_name='trump.ckpt', max_iter=max_iter)
+    print(infer(txt, ckpt_name='./trump.ckpt', n_iterations=max_iter))
 
 
 def test_wtc():
