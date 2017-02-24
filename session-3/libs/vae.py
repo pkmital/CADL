@@ -142,10 +142,10 @@ def VAE(input_shape=[None, 784],
 
             # Sample from noise distribution p(eps) ~ N(0, 1)
             epsilon = tf.random_normal(
-                tf.pack([tf.shape(x)[0], n_code]))
+                tf.stack([tf.shape(x)[0], n_code]))
 
             # Sample from posterior
-            z = z_mu + tf.mul(epsilon, tf.exp(z_log_sigma))
+            z = z_mu + tf.multiply(epsilon, tf.exp(z_log_sigma))
 
             if n_hidden:
                 h = utils.linear(z, n_hidden, name='fc_t')[0]
@@ -163,7 +163,7 @@ def VAE(input_shape=[None, 784],
 
             if convolutional:
                 current_input = tf.reshape(
-                    current_input, tf.pack([
+                    current_input, tf.stack([
                         tf.shape(current_input)[0],
                         dims[1],
                         dims[2],

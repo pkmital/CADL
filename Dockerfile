@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install tensorflow 
+ENV TENSORFLOW_VERSION 1.0.0
+RUN pip install tensorflow==$TENSORFLOW_VERSION 
 # RUN conda update conda; conda update --all
 
 COPY jupyter_notebook_config.py /root/.jupyter/
@@ -16,8 +17,6 @@ COPY jupyter_notebook_config.py /root/.jupyter/
 # https://github.com/ipython/ipython/issues/7062
 # We just add a little wrapper script.
 COPY run_jupyter.sh /
-
-ENV TENSORFLOW_VERSION 0.12.1
 
 # tensorboard
 EXPOSE 6006

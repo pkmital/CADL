@@ -115,7 +115,7 @@ def corrupt(x):
     x_corrupted : Tensor
         50 pct of values corrupted.
     """
-    return tf.mul(x, tf.cast(tf.random_uniform(shape=tf.shape(x),
+    return tf.multiply(x, tf.cast(tf.random_uniform(shape=tf.shape(x),
                                                minval=0,
                                                maxval=2,
                                                dtype=tf.int32), tf.float32))
@@ -359,7 +359,7 @@ def gauss(mean, stddev, ksize):
     g = tf.Graph()
     with tf.Session(graph=g):
         x = tf.linspace(-3.0, 3.0, ksize)
-        z = (tf.exp(tf.neg(tf.pow(x - mean, 2.0) /
+        z = (tf.exp(tf.negative(tf.pow(x - mean, 2.0) /
                            (2.0 * tf.pow(stddev, 2.0)))) *
              (1.0 / (stddev * tf.sqrt(2.0 * 3.1415))))
         return z.eval()
@@ -433,7 +433,7 @@ def gabor(ksize=32):
         ys = tf.sin(tf.linspace(-3.0, 3.0, ksize))
         ys = tf.reshape(ys, [ksize, 1])
         wave = tf.matmul(ys, ones)
-        gabor = tf.mul(wave, z_2d)
+        gabor = tf.multiply(wave, z_2d)
         return gabor.eval()
 
 
@@ -487,7 +487,7 @@ def weight_variable(shape, **kwargs):
         Size of weight variable
     '''
     if isinstance(shape, list):
-        initial = tf.random_normal(tf.pack(shape), mean=0.0, stddev=0.01)
+        initial = tf.random_normal(tf.stack(shape), mean=0.0, stddev=0.01)
         initial.set_shape(shape)
     else:
         initial = tf.random_normal(shape, mean=0.0, stddev=0.01)
@@ -504,7 +504,7 @@ def bias_variable(shape, **kwargs):
         Size of weight variable
     '''
     if isinstance(shape, list):
-        initial = tf.random_normal(tf.pack(shape), mean=0.0, stddev=0.01)
+        initial = tf.random_normal(tf.stack(shape), mean=0.0, stddev=0.01)
         initial.set_shape(shape)
     else:
         initial = tf.random_normal(shape, mean=0.0, stddev=0.01)
@@ -627,7 +627,7 @@ def deconv2d(x, n_output_h, n_output_w, n_output_ch, n_input_ch=None,
             name='conv_t',
             value=x,
             filter=W,
-            output_shape=tf.pack(
+            output_shape=tf.stack(
                 [tf.shape(x)[0], n_output_h, n_output_w, n_output_ch]),
             strides=[1, d_h, d_w, 1],
             padding=padding)
