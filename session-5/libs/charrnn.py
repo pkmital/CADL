@@ -180,7 +180,7 @@ def train(txt, batch_size=100, sequence_length=150, n_cells=200, n_layers=3,
         return model
 
 
-def infer(txt, ckpt_name, n_iterations, n_cells=512, n_layers=3,
+def infer(txt, ckpt_name, n_iterations, n_cells=200, n_layers=3,
           learning_rate=0.001, max_iter=5000, gradient_clip=10.0,
           init_value=[0], keep_prob=1.0, sampling='prob', temperature=1.0):
 
