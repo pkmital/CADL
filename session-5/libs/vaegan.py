@@ -551,7 +551,7 @@ def train_vaegan(files,
     test_xs = sess.run(batch) / 255.0
     montage(test_xs, 'test_xs.png')
     try:
-        while not coord.should_stop() or epoch_i < n_epochs:
+        while not coord.should_stop() and epoch_i < n_epochs:
             if batch_i % (n_files // batch_size) == 0:
                 batch_i = 0
                 epoch_i += 1
@@ -648,17 +648,17 @@ def test_celeb(n_epochs=100, crop_shape=[100, 100, 3],
     files = CELEB()
     train_vaegan(
         files=files,
-        batch_size=64,
+        batch_size=100,
         n_epochs=n_epochs,
-        crop_shape=[100, 100, 3],
+        crop_shape=crop_shape,
         crop_factor=0.8,
         input_shape=[218, 178, 3],
         convolutional=True,
         variational=True,
-        n_filters=[100, 100, 100, 100],
+        n_filters=n_filters,
         n_hidden=None,
         n_code=64,
-        filter_sizes=[3, 3, 3, 3],
+        filter_sizes=filter_sizes,
         activation=tf.nn.elu,
         ckpt_name='./celeb.ckpt')
 

@@ -24,18 +24,17 @@ def test_vaegan_training():
                       n_filters=[10],
                       filter_sizes=[3])
 
-
 def test_celeb_vaegan():
-    net = celeb_vaegan.get_celeb_vaegan_model()
-    sess = tf.Session()
-    g = tf.get_default_graph()
-    tf.import_graph_def(
-        net['graph_def'],
-        name='net',
-        input_map={
-            'encoder/variational/random_normal:0':
-            np.zeros(512, dtype=np.float32)
-        }
-    )
-    names = [op.name for op in g.get_operations()]
-    print(names)
+    g = tf.Graph()
+    with tf.Session(graph=g) as sess:
+        net = celeb_vaegan.get_celeb_vaegan_model()
+        tf.import_graph_def(
+            net['graph_def'],
+            name='net',
+            input_map={
+                'encoder/variational/random_normal:0':
+                np.zeros(512, dtype=np.float32)
+            }
+        )
+        names = [op.name for op in g.get_operations()]
+        print(names)
