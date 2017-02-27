@@ -76,5 +76,5 @@ def test_stylenet():
     stylenet.test()
 
 
-def test_stylenet_video():
-    stylenet.test_video()
+#def test_stylenet_video():
+#    stylenet.test_video()
