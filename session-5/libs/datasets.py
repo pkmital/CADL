@@ -70,8 +70,9 @@ def CELEB(path='./img_align_celeba/'):
               'http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html')
         return None
     else:
-        fs = [os.path.join(path, f)
-              for f in os.listdir(path) if f.endswith('.jpg')]
+        fs = sorted([os.path.join(path, f)
+                     for f in os.listdir(path)
+                     if f.endswith('.jpg')])
         if len(fs) < 202598:
             print('It does not look like you have downloaded the entire ' +
                   'Celeb Dataset.\n' +
