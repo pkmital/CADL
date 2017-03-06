@@ -241,10 +241,10 @@ def infer(txt, ckpt_name, n_iterations, n_cells=200, n_layers=3,
     return [model['decoder'][ch] for ch in np.concatenate(synth)]
 
 
-def test_alice(max_iter=100):
+def test_alice(max_iter=5):
     with gzip.open('alice.txt.gz', 'rb') as fp:
         txt = fp.read().decode('utf-8')
-    train(txt, max_iter=max_iter)
+    train(txt, n_layers=2, n_cells=20, max_iter=max_iter)
 
 
 def test_trump(max_iter=100):
