@@ -6,6 +6,7 @@ Parag K. Mital
 
 Copyright Parag K. Mital, June 2016.
 """
+from __future__ import print_function
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import urllib
