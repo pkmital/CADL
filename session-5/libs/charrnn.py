@@ -46,11 +46,16 @@ def build_model(txt,
 
     with tf.variable_scope('rnn'):
         cells = tf.contrib.rnn.BasicLSTMCell(
-            num_units=n_cells, forget_bias=0.0, state_is_tuple=True)
+            num_units=n_cells, forget_bias=0.0)
         initial_state = cells.zero_state(tf.shape(X)[0], tf.float32)
         if n_layers > 1:
-            cells = tf.contrib.rnn.MultiRNNCell(
-                [cells] * n_layers, state_is_tuple=True)
+            cells = [cells]
+            for layer_i in range(1, n_layers):
+                with tf.variable_scope('{}'.format(layer_i)):
+                    this_cell = tf.contrib.rnn.BasicLSTMCell(
+                        num_units=n_cells)
+                    cells.append(this_cell)
+            cells = tf.contrib.rnn.MultiRNNCell(cells)
             initial_state = cells.zero_state(tf.shape(X)[0], tf.float32)
         cells = tf.contrib.rnn.DropoutWrapper(
             cells, output_keep_prob=keep_prob)

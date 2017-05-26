@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV TENSORFLOW_VERSION 1.0.0
+ENV TENSORFLOW_VERSION 1.1.0
 RUN pip install tensorflow==$TENSORFLOW_VERSION 
 # RUN conda update conda; conda update --all
 
