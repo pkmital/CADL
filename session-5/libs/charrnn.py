@@ -1,13 +1,12 @@
 """Creative Applications of Deep Learning w/ Tensorflow.
 Kadenze, Inc.
 Copyright Parag K. Mital, June 2016.
-
 TODO:
 argparse
 better sound example/model
 prime with text input
 """
-from __future__ import print_function
+
 import tensorflow as tf
 import numpy as np
 import os
@@ -45,20 +44,12 @@ def build_model(txt,
         Xs = [tf.squeeze(X_i, [1]) for X_i in Xs]
 
     with tf.variable_scope('rnn'):
-        cells = tf.contrib.rnn.BasicLSTMCell(
-            num_units=n_cells, forget_bias=0.0)
+        cells = tf.contrib.rnn.MultiRNNCell([
+            tf.contrib.rnn.DropoutWrapper(
+                tf.contrib.rnn.BasicLSTMCell(num_units=n_cells, forget_bias=0.0, state_is_tuple=True),
+                output_keep_prob=keep_prob)
+            for _ in range(n_layers)])
         initial_state = cells.zero_state(tf.shape(X)[0], tf.float32)
-        if n_layers > 1:
-            cells = [cells]
-            for layer_i in range(1, n_layers):
-                with tf.variable_scope('{}'.format(layer_i)):
-                    this_cell = tf.contrib.rnn.BasicLSTMCell(
-                        num_units=n_cells)
-                    cells.append(this_cell)
-            cells = tf.contrib.rnn.MultiRNNCell(cells)
-            initial_state = cells.zero_state(tf.shape(X)[0], tf.float32)
-        cells = tf.contrib.rnn.DropoutWrapper(
-            cells, output_keep_prob=keep_prob)
         # returns a length sequence length list of outputs, one for each input
         outputs, final_state = tf.contrib.rnn.static_rnn(
             cells, Xs, initial_state=initial_state)
