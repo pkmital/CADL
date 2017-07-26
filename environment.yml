@@ -1,0 +1,13 @@
+name: CADL
+channels:
+- conda-forge
+- anaconda-fusion
+- defaults
+dependencies:
+- python=3.5
+- tensorflow
+- jupyter
+- jupyter_dashboards
+- matplotlib
+- pillow
+- scipy

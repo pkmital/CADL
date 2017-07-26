@@ -2,3 +2,10 @@ __pycache__
 .cache
 .pyc
 
+*.iml
+.idea/
+
+**/data/
+**/.ipynb_checkpoints/
+
+/session-1/img_align_celeba/
