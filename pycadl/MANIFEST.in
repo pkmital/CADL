@@ -1,0 +1,12 @@
+include HISTORY.md
+include README.md
+include NOTICE.md
+include setup.py
+include tox.ini
+include conftest.py
+
+graft docs
+
+exclude docs/_build
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
