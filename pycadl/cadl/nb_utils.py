@@ -1,7 +1,9 @@
+"""Utility for displaying Tensorflow graphs.
 """
-Utility for displaying Tensorflow graphs from
----------------------------------------------
-https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/tutorials/deepdream/deepdream.ipynb
+"""
+From
+https://github.com/tensorflow/tensorflow/blob/master/tensorflow
+/examples/tutorials/deepdream/deepdream.ipynb
 
 Copyright 2017 Parag K. Mital.  See also NOTICE.md.
 

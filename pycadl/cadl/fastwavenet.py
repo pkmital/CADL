@@ -5,7 +5,8 @@ From the following paper
 Ramachandran, P., Le Paine, T., Khorrami, P., Babaeizadeh, M., Chang, S.,
 Zhang, Y., … Huang, T. (2017). Fast Generation For Convolutional
 Autoregressive Models, 1–5.
-
+"""
+"""
 WaveNet Training code and utilities are licensed under APL from the
 
 Google Magenta project

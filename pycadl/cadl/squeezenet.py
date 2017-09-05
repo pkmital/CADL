@@ -1,5 +1,6 @@
 """SqueezeNet
-
+"""
+"""
 squeezeNet is a much smaller convolutional network, with vastly less amount of parameters.
 queezeNet achieves AlexNet-level accuracy on ImageNet with 50x fewer parameters.
 Additionally, with model compression techniques SqueezeNet can be compress to less than 0.5MB (510x smaller than AlexNet).

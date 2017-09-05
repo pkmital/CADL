@@ -1,7 +1,8 @@
 """Convolutional/Variational autoencoder, including demonstration of
 training such a network on MNIST, CelebNet and the film, "Sita Sings The Blues"
 using an image pipeline.
-
+"""
+"""
 Copyright 2017 Parag K. Mital.  See also NOTICE.md.
 
 Licensed under the Apache License, Version 2.0 (the "License");
