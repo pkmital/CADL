@@ -26,7 +26,6 @@ import numpy as np
 from magenta.models.nsynth import utils
 from magenta.models.nsynth import reader
 from magenta.models.nsynth.wavenet import masked
-from future.builtins import range as xrange
 from skimage.transform import resize
 
 
