@@ -46,11 +46,11 @@ requirements = [
 setup(
     name='cadl',
     version=find_version("cadl", "__init__.py"),
-    description="Creative Applications of Deep Learning",
+    description="Creative Applications of Deep Learning with TensorFlow",
     long_description=readme + '\n\n' + history,
     author="Parag Mital",
     author_email='parag@pkmital.com',
-    url='https://github.com/pkmital/cadl',
+    url='https://github.com/pkmital/cadl/pycadl',
     packages=find_packages(),
     include_package_data=True,
     install_requires=requirements,
