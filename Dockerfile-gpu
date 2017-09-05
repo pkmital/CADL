@@ -21,7 +21,7 @@ RUN apt-get install -y curl grep sed dpkg && \
 
 ENV PATH /opt/conda/bin:$PATH
 
-ENV TENSORFLOW_VERSION 1.1.0
+ENV TENSORFLOW_VERSION 1.3.0
 RUN pip install tensorflow-gpu==$TENSORFLOW_VERSION 
 # RUN conda update conda; conda update --all
 

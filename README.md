@@ -2,36 +2,33 @@
 
 # <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>
 
-This repository contains lecture transcripts and homework assignments as Jupyter Notebooks for the <a href="https://www.kadenze.com/partners/kadenze-academy">Kadenze Academy</a> course on <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>.
+This repository contains lecture transcripts and homework assignments as Jupyter Notebooks for the first of three <a href="https://www.kadenze.com/partners/kadenze-academy">Kadenze Academy</a> courses on <a href="https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow/info">Creative Applications of Deep Learning w/ Tensorflow</a>.  It also contains a python package containing all the code developed during all three courses.
 
-This course introduces you to deep learning: the state-of-the-art approach to building artificial intelligence algorithms. We cover the basic components of deep learning, what it means, how it works, and develop code necessary to build various algorithms such as deep convolutional networks, variational autoencoders, generative adversarial networks, and recurrent neural networks. A major focus of this course will be to not only understand how to build the necessary components of these algorithms, but also how to apply them for exploring creative applications. We'll see how to train a computer to recognize objects in an image and use this knowledge to drive new and interesting behaviors, from understanding the similarities and differences in large datasets and using them to self-organize, to understanding how to infinitely generate entirely new content or match the aesthetics or contents of another image. Deep learning offers enormous potential for creative applications and in this course we interrogate what's possible. Through practical applications and guided homework assignments, you'll be expected to create datasets, develop and train neural networks, explore your own media collections using existing state-of-the-art deep nets, synthesize new content from generative algorithms, and understand deep learning's potential for creating entirely new aesthetics and new ways of interacting with large amounts of data.
+**COURSE 1: Creative Applications of Deep Learning with TensorFlow I**  
+Session 1: Introduction to TensorFlow  
+Session 2: Training A Network W/ TensorFlow  
+Session 3: Unsupervised And Supervised Learning  
+Session 4: Visualizing And Hallucinating Representations  
+Session 5: Generative Models  
 
-[Join our Slack channel.](https://cadl.herokuapp.com)
+**COURSE 2: Creative Applications of Deep Learning with TensorFlow II**  
+Session 1: Cloud Computing, GPUs, Deploying  
+Session 2: Mixture Density Networks
+Session 3: Modeling Attention with RNNs, DRAW  
+Session 4: Image-to-Image Translation with GANs  
 
-# Schedule
-
-## Session 1: Introduction To Tensorflow
-We'll cover the importance of data with machine and deep learning algorithms, the basics of creating a dataset, how to preprocess datasets, then jump into Tensorflow, a library for creating computational graphs built by Google Research. We'll learn the basic components of Tensorflow and see how to use it to filter images.
-
-## Session 2: Training A Network W/ Tensorflow
-We'll see how neural networks work, how they are "trained", and see the basic components of training a neural network. We'll then build our first neural network and use it for a fun application of teaching a neural network how to paint an image, and explore such a network can be extended to produce different aesthetics.
-
-## Session 3: Unsupervised And Supervised Learning
-We explore deep neural networks capable of encoding a large dataset, and see how we can use this encoding to explore "latent" dimensions of a dataset or for generating entirely new content. We'll see what this means, how "autoencoders" can be built, and learn a lot of state-of-the-art extensions that make them incredibly powerful. We'll also learn about another type of model that performs discriminative learning and see how this can be used to predict labels of an image.
-
-## Session 4: Visualizing And Hallucinating Representations
-This sessions works with state of the art networks and sees how to understand what "representations" they learn. We'll see how this process actually allows us to perform some really fun visualizations including "Deep Dream" which can produce infinite generative fractals, or "Style Net" which allows us to combine the content of one image and the style of another to produce widely different painterly aesthetics automatically.
-
-## Session 5: Generative Models
-The last session offers a teaser into some of the future directions of generative modeling, including some state of the art models such as the "generative adversarial network", and its implementation within a "variational autoencoder", which allows for some of the best encodings and generative modeling of datasets that currently exist. We also see how to begin to model time, and give neural networks memory by creating "recurrent neural networks" and see how to use such networks to create entirely generative text.
+**COURSE 3: Creative Applications of Deep Learning with TensorFlow III**  
+Session 1: Modeling Music and Art: Google Brain’s Magenta Lab  
+Session 2: Modeling Language: Natural Language Processing  
+Session 3: Autoregressive Image Modeling w/ PixelCNN  
+Session 4: Modeling Audio w/ Wavenet and NSynth  
 
 # Github Contents Overview
 
-This github contains lecture transcripts from the Kadenze videos and homeworks contained in Jupyter Notebooks in the following folders:
-
 | | Session | Description | Transcript | Homework |
 | --- | --- | --- | --- | --- |
-|Installation| **[Installation](#installation-preliminaries)** | Setting up Python/Notebook and necessary Libraries. | N/A | N/A |
+| Python Package | **[pycadl](https://github.com/pkmital/pycadl)** | Python package required for courses 2 and 3 | N/A | N/A |
+|Installation| **[Installation](#installation-preliminaries)** | Setting up Python/Notebook and necessary libraries. | N/A | N/A |
 |Preliminaries| **[Preliminaries with Python](session-0)** | Basics of working with Python and images. | N/A | N/A |
 |1| **[Computing with Tensorflow](session-1)** | Working with a small dataset of images.  Dataset preprocessing.  Tensorflow basics.  Sorting/organizing a dataset. | [lecture-1.ipynb](session-1/lecture-1.ipynb) | [session-1.ipynb](session-1/session-1.ipynb) |
 |2| **[Basics of Neural Networks](session-2)** | Learn how to create a Neural Network.  Learn to use a neural network to paint an image.  Apply creative thinking to the inputs, outputs, and definition of a network. | [lecture-2.ipynb](session-2/lecture-2.ipynb) | [session-2.ipynb](session-2/session-2.ipynb) |
@@ -45,8 +42,8 @@ This github contains lecture transcripts from the Kadenze videos and homeworks c
 <!-- MarkdownTOC autolink=true autoanchor=true bracket=round -->
 
 - [Quickstart Guide](#quickstart-guide)
-    - [pip Install](#pip-install)
-    - [Docker Installation](#docker-installation)
+    - [Method 1: pip Install](#method-1-pip-install)
+    - [Method 2: Docker Installation](#method-2-docker-installation)
 - [What is Notebook?](#what-is-notebook)
 - [Docker Toolbox](#docker-toolbox)
 - [Jupyter Notebook](#jupyter-notebook)
@@ -63,7 +60,7 @@ This github contains lecture transcripts from the Kadenze videos and homeworks c
 - [CUDA/GPU instructions for MacOS](#cudagpu-instructions-for-macos)
 - [Troubleshooting](#troubleshooting)
     - [ImportError: No module named 'tensorflow'](#importerror-no-module-named-tensorflow)
-    - [AttributeError: module 'tensorflow' has no attribute '\_\_version\_\_'](#attributeerror-module-tensorflow-has-no-attribute-\\version\\)
+    - [AttributeError: module 'tensorflow' has no attribute '\_\_version\_\_'](#attributeerror-module-tensorflow-has-no-attribute-%5C%5Cversion%5C%5C)
     - [GPU-related issues](#gpu-related-issues)
     - [Protobuf library related issues](#protobuf-library-related-issues)
     - [Cannot import name 'descriptor'](#cannot-import-name-descriptor)
@@ -74,17 +71,17 @@ This github contains lecture transcripts from the Kadenze videos and homeworks c
 
 <!-- /MarkdownTOC -->
 
-We will be using Jupyter Notebook.  This will be necessary for submitting the homeworks and interacting with the guided session notebooks I will provide for each assignment.  Follow along this guide and we'll see how to obtain all of the necessary libraries that we'll be using.  By the end of this, you'll have installed Jupyter Notebook, NumPy, SciPy, and Matplotlib.  While many of these libraries aren't necessary for performing the Deep Learning which we'll get to in later lectures, they are incredibly useful for manipulating data on your computer, preparing data for learning, and exploring results.
+The first course makes heavy usage of Jupyter Notebook.  This will be necessary for submitting the homeworks and interacting with the guided session notebooks I will provide for each assignment.  Follow along this guide and we'll see how to obtain all of the necessary libraries that we'll be using.  By the end of this, you'll have installed Jupyter Notebook, NumPy, SciPy, and Matplotlib.  While many of these libraries aren't necessary for performing the Deep Learning which we'll get to in later lectures, they are incredibly useful for manipulating data on your computer, preparing data for learning, and exploring results.
 
 <a name="quickstart-guide"></a>
 ## Quickstart Guide
 
-Important! Please skip this section and read the rest of this readme if you are unfamiliar w/ Jupyter Notebook or installing Python libraries.  This section is only for advanced users who want to get started quickly.
+**Please skip this section and read the rest of this readme if you are unfamiliar w/ Jupyter Notebook or installing Python libraries.  This section is only for advanced users who want to get started quickly.**
 
 There are two ways to get started.  You can use a native pip installation or use Docker.  There is a quickstart guide for both methods below.  If you have trouble with these, then please skip to the more in depth guides below these sections.
 
-<a name="pip-install"></a>
-### pip Install
+<a name="method-1-pip-install"></a>
+### Method 1: pip Install
 
 For those of you that are proficient w/ Python programming, you'll need Python 3.4+ and the latest TensorFlow which you can install via pip, e.g.:
 
@@ -98,14 +95,14 @@ or w/ CUDA as:
 $ pip install tensorflow-gpu
 ```
 
-<a name="docker-installation"></a>
-### Docker Installation
+<a name="method-2-docker-installation"></a>
+### Method 2: Docker Installation
 
 If you want a controlled environment w/ all dependencies installed for you, and are proficient w/ Docker and Jupyter, you can get started w/ this repo like so:
 
 ```bash
 $ cd
-$ git clone https://github.com/pkmital/CADL.git
+$ git clone --recursive https://github.com/pkmital/CADL.git
 $ cd CADL
 $ docker build -t cadl .
 $ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf cadl /bin/bash
@@ -199,7 +196,7 @@ This next command will move to your "home" directory.  We'll then "clone" the gi
 
 ```shell
 $ cd
-$ git clone https://github.com/pkmital/CADL.git
+$ git clone --recursive https://github.com/pkmital/CADL.git
 ```
 
 We'll now print out what the full path to that directory is.  PLEASE NOTE DOWN THIS DIRECTORY.  This is where everything will happen, and I'll explain that in a minute.
@@ -511,7 +508,7 @@ $ pip --version
 
 You may simply need to install tensorflow using `pip` instead of `pip3` and/or use `python` instead of `python3`, assuming they point to a version of python which is Python 3 or higher.
 
-<a name="attributeerror-module-tensorflow-has-no-attribute-\\version\\"></a>
+<a name="attributeerror-module-tensorflow-has-no-attribute-%5C%5Cversion%5C%5C"></a>
 ### AttributeError: module 'tensorflow' has no attribute '\_\_version\_\_'
 
 You could be running python inside a directory that contains the folder "tensorflow".  Try running python inside a different directory.
