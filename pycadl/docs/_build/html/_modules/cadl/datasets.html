@@ -1,0 +1,374 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.datasets &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.datasets</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.datasets</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Utils for loading common datasets.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">tensorflow.examples.tutorials.mnist.input_data</span> <span class="k">as</span> <span class="nn">input_data</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">cadl.dataset_utils</span> <span class="k">import</span> \
+    <span class="n">Dataset</span><span class="p">,</span> <span class="n">cifar10_load</span><span class="p">,</span> <span class="n">tiny_imagenet_load</span><span class="p">,</span> <span class="n">gtzan_music_speech_load</span>
+
+
+<div class="viewcode-block" id="MNIST"><a class="viewcode-back" href="../../source/cadl.html#cadl.datasets.MNIST">[docs]</a><span class="k">def</span> <span class="nf">MNIST</span><span class="p">(</span><span class="n">one_hot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the MNIST dataset.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mnist : DataSet</span>
+<span class="sd">        DataSet object w/ convenienve props for accessing</span>
+<span class="sd">        train/validation/test sets and batches.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    one_hot : bool, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    split : list, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">input_data</span><span class="o">.</span><span class="n">read_data_sets</span><span class="p">(</span><span class="s1">&#39;MNIST_data/&#39;</span><span class="p">,</span> <span class="n">one_hot</span><span class="o">=</span><span class="n">one_hot</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">images</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">validation</span><span class="o">.</span><span class="n">images</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">images</span><span class="p">],</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">validation</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">labels</span><span class="p">],</span>
+        <span class="n">split</span><span class="o">=</span><span class="n">split</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CIFAR10"><a class="viewcode-back" href="../../source/cadl.html#cadl.datasets.CIFAR10">[docs]</a><span class="k">def</span> <span class="nf">CIFAR10</span><span class="p">(</span><span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the CIFAR10 dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flatten : bool, optional</span>
+<span class="sd">        Convert the 3 x 32 x 32 pixels to a single vector</span>
+<span class="sd">    split : list, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cifar : Dataset</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># plt.imshow(np.transpose(np.reshape(</span>
+    <span class="c1">#   cifar.train.images[10], (3, 32, 32)), [1, 2, 0]))</span>
+    <span class="n">Xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">cifar10_load</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">flatten</span><span class="p">:</span>
+        <span class="n">Xs</span> <span class="o">=</span> <span class="n">Xs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">Xs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">Xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="n">split</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CELEB"><a class="viewcode-back" href="../../source/cadl.html#cadl.datasets.CELEB">[docs]</a><span class="k">def</span> <span class="nf">CELEB</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;./img_align_celeba/&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Attempt to load the files of the CELEB dataset.</span>
+
+<span class="sd">    Requires the files already be downloaded and placed in the `dst` directory.</span>
+<span class="sd">    The first 100 files can be downloaded from the cadl.utils function get_celeb_files</span>
+
+<span class="sd">    http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str, optional</span>
+<span class="sd">        Directory where the aligned/cropped celeb dataset can be found.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    files : list</span>
+<span class="sd">        List of file paths to the dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Could not find celeb dataset under </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Try downloading the dataset from the &quot;Aligned and Cropped&quot; &#39;</span>
+              <span class="s1">&#39;link located here (imgs/img_align_celeba.zip [1.34 GB]): &#39;</span>
+              <span class="s1">&#39;http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html &#39;</span>
+              <span class="s1">&#39;Or you can download the first 100 files using the &#39;</span>
+              <span class="s1">&#39;utils.get_celeb_files function.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.jpg&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">202598</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;WARNING: Loaded only a small subset of the CELEB dataset. &#39;</span>
+                <span class="s1">&#39;If you want to use the entire 1.3 GB dataset, try downloading &#39;</span>
+                <span class="s1">&#39;the dataset from the &quot;Aligned and Cropped&quot; &#39;</span>
+                <span class="s1">&#39;link located here (imgs/img_align_celeba.zip [1.34 GB]): &#39;</span>
+                <span class="s1">&#39;http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fs</span></div>
+
+
+<div class="viewcode-block" id="TINYIMAGENET"><a class="viewcode-back" href="../../source/cadl.html#cadl.datasets.TINYIMAGENET">[docs]</a><span class="k">def</span> <span class="nf">TINYIMAGENET</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;./tiny_imagenet/&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Attempt to load the files of the Tiny ImageNet dataset.</span>
+
+<span class="sd">    http://cs231n.stanford.edu/tiny-imagenet-200.zip</span>
+<span class="sd">    https://tiny-imagenet.herokuapp.com/</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str, optional</span>
+<span class="sd">        Directory where the dataset can be found or else will be placed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    files : list</span>
+<span class="sd">        List of file paths to the dataset.</span>
+<span class="sd">    labels : list</span>
+<span class="sd">        List of labels for each file (only training files have labels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">files</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">tiny_imagenet_load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">files</span><span class="p">,</span> <span class="n">labels</span></div>
+
+
+<div class="viewcode-block" id="GTZAN"><a class="viewcode-back" href="../../source/cadl.html#cadl.datasets.GTZAN">[docs]</a><span class="k">def</span> <span class="nf">GTZAN</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;./gtzan_music_speech&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the GTZAN Music and Speech dataset.</span>
+
+<span class="sd">    Downloads the dataset if it does not exist into the dst directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ds : Dataset</span>
+<span class="sd">        Dataset object with array of data in X and array of labels in Y</span>
+
+<span class="sd">    Deleted Parameters</span>
+<span class="sd">    ------------------</span>
+<span class="sd">    dst : str, optional</span>
+<span class="sd">        Location of GTZAN Music and Speech dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span><span class="o">*</span><span class="n">gtzan_music_speech_load</span><span class="p">())</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

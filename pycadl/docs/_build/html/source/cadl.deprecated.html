@@ -1,0 +1,567 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.deprecated package &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">cadl.deprecated package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-cadl.deprecated.seq2seq">cadl.deprecated.seq2seq module</a></li>
+<li><a class="reference internal" href="#module-cadl.deprecated.seq2seq_model">cadl.deprecated.seq2seq_model module</a></li>
+<li><a class="reference internal" href="#module-cadl.deprecated.seq2seq_utils">cadl.deprecated.seq2seq_utils module</a></li>
+<li><a class="reference internal" href="#module-cadl.deprecated">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>cadl.deprecated package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/source/cadl.deprecated.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cadl-deprecated-package">
+<h1>cadl.deprecated package<a class="headerlink" href="#cadl-deprecated-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-cadl.deprecated.seq2seq">
+<span id="cadl-deprecated-seq2seq-module"></span><h2>cadl.deprecated.seq2seq module<a class="headerlink" href="#module-cadl.deprecated.seq2seq" title="Permalink to this headline">¶</a></h2>
+<p>Sequence to Sequence models w/ Attention and BiDirectional Dynamic RNNs.</p>
+<p>Parag K. Mital</p>
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq.batch_generator">
+<code class="descclassname">cadl.deprecated.seq2seq.</code><code class="descname">batch_generator</code><span class="sig-paren">(</span><em>Xs</em>, <em>Ys</em>, <em>source_lengths</em>, <em>target_lengths</em>, <em>batch_size=50</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq.html#batch_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq.batch_generator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq.create_model">
+<code class="descclassname">cadl.deprecated.seq2seq.</code><code class="descname">create_model</code><span class="sig-paren">(</span><em>source_vocab_size=20000</em>, <em>target_vocab_size=20000</em>, <em>input_embed_size=1024</em>, <em>target_embed_size=1024</em>, <em>share_input_and_target_embedding=True</em>, <em>n_neurons=512</em>, <em>n_layers=3</em>, <em>use_lstm=True</em>, <em>use_attention=True</em>, <em>max_sequence_size=50</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq.html#create_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq.create_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq.id2word">
+<code class="descclassname">cadl.deprecated.seq2seq.</code><code class="descname">id2word</code><span class="sig-paren">(</span><em>ids</em>, <em>vocab</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq.html#id2word"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq.id2word" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq.preprocess">
+<code class="descclassname">cadl.deprecated.seq2seq.</code><code class="descname">preprocess</code><span class="sig-paren">(</span><em>text</em>, <em>min_count=10</em>, <em>max_length=50</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq.html#preprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq.test_cornell">
+<code class="descclassname">cadl.deprecated.seq2seq.</code><code class="descname">test_cornell</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq.html#test_cornell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq.test_cornell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq.word2id">
+<code class="descclassname">cadl.deprecated.seq2seq.</code><code class="descname">word2id</code><span class="sig-paren">(</span><em>words</em>, <em>vocab</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq.html#word2id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq.word2id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-cadl.deprecated.seq2seq_model">
+<span id="cadl-deprecated-seq2seq-model-module"></span><h2>cadl.deprecated.seq2seq_model module<a class="headerlink" href="#module-cadl.deprecated.seq2seq_model" title="Permalink to this headline">¶</a></h2>
+<p>Sequence-to-sequence model with an attention mechanism.</p>
+<dl class="class">
+<dt id="cadl.deprecated.seq2seq_model.Seq2SeqModel">
+<em class="property">class </em><code class="descclassname">cadl.deprecated.seq2seq_model.</code><code class="descname">Seq2SeqModel</code><span class="sig-paren">(</span><em>source_vocab_size</em>, <em>target_vocab_size</em>, <em>buckets</em>, <em>size</em>, <em>num_layers</em>, <em>max_gradient_norm</em>, <em>batch_size</em>, <em>learning_rate</em>, <em>learning_rate_decay_factor</em>, <em>use_lstm=False</em>, <em>num_samples=512</em>, <em>forward_only=False</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_model.html#Seq2SeqModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_model.Seq2SeqModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Sequence-to-sequence model with attention and for multiple buckets.</p>
+<p>This class implements a multi-layer recurrent neural network as encoder,
+and an attention-based decoder. This is the same as the model described in
+this paper: <a class="reference external" href="http://arxiv.org/abs/1412.7449">http://arxiv.org/abs/1412.7449</a> - please look there for details,
+or into the seq2seq library for complete model implementation.
+This class also allows to use GRU cells in addition to LSTM cells, and
+sampled softmax to handle large output vocabulary size. A single-layer
+version of this model, but with bi-directional encoder, was presented in</p>
+<blockquote>
+<div><a class="reference external" href="http://arxiv.org/abs/1409.0473">http://arxiv.org/abs/1409.0473</a></div></blockquote>
+<dl class="docutils">
+<dt>and sampled softmax is described in Section 3 of the following paper.</dt>
+<dd><a class="reference external" href="http://arxiv.org/abs/1412.2007">http://arxiv.org/abs/1412.2007</a></dd>
+</dl>
+<dl class="method">
+<dt id="cadl.deprecated.seq2seq_model.Seq2SeqModel.get_batch">
+<code class="descname">get_batch</code><span class="sig-paren">(</span><em>data</em>, <em>bucket_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_model.html#Seq2SeqModel.get_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_model.Seq2SeqModel.get_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a random batch of data from the specified bucket, prepare for step.</p>
+<p>To feed data in step(..) it must be a list of batch-major vectors, while
+data here contains single length-major cases. So the main logic of this
+function is to re-index data cases to be in the proper format for feeding.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> &#8211; a tuple of size len(self.buckets) in which each element contains
+lists of pairs of input and output data that we use to create a batch.</li>
+<li><strong>bucket_id</strong> &#8211; integer, which bucket to get the batch for.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The triple (encoder_inputs, decoder_inputs, target_weights) for
+the constructed batch that has the proper format to call step(...) later.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cadl.deprecated.seq2seq_model.Seq2SeqModel.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>session</em>, <em>encoder_inputs</em>, <em>decoder_inputs</em>, <em>target_weights</em>, <em>bucket_id</em>, <em>forward_only</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_model.html#Seq2SeqModel.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_model.Seq2SeqModel.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a step of the model feeding the given inputs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>session</strong> &#8211; tensorflow session to use.</li>
+<li><strong>encoder_inputs</strong> &#8211; list of numpy int vectors to feed as encoder inputs.</li>
+<li><strong>decoder_inputs</strong> &#8211; list of numpy int vectors to feed as decoder inputs.</li>
+<li><strong>target_weights</strong> &#8211; list of numpy float vectors to feed as target weights.</li>
+<li><strong>bucket_id</strong> &#8211; which bucket of the model to use.</li>
+<li><strong>forward_only</strong> &#8211; whether to do the backward step or only forward.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A triple consisting of gradient norm (or None if we did not do backward),
+average perplexity, and the outputs.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; if length of encoder_inputs, decoder_inputs, or
+target_weights disagrees with bucket size for the specified bucket_id.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cadl.deprecated.seq2seq_utils">
+<span id="cadl-deprecated-seq2seq-utils-module"></span><h2>cadl.deprecated.seq2seq_utils module<a class="headerlink" href="#module-cadl.deprecated.seq2seq_utils" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for downloading data from WMT, tokenizing, vocabularies.</p>
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.basic_tokenizer">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">basic_tokenizer</code><span class="sig-paren">(</span><em>sentence</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#basic_tokenizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.basic_tokenizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Very basic tokenizer: split the sentence into a list of tokens.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.create_vocabulary">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">create_vocabulary</code><span class="sig-paren">(</span><em>vocabulary_path</em>, <em>data_path</em>, <em>max_vocabulary_size</em>, <em>tokenizer=None</em>, <em>normalize_digits=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#create_vocabulary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.create_vocabulary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create vocabulary file (if it does not exist yet) from data file.</p>
+<p>Data file is assumed to contain one sentence per line. Each sentence is
+tokenized and digits are normalized (if normalize_digits is set).
+Vocabulary contains the most-frequent tokens up to max_vocabulary_size.
+We write it to vocabulary_path in a one-token-per-line format, so that later
+token in the first line gets id=0, second line gets id=1, and so on.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>vocabulary_path</strong> &#8211; path where the vocabulary will be created.</li>
+<li><strong>data_path</strong> &#8211; data file that will be used to create vocabulary.</li>
+<li><strong>max_vocabulary_size</strong> &#8211; limit on the size of the created vocabulary.</li>
+<li><strong>tokenizer</strong> &#8211; a function to use to tokenize each data sentence;
+if None, basic_tokenizer will be used.</li>
+<li><strong>normalize_digits</strong> &#8211; Boolean; if true, all digits are replaced by 0s.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.data_to_token_ids">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">data_to_token_ids</code><span class="sig-paren">(</span><em>data_path</em>, <em>target_path</em>, <em>vocabulary_path</em>, <em>tokenizer=None</em>, <em>normalize_digits=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#data_to_token_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.data_to_token_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tokenize data file and turn into token-ids using given vocabulary file.</p>
+<p>This function loads data line-by-line from data_path, calls the above
+sentence_to_token_ids, and saves the result to target_path. See comment
+for sentence_to_token_ids on the details of token-ids format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data_path</strong> &#8211; path to the data file in one-sentence-per-line format.</li>
+<li><strong>target_path</strong> &#8211; path where the file with token-ids will be created.</li>
+<li><strong>vocabulary_path</strong> &#8211; path to the vocabulary file.</li>
+<li><strong>tokenizer</strong> &#8211; a function to use to tokenize each sentence;
+if None, basic_tokenizer will be used.</li>
+<li><strong>normalize_digits</strong> &#8211; Boolean; if true, all digits are replaced by 0s.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.get_wmt_enfr_dev_set">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">get_wmt_enfr_dev_set</code><span class="sig-paren">(</span><em>directory</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#get_wmt_enfr_dev_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.get_wmt_enfr_dev_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the WMT en-fr training corpus to directory unless it&#8217;s there.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.get_wmt_enfr_train_set">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">get_wmt_enfr_train_set</code><span class="sig-paren">(</span><em>directory</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#get_wmt_enfr_train_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.get_wmt_enfr_train_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the WMT en-fr training corpus to directory unless it&#8217;s there.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.gunzip_file">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">gunzip_file</code><span class="sig-paren">(</span><em>gz_path</em>, <em>new_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#gunzip_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.gunzip_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unzips from gz_path into new_path.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.initialize_vocabulary">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">initialize_vocabulary</code><span class="sig-paren">(</span><em>vocabulary_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#initialize_vocabulary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.initialize_vocabulary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize vocabulary from file.</p>
+<dl class="docutils">
+<dt>We assume the vocabulary is stored one-item-per-line, so a file:</dt>
+<dd>dog
+cat</dd>
+</dl>
+<p>will result in a vocabulary {&#8220;dog&#8221;: 0, &#8220;cat&#8221;: 1}, and this function will
+also return the reversed-vocabulary [&#8220;dog&#8221;, &#8220;cat&#8221;].</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vocabulary_path</strong> &#8211; path to the file containing the vocabulary.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the vocabulary (a dictionary mapping string to integers), and
+the reversed vocabulary (a list, which reverses the vocabulary mapping).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">a pair</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; if the provided vocabulary_path does not exist.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.maybe_download">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">maybe_download</code><span class="sig-paren">(</span><em>directory</em>, <em>filename</em>, <em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#maybe_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.maybe_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download filename from url unless it&#8217;s already in directory.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.prepare_data">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">prepare_data</code><span class="sig-paren">(</span><em>data_dir</em>, <em>from_train_path</em>, <em>to_train_path</em>, <em>from_dev_path</em>, <em>to_dev_path</em>, <em>from_vocabulary_size</em>, <em>to_vocabulary_size</em>, <em>tokenizer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#prepare_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.prepare_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Preapre all necessary files that are required for the training.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data_dir</strong> &#8211; directory in which the data sets will be stored.</li>
+<li><strong>from_train_path</strong> &#8211; path to the file that includes &#8220;from&#8221; training samples.</li>
+<li><strong>to_train_path</strong> &#8211; path to the file that includes &#8220;to&#8221; training samples.</li>
+<li><strong>from_dev_path</strong> &#8211; path to the file that includes &#8220;from&#8221; dev samples.</li>
+<li><strong>to_dev_path</strong> &#8211; path to the file that includes &#8220;to&#8221; dev samples.</li>
+<li><strong>from_vocabulary_size</strong> &#8211; size of the &#8220;from language&#8221; vocabulary to create and use.</li>
+<li><strong>to_vocabulary_size</strong> &#8211; size of the &#8220;to language&#8221; vocabulary to create and use.</li>
+<li><strong>tokenizer</strong> &#8211; a function to use to tokenize each data sentence;
+if None, basic_tokenizer will be used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><ol class="arabic simple">
+<li>path to the token-ids for &#8220;from language&#8221; training data-set,</li>
+<li>path to the token-ids for &#8220;to language&#8221; training data-set,</li>
+<li>path to the token-ids for &#8220;from language&#8221; development data-set,</li>
+<li>path to the token-ids for &#8220;to language&#8221; development data-set,</li>
+<li>path to the &#8220;from language&#8221; vocabulary file,</li>
+<li>path to the &#8220;to language&#8221; vocabulary file.</li>
+</ol>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A tuple of 6 elements</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.prepare_wmt_data">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">prepare_wmt_data</code><span class="sig-paren">(</span><em>data_dir</em>, <em>en_vocabulary_size</em>, <em>fr_vocabulary_size</em>, <em>tokenizer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#prepare_wmt_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.prepare_wmt_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get WMT data into data_dir, create vocabularies and tokenize data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data_dir</strong> &#8211; directory in which the data sets will be stored.</li>
+<li><strong>en_vocabulary_size</strong> &#8211; size of the English vocabulary to create and use.</li>
+<li><strong>fr_vocabulary_size</strong> &#8211; size of the French vocabulary to create and use.</li>
+<li><strong>tokenizer</strong> &#8211; a function to use to tokenize each data sentence;
+if None, basic_tokenizer will be used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><ol class="arabic simple">
+<li>path to the token-ids for English training data-set,</li>
+<li>path to the token-ids for French training data-set,</li>
+<li>path to the token-ids for English development data-set,</li>
+<li>path to the token-ids for French development data-set,</li>
+<li>path to the English vocabulary file,</li>
+<li>path to the French vocabulary file.</li>
+</ol>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A tuple of 6 elements</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cadl.deprecated.seq2seq_utils.sentence_to_token_ids">
+<code class="descclassname">cadl.deprecated.seq2seq_utils.</code><code class="descname">sentence_to_token_ids</code><span class="sig-paren">(</span><em>sentence</em>, <em>vocabulary</em>, <em>tokenizer=None</em>, <em>normalize_digits=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cadl/deprecated/seq2seq_utils.html#sentence_to_token_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cadl.deprecated.seq2seq_utils.sentence_to_token_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a string to list of integers representing token-ids.</p>
+<p>For example, a sentence &#8220;I have a dog&#8221; may become tokenized into
+[&#8220;I&#8221;, &#8220;have&#8221;, &#8220;a&#8221;, &#8220;dog&#8221;] and with vocabulary {&#8220;I&#8221;: 1, &#8220;have&#8221;: 2,
+&#8220;a&#8221;: 4, &#8220;dog&#8221;: 7&#8221;} this function will return [1, 2, 4, 7].</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sentence</strong> &#8211; the sentence in bytes format to convert to token-ids.</li>
+<li><strong>vocabulary</strong> &#8211; a dictionary mapping tokens to integers.</li>
+<li><strong>tokenizer</strong> &#8211; a function to use to tokenize each sentence;
+if None, basic_tokenizer will be used.</li>
+<li><strong>normalize_digits</strong> &#8211; Boolean; if true, all digits are replaced by 0s.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of integers, the token-ids for the sentence.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cadl.deprecated">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cadl.deprecated" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

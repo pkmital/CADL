@@ -1,0 +1,680 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.cornell &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.cornell</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.cornell</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Tools for downloading and preprocessing the Cornell Movie DB.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+
+<span class="sd">Attributes</span>
+<span class="sd">----------</span>
+<span class="sd">conversations : str</span>
+<span class="sd">    Description</span>
+<span class="sd">lines : str</span>
+<span class="sd">    Description</span>
+<span class="sd">titles : str</span>
+<span class="sd">    Description</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">bs4</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">cadl</span> <span class="k">import</span> <span class="n">utils</span>
+
+<span class="n">titles</span> <span class="o">=</span> <span class="s1">&#39;movie_titles_metadata.txt&#39;</span>
+<span class="n">conversations</span> <span class="o">=</span> <span class="s1">&#39;movie_conversations.txt&#39;</span>
+<span class="n">lines</span> <span class="o">=</span> <span class="s1">&#39;movie_lines.txt&#39;</span>
+
+
+<div class="viewcode-block" id="download_cornell"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.download_cornell">[docs]</a><span class="k">def</span> <span class="nf">download_cornell</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="s1">&#39;cornell movie-dialogs corpus&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dst : str, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">download_and_extract_zip</span><span class="p">(</span>
+        <span class="s1">&#39;https://s3.amazonaws.com/cadl/models/cornell_movie_dialogs_corpus.zip&#39;</span><span class="p">,</span>
+        <span class="n">dst</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_characters"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.get_characters">[docs]</a><span class="k">def</span> <span class="nf">get_characters</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;cornell movie-dialogs corpus&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    - movie_characters_metadata.txt</span>
+<span class="sd">        - contains information about each movie character</span>
+<span class="sd">        - fields:</span>
+<span class="sd">            - characterID</span>
+<span class="sd">            - character name</span>
+<span class="sd">            - movieID</span>
+<span class="sd">            - movie title</span>
+<span class="sd">            - gender (&quot;?&quot; for unlabeled cases)</span>
+<span class="sd">            - position in credits (&quot;?&quot; for unlabeled cases)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : TYPE, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">characters</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">download_cornell</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;movie_characters_metadata.txt&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;r&#39;</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line_i</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">els</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">line_i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;+++$+++&#39;</span><span class="p">)]</span>
+            <span class="n">characters</span><span class="p">[</span><span class="n">els</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;character_id&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s1">&#39;movie_id&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">&#39;movie_name&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="p">}</span>
+    <span class="k">return</span> <span class="n">characters</span></div>
+
+
+<div class="viewcode-block" id="get_titles"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.get_titles">[docs]</a><span class="k">def</span> <span class="nf">get_titles</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;cornell movie-dialogs corpus&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    - movie_titles_metadata.txt</span>
+<span class="sd">        - contains information about each movie title</span>
+<span class="sd">        - fields:</span>
+<span class="sd">            - movieID,</span>
+<span class="sd">            - movie title,</span>
+<span class="sd">            - movie year,</span>
+<span class="sd">            - IMDB rating,</span>
+<span class="sd">            - no. IMDB votes,</span>
+<span class="sd">            - genres in the format [&#39;genre1&#39;,&#39;genre2&#39;,É,&#39;genreN&#39;]</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : TYPE, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">titles</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">download_cornell</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;movie_titles_metadata.txt&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;r&#39;</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line_i</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">els</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">line_i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;+++$+++&#39;</span><span class="p">)]</span>
+            <span class="n">titles</span><span class="p">[</span><span class="n">els</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;movie_id&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">&#39;imdb_rating&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                <span class="s1">&#39;imdb_num_votes&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                <span class="s1">&#39;genres&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+            <span class="p">}</span>
+    <span class="k">return</span> <span class="n">titles</span></div>
+
+
+<div class="viewcode-block" id="get_conversations"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.get_conversations">[docs]</a><span class="k">def</span> <span class="nf">get_conversations</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;cornell movie-dialogs corpus&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    - movie_conversations.txt</span>
+<span class="sd">        - the structure of the conversations</span>
+<span class="sd">        - fields</span>
+<span class="sd">            - characterID of the first character involved in the conversation</span>
+<span class="sd">            - characterID of the second character involved in the conversation</span>
+<span class="sd">            - movieID of the movie in which the conversation occurred</span>
+<span class="sd">            - list of the utterances that make the conversation, in</span>
+<span class="sd">                chronological order: [&#39;lineID1&#39;,&#39;lineID2&#39;,É,&#39;lineIDN&#39;]</span>
+<span class="sd">                has to be matched with movie_lines.txt to reconstruct the</span>
+<span class="sd">                actual content</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : TYPE, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">conversations</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">download_cornell</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;movie_conversations.txt&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line_i</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">els</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">line_i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;+++$+++&#39;</span><span class="p">)]</span>
+            <span class="n">conversations</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;character_id_1&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">&#39;character_id_2&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s1">&#39;movie_id&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">&#39;lines&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="p">})</span>
+    <span class="k">return</span> <span class="n">conversations</span></div>
+
+
+<div class="viewcode-block" id="get_lines"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.get_lines">[docs]</a><span class="k">def</span> <span class="nf">get_lines</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;cornell movie-dialogs corpus&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    - movie_lines.txt</span>
+<span class="sd">        - contains the actual text of each utterance</span>
+<span class="sd">        - fields:</span>
+<span class="sd">            - lineID</span>
+<span class="sd">            - characterID (who uttered this phrase)</span>
+<span class="sd">            - movieID</span>
+<span class="sd">            - character name</span>
+<span class="sd">            - text of the utterance</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : TYPE, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">download_cornell</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;movie_lines.txt&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line_i</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">els</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">line_i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;+++$+++&#39;</span><span class="p">)]</span>
+            <span class="n">lines</span><span class="p">[</span><span class="n">els</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;line_id&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">&#39;character_id&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s1">&#39;movie_id&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">&#39;character_name&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">els</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="p">}</span>
+    <span class="k">return</span> <span class="n">lines</span></div>
+
+
+<div class="viewcode-block" id="get_scripts"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.get_scripts">[docs]</a><span class="k">def</span> <span class="nf">get_scripts</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;cornell movie-dialogs corpus&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : TYPE, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">get_lines</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">conversations</span> <span class="o">=</span> <span class="n">get_conversations</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">script</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">conv_i</span> <span class="ow">in</span> <span class="n">conversations</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">conv_i</span><span class="p">[</span><span class="s1">&#39;lines&#39;</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line_i</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">conv_i</span><span class="p">[</span><span class="s1">&#39;lines&#39;</span><span class="p">]):</span>
+                <span class="n">this_line</span> <span class="o">=</span> <span class="n">bs4</span><span class="o">.</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">line_i</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">],</span>
+                                              <span class="s1">&#39;lxml&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+                <span class="n">script</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">this_line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">script</span></div>
+
+
+<div class="viewcode-block" id="preprocess"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.preprocess">[docs]</a><span class="k">def</span> <span class="nf">preprocess</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">40</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    text : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    min_count : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    max_length : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sentences</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">nltk</span><span class="o">.</span><span class="n">sent_tokenize</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span>
+
+    <span class="c1"># We&#39;ll first tokenize each sentence into words to get a sense of</span>
+    <span class="c1"># how long each sentence is:</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">[[</span>
+        <span class="n">word</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">nltk</span><span class="o">.</span><span class="n">word_tokenize</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">word</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">punctuation</span>
+    <span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sentences</span><span class="p">]</span>
+
+    <span class="c1"># Then see how long each sentence is:</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">words</span><span class="p">])</span>
+
+    <span class="n">good_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">lengths</span> <span class="o">&lt;=</span> <span class="n">max_length</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="p">[</span><span class="n">words</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">good_idxs</span><span class="p">]</span>
+    <span class="n">fdist</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">FreqDist</span><span class="p">([</span><span class="n">word</span> <span class="k">for</span> <span class="n">sentence</span> <span class="ow">in</span> <span class="n">dataset</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">sentence</span><span class="p">])</span>
+
+    <span class="n">vocab_counts</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">fdist</span><span class="o">.</span><span class="n">most_common</span><span class="p">()</span> <span class="k">if</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">min_count</span><span class="p">]</span>
+
+    <span class="c1"># First sort the vocabulary</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vocab_counts</span><span class="p">]</span>
+    <span class="n">vocab</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="c1"># Now add the special symbols:</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_PAD&#39;</span><span class="p">,</span> <span class="s1">&#39;_GO&#39;</span><span class="p">,</span> <span class="s1">&#39;_EOS&#39;</span><span class="p">,</span> <span class="s1">&#39;_UNK&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">vocab</span>
+    <span class="c1"># Then create the word to id mapping</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vocab</span><span class="p">)}</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;vocab.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span>
+
+    <span class="n">unked</span> <span class="o">=</span> <span class="n">word2id</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">vocab</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unked</span><span class="p">,</span> <span class="n">vocab</span></div>
+
+
+<div class="viewcode-block" id="word2id"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.word2id">[docs]</a><span class="k">def</span> <span class="nf">word2id</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">UNK_ID</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    words : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    vocab : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    UNK_ID : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unked</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+        <span class="n">this_sentence</span> <span class="o">=</span> <span class="p">[</span><span class="n">vocab</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">UNK_ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]</span>
+        <span class="n">unked</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">this_sentence</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unked</span></div>
+
+
+<div class="viewcode-block" id="id2word"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.id2word">[docs]</a><span class="k">def</span> <span class="nf">id2word</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">vocab</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ids : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    vocab : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">id2words</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+        <span class="n">this_sentence</span> <span class="o">=</span> <span class="p">[</span><span class="n">id2words</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]</span>
+        <span class="n">words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">this_sentence</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">words</span></div>
+
+
+<div class="viewcode-block" id="test_train"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.test_train">[docs]</a><span class="k">def</span> <span class="nf">test_train</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Test training of cornell dataset with deprecated bucketed seq2seq model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">cadl.deprecated</span> <span class="k">import</span> <span class="n">seq2seq_model</span> <span class="k">as</span> <span class="n">seq</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">get_scripts</span><span class="p">()</span>
+    <span class="n">unked</span><span class="p">,</span> <span class="n">vocab</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="c1"># Create bucketed pairs</span>
+    <span class="n">buckets</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">)]</span>
+    <span class="n">pairs</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buckets</span><span class="p">))}</span>
+    <span class="k">for</span> <span class="n">pair_input</span><span class="p">,</span> <span class="n">pair_output</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">unked</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">unked</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair_input</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair_output</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">bucket_i</span><span class="p">,</span> <span class="n">bucket</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">buckets</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">n_in</span> <span class="o">&lt;=</span> <span class="n">bucket</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">n_out</span> <span class="o">&lt;=</span> <span class="n">bucket</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">pairs</span><span class="p">[</span><span class="n">bucket_i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pair_input</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">pair_output</span><span class="p">))</span>
+                <span class="k">break</span>
+
+    <span class="n">vocab_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">Seq2SeqModel</span><span class="p">(</span>
+            <span class="n">source_vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">target_vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">buckets</span><span class="o">=</span><span class="n">buckets</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="n">num_layers</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">max_gradient_norm</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+            <span class="n">learning_rate_decay_factor</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+            <span class="n">use_lstm</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+
+        <span class="n">n_iterations</span> <span class="o">=</span> <span class="mi">10000000</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">it_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iterations</span><span class="p">):</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+            <span class="n">bucket_id</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="n">lengths</span><span class="p">[</span><span class="n">bucket_id</span><span class="p">]:</span>
+                <span class="n">bucket_id</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">encoder_inputs</span><span class="p">,</span> <span class="n">decoder_inputs</span><span class="p">,</span> <span class="n">target_weights</span> <span class="o">=</span> \
+                <span class="n">net</span><span class="o">.</span><span class="n">get_batch</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">bucket_id</span><span class="p">)</span>
+            <span class="n">gradient_norm</span><span class="p">,</span> <span class="n">perplexity</span><span class="p">,</span> <span class="n">outputs</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+                <span class="n">sess</span><span class="p">,</span>
+                <span class="n">encoder_inputs</span><span class="p">,</span>
+                <span class="n">decoder_inputs</span><span class="p">,</span>
+                <span class="n">target_weights</span><span class="p">,</span>
+                <span class="n">bucket_id</span><span class="p">,</span>
+                <span class="n">forward_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">it_i</span><span class="p">,</span> <span class="n">perplexity</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">it_i</span> <span class="o">%</span> <span class="mi">10000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">net</span><span class="o">.</span><span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+                    <span class="n">sess</span><span class="p">,</span> <span class="s1">&#39;./seq2seq.ckpt&#39;</span><span class="p">,</span> <span class="n">global_step</span><span class="o">=</span><span class="n">net</span><span class="o">.</span><span class="n">global_step</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_decode"><a class="viewcode-back" href="../../source/cadl.html#cadl.cornell.test_decode">[docs]</a><span class="k">def</span> <span class="nf">test_decode</span><span class="p">(</span><span class="n">sentence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test decoding of cornell dataset with deprecated seq2seq model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sentence : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">cadl.deprecated</span> <span class="k">import</span> <span class="n">seq2seq_model</span> <span class="k">as</span> <span class="n">seq</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">get_scripts</span><span class="p">()</span>
+    <span class="n">pairs</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">vocab_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">Seq2SeqModel</span><span class="p">(</span>
+            <span class="n">source_vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">target_vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">buckets</span><span class="o">=</span><span class="n">buckets</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="n">num_layers</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">max_gradient_norm</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+            <span class="n">learning_rate_decay_factor</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+            <span class="n">forward_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">use_lstm</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">ckpt_path</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">get_checkpoint_state</span><span class="p">(</span><span class="s1">&#39;./&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">model_checkpoint_path</span>
+        <span class="n">net</span><span class="o">.</span><span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="n">sentence</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            sentence : TYPE</span>
+<span class="sd">                Description</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            TYPE</span>
+<span class="sd">                Description</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">bucket_id</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">buckets</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">preprocessed</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">word</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">nltk</span><span class="o">.</span><span class="n">sent_tokenize</span><span class="p">(</span><span class="n">sentence</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">nltk</span><span class="o">.</span><span class="n">word_tokenize</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">word</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">punctuation</span>
+            <span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">preprocessed</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="k">for</span> <span class="n">b_i</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">buckets</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">preprocessed</span><span class="p">):</span>
+                    <span class="n">bucket_id</span> <span class="o">=</span> <span class="n">b_i</span>
+                    <span class="k">break</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">word2id</span><span class="p">(</span><span class="n">preprocessed</span><span class="p">,</span> <span class="n">vocab</span><span class="p">)</span>
+            <span class="n">encoder_inputs</span><span class="p">,</span> <span class="n">decoder_inputs</span><span class="p">,</span> <span class="n">target_weights</span> <span class="o">=</span> \
+                <span class="n">net</span><span class="o">.</span><span class="n">get_batch</span><span class="p">({</span><span class="n">bucket_id</span><span class="p">:</span> <span class="p">[(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[])]},</span> <span class="n">bucket_id</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">output_logits</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">encoder_inputs</span><span class="p">,</span> <span class="n">decoder_inputs</span><span class="p">,</span>
+                                           <span class="n">target_weights</span><span class="p">,</span> <span class="n">bucket_id</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logit</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">logit</span> <span class="ow">in</span> <span class="n">output_logits</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">id2word</span><span class="p">([</span><span class="n">outputs</span><span class="p">],</span> <span class="n">vocab</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">test_train</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

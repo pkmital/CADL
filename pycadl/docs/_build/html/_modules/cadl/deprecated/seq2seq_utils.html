@@ -1,0 +1,542 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.deprecated.seq2seq_utils &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.deprecated.seq2seq_utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.deprecated.seq2seq_utils</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2015 The TensorFlow Authors. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># ==============================================================================</span>
+
+<span class="sd">&quot;&quot;&quot;Utilities for downloading data from WMT, tokenizing, vocabularies.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">urllib</span>
+
+<span class="kn">from</span> <span class="nn">tensorflow.python.platform</span> <span class="k">import</span> <span class="n">gfile</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="c1"># Special vocabulary symbols - we always put them at the start.</span>
+<span class="n">_PAD</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;_PAD&quot;</span>
+<span class="n">_GO</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;_GO&quot;</span>
+<span class="n">_EOS</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;_EOS&quot;</span>
+<span class="n">_UNK</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;_UNK&quot;</span>
+<span class="n">_START_VOCAB</span> <span class="o">=</span> <span class="p">[</span><span class="n">_PAD</span><span class="p">,</span> <span class="n">_GO</span><span class="p">,</span> <span class="n">_EOS</span><span class="p">,</span> <span class="n">_UNK</span><span class="p">]</span>
+
+<span class="n">PAD_ID</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">GO_ID</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">EOS_ID</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">UNK_ID</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="c1"># Regular expressions used to tokenize.</span>
+<span class="n">_WORD_SPLIT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;([.,!?</span><span class="se">\&quot;</span><span class="s2">&#39;:;)(])&quot;</span><span class="p">)</span>
+<span class="n">_DIGIT_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">br</span><span class="s2">&quot;\d&quot;</span><span class="p">)</span>
+
+<span class="c1"># URLs for WMT data.</span>
+<span class="n">_WMT_ENFR_TRAIN_URL</span> <span class="o">=</span> <span class="s2">&quot;http://www.statmt.org/wmt10/training-giga-fren.tar&quot;</span>
+<span class="n">_WMT_ENFR_DEV_URL</span> <span class="o">=</span> <span class="s2">&quot;http://www.statmt.org/wmt15/dev-v2.tgz&quot;</span>
+
+
+<div class="viewcode-block" id="maybe_download"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.maybe_download">[docs]</a><span class="k">def</span> <span class="nf">maybe_download</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Download filename from url unless it&#39;s already in directory.&quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating directory </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">directory</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+  <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Downloading </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filepath</span><span class="p">))</span>
+    <span class="n">filepath</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+    <span class="n">statinfo</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Successfully downloaded&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">statinfo</span><span class="o">.</span><span class="n">st_size</span><span class="p">,</span> <span class="s2">&quot;bytes&quot;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">filepath</span></div>
+
+
+<div class="viewcode-block" id="gunzip_file"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.gunzip_file">[docs]</a><span class="k">def</span> <span class="nf">gunzip_file</span><span class="p">(</span><span class="n">gz_path</span><span class="p">,</span> <span class="n">new_path</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Unzips from gz_path into new_path.&quot;&quot;&quot;</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unpacking </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gz_path</span><span class="p">,</span> <span class="n">new_path</span><span class="p">))</span>
+  <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">gz_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">gz_file</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">new_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">new_file</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">gz_file</span><span class="p">:</span>
+        <span class="n">new_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_wmt_enfr_train_set"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.get_wmt_enfr_train_set">[docs]</a><span class="k">def</span> <span class="nf">get_wmt_enfr_train_set</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Download the WMT en-fr training corpus to directory unless it&#39;s there.&quot;&quot;&quot;</span>
+  <span class="n">train_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;giga-fren.release2.fixed&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">gfile</span><span class="o">.</span><span class="n">Exists</span><span class="p">(</span><span class="n">train_path</span> <span class="o">+</span><span class="s2">&quot;.fr&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">gfile</span><span class="o">.</span><span class="n">Exists</span><span class="p">(</span><span class="n">train_path</span> <span class="o">+</span><span class="s2">&quot;.en&quot;</span><span class="p">)):</span>
+    <span class="n">corpus_file</span> <span class="o">=</span> <span class="n">maybe_download</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;training-giga-fren.tar&quot;</span><span class="p">,</span>
+                                 <span class="n">_WMT_ENFR_TRAIN_URL</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracting tar file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">corpus_file</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">corpus_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">corpus_tar</span><span class="p">:</span>
+      <span class="n">corpus_tar</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="n">gunzip_file</span><span class="p">(</span><span class="n">train_path</span> <span class="o">+</span> <span class="s2">&quot;.fr.gz&quot;</span><span class="p">,</span> <span class="n">train_path</span> <span class="o">+</span> <span class="s2">&quot;.fr&quot;</span><span class="p">)</span>
+    <span class="n">gunzip_file</span><span class="p">(</span><span class="n">train_path</span> <span class="o">+</span> <span class="s2">&quot;.en.gz&quot;</span><span class="p">,</span> <span class="n">train_path</span> <span class="o">+</span> <span class="s2">&quot;.en&quot;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">train_path</span></div>
+
+
+<div class="viewcode-block" id="get_wmt_enfr_dev_set"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.get_wmt_enfr_dev_set">[docs]</a><span class="k">def</span> <span class="nf">get_wmt_enfr_dev_set</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Download the WMT en-fr training corpus to directory unless it&#39;s there.&quot;&quot;&quot;</span>
+  <span class="n">dev_name</span> <span class="o">=</span> <span class="s2">&quot;newstest2013&quot;</span>
+  <span class="n">dev_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">dev_name</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">gfile</span><span class="o">.</span><span class="n">Exists</span><span class="p">(</span><span class="n">dev_path</span> <span class="o">+</span> <span class="s2">&quot;.fr&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">gfile</span><span class="o">.</span><span class="n">Exists</span><span class="p">(</span><span class="n">dev_path</span> <span class="o">+</span> <span class="s2">&quot;.en&quot;</span><span class="p">)):</span>
+    <span class="n">dev_file</span> <span class="o">=</span> <span class="n">maybe_download</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;dev-v2.tgz&quot;</span><span class="p">,</span> <span class="n">_WMT_ENFR_DEV_URL</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracting tgz file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dev_file</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">dev_file</span><span class="p">,</span> <span class="s2">&quot;r:gz&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dev_tar</span><span class="p">:</span>
+      <span class="n">fr_dev_file</span> <span class="o">=</span> <span class="n">dev_tar</span><span class="o">.</span><span class="n">getmember</span><span class="p">(</span><span class="s2">&quot;dev/&quot;</span> <span class="o">+</span> <span class="n">dev_name</span> <span class="o">+</span> <span class="s2">&quot;.fr&quot;</span><span class="p">)</span>
+      <span class="n">en_dev_file</span> <span class="o">=</span> <span class="n">dev_tar</span><span class="o">.</span><span class="n">getmember</span><span class="p">(</span><span class="s2">&quot;dev/&quot;</span> <span class="o">+</span> <span class="n">dev_name</span> <span class="o">+</span> <span class="s2">&quot;.en&quot;</span><span class="p">)</span>
+      <span class="n">fr_dev_file</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dev_name</span> <span class="o">+</span> <span class="s2">&quot;.fr&quot;</span>  <span class="c1"># Extract without &quot;dev/&quot; prefix.</span>
+      <span class="n">en_dev_file</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dev_name</span> <span class="o">+</span> <span class="s2">&quot;.en&quot;</span>
+      <span class="n">dev_tar</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">fr_dev_file</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+      <span class="n">dev_tar</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">en_dev_file</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">dev_path</span></div>
+
+
+<div class="viewcode-block" id="basic_tokenizer"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.basic_tokenizer">[docs]</a><span class="k">def</span> <span class="nf">basic_tokenizer</span><span class="p">(</span><span class="n">sentence</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Very basic tokenizer: split the sentence into a list of tokens.&quot;&quot;&quot;</span>
+  <span class="n">words</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="k">for</span> <span class="n">space_separated_fragment</span> <span class="ow">in</span> <span class="n">sentence</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+    <span class="n">words</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_WORD_SPLIT</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">space_separated_fragment</span><span class="p">))</span>
+  <span class="k">return</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span> <span class="k">if</span> <span class="n">w</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="create_vocabulary"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.create_vocabulary">[docs]</a><span class="k">def</span> <span class="nf">create_vocabulary</span><span class="p">(</span><span class="n">vocabulary_path</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span> <span class="n">max_vocabulary_size</span><span class="p">,</span>
+                      <span class="n">tokenizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize_digits</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Create vocabulary file (if it does not exist yet) from data file.</span>
+
+<span class="sd">  Data file is assumed to contain one sentence per line. Each sentence is</span>
+<span class="sd">  tokenized and digits are normalized (if normalize_digits is set).</span>
+<span class="sd">  Vocabulary contains the most-frequent tokens up to max_vocabulary_size.</span>
+<span class="sd">  We write it to vocabulary_path in a one-token-per-line format, so that later</span>
+<span class="sd">  token in the first line gets id=0, second line gets id=1, and so on.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    vocabulary_path: path where the vocabulary will be created.</span>
+<span class="sd">    data_path: data file that will be used to create vocabulary.</span>
+<span class="sd">    max_vocabulary_size: limit on the size of the created vocabulary.</span>
+<span class="sd">    tokenizer: a function to use to tokenize each data sentence;</span>
+<span class="sd">      if None, basic_tokenizer will be used.</span>
+<span class="sd">    normalize_digits: Boolean; if true, all digits are replaced by 0s.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">gfile</span><span class="o">.</span><span class="n">Exists</span><span class="p">(</span><span class="n">vocabulary_path</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating vocabulary </span><span class="si">%s</span><span class="s2"> from data </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vocabulary_path</span><span class="p">,</span> <span class="n">data_path</span><span class="p">))</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="n">gfile</span><span class="o">.</span><span class="n">GFile</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+      <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">counter</span> <span class="o">%</span> <span class="mi">100000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  processing line </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">counter</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_bytes</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="n">tokenizer</span> <span class="k">else</span> <span class="n">basic_tokenizer</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+          <span class="n">word</span> <span class="o">=</span> <span class="n">_DIGIT_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="k">if</span> <span class="n">normalize_digits</span> <span class="k">else</span> <span class="n">w</span>
+          <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">vocab</span><span class="p">:</span>
+            <span class="n">vocab</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">vocab</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+      <span class="n">vocab_list</span> <span class="o">=</span> <span class="n">_START_VOCAB</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">vocab</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_vocabulary_size</span><span class="p">:</span>
+        <span class="n">vocab_list</span> <span class="o">=</span> <span class="n">vocab_list</span><span class="p">[:</span><span class="n">max_vocabulary_size</span><span class="p">]</span>
+      <span class="k">with</span> <span class="n">gfile</span><span class="o">.</span><span class="n">GFile</span><span class="p">(</span><span class="n">vocabulary_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">vocab_file</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">vocab_list</span><span class="p">:</span>
+          <span class="n">vocab_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">w</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="initialize_vocabulary"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.initialize_vocabulary">[docs]</a><span class="k">def</span> <span class="nf">initialize_vocabulary</span><span class="p">(</span><span class="n">vocabulary_path</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Initialize vocabulary from file.</span>
+
+<span class="sd">  We assume the vocabulary is stored one-item-per-line, so a file:</span>
+<span class="sd">    dog</span>
+<span class="sd">    cat</span>
+<span class="sd">  will result in a vocabulary {&quot;dog&quot;: 0, &quot;cat&quot;: 1}, and this function will</span>
+<span class="sd">  also return the reversed-vocabulary [&quot;dog&quot;, &quot;cat&quot;].</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    vocabulary_path: path to the file containing the vocabulary.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    a pair: the vocabulary (a dictionary mapping string to integers), and</span>
+<span class="sd">    the reversed vocabulary (a list, which reverses the vocabulary mapping).</span>
+
+<span class="sd">  Raises:</span>
+<span class="sd">    ValueError: if the provided vocabulary_path does not exist.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">gfile</span><span class="o">.</span><span class="n">Exists</span><span class="p">(</span><span class="n">vocabulary_path</span><span class="p">):</span>
+    <span class="n">rev_vocab</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="n">gfile</span><span class="o">.</span><span class="n">GFile</span><span class="p">(</span><span class="n">vocabulary_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+      <span class="n">rev_vocab</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">())</span>
+    <span class="n">rev_vocab</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_bytes</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">rev_vocab</span><span class="p">]</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rev_vocab</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">rev_vocab</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Vocabulary file </span><span class="si">%s</span><span class="s2"> not found.&quot;</span><span class="p">,</span> <span class="n">vocabulary_path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="sentence_to_token_ids"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.sentence_to_token_ids">[docs]</a><span class="k">def</span> <span class="nf">sentence_to_token_ids</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="n">vocabulary</span><span class="p">,</span>
+                          <span class="n">tokenizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize_digits</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Convert a string to list of integers representing token-ids.</span>
+
+<span class="sd">  For example, a sentence &quot;I have a dog&quot; may become tokenized into</span>
+<span class="sd">  [&quot;I&quot;, &quot;have&quot;, &quot;a&quot;, &quot;dog&quot;] and with vocabulary {&quot;I&quot;: 1, &quot;have&quot;: 2,</span>
+<span class="sd">  &quot;a&quot;: 4, &quot;dog&quot;: 7&quot;} this function will return [1, 2, 4, 7].</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    sentence: the sentence in bytes format to convert to token-ids.</span>
+<span class="sd">    vocabulary: a dictionary mapping tokens to integers.</span>
+<span class="sd">    tokenizer: a function to use to tokenize each sentence;</span>
+<span class="sd">      if None, basic_tokenizer will be used.</span>
+<span class="sd">    normalize_digits: Boolean; if true, all digits are replaced by 0s.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    a list of integers, the token-ids for the sentence.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">if</span> <span class="n">tokenizer</span><span class="p">:</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">basic_tokenizer</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">normalize_digits</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">vocabulary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">UNK_ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">]</span>
+  <span class="c1"># Normalize digits by 0 before looking words up in the vocabulary.</span>
+  <span class="k">return</span> <span class="p">[</span><span class="n">vocabulary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_DIGIT_RE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">w</span><span class="p">),</span> <span class="n">UNK_ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="data_to_token_ids"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.data_to_token_ids">[docs]</a><span class="k">def</span> <span class="nf">data_to_token_ids</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">target_path</span><span class="p">,</span> <span class="n">vocabulary_path</span><span class="p">,</span>
+                      <span class="n">tokenizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize_digits</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Tokenize data file and turn into token-ids using given vocabulary file.</span>
+
+<span class="sd">  This function loads data line-by-line from data_path, calls the above</span>
+<span class="sd">  sentence_to_token_ids, and saves the result to target_path. See comment</span>
+<span class="sd">  for sentence_to_token_ids on the details of token-ids format.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    data_path: path to the data file in one-sentence-per-line format.</span>
+<span class="sd">    target_path: path where the file with token-ids will be created.</span>
+<span class="sd">    vocabulary_path: path to the vocabulary file.</span>
+<span class="sd">    tokenizer: a function to use to tokenize each sentence;</span>
+<span class="sd">      if None, basic_tokenizer will be used.</span>
+<span class="sd">    normalize_digits: Boolean; if true, all digits are replaced by 0s.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">gfile</span><span class="o">.</span><span class="n">Exists</span><span class="p">(</span><span class="n">target_path</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tokenizing data in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">data_path</span><span class="p">)</span>
+    <span class="n">vocab</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">initialize_vocabulary</span><span class="p">(</span><span class="n">vocabulary_path</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">gfile</span><span class="o">.</span><span class="n">GFile</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">data_file</span><span class="p">:</span>
+      <span class="k">with</span> <span class="n">gfile</span><span class="o">.</span><span class="n">GFile</span><span class="p">(</span><span class="n">target_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tokens_file</span><span class="p">:</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">data_file</span><span class="p">:</span>
+          <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+          <span class="k">if</span> <span class="n">counter</span> <span class="o">%</span> <span class="mi">100000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  tokenizing line </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">counter</span><span class="p">)</span>
+          <span class="n">token_ids</span> <span class="o">=</span> <span class="n">sentence_to_token_ids</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">as_bytes</span><span class="p">(</span><span class="n">line</span><span class="p">),</span> <span class="n">vocab</span><span class="p">,</span>
+                                            <span class="n">tokenizer</span><span class="p">,</span> <span class="n">normalize_digits</span><span class="p">)</span>
+          <span class="n">tokens_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">token_ids</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="prepare_wmt_data"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.prepare_wmt_data">[docs]</a><span class="k">def</span> <span class="nf">prepare_wmt_data</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">en_vocabulary_size</span><span class="p">,</span> <span class="n">fr_vocabulary_size</span><span class="p">,</span> <span class="n">tokenizer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Get WMT data into data_dir, create vocabularies and tokenize data.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    data_dir: directory in which the data sets will be stored.</span>
+<span class="sd">    en_vocabulary_size: size of the English vocabulary to create and use.</span>
+<span class="sd">    fr_vocabulary_size: size of the French vocabulary to create and use.</span>
+<span class="sd">    tokenizer: a function to use to tokenize each data sentence;</span>
+<span class="sd">      if None, basic_tokenizer will be used.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A tuple of 6 elements:</span>
+<span class="sd">      (1) path to the token-ids for English training data-set,</span>
+<span class="sd">      (2) path to the token-ids for French training data-set,</span>
+<span class="sd">      (3) path to the token-ids for English development data-set,</span>
+<span class="sd">      (4) path to the token-ids for French development data-set,</span>
+<span class="sd">      (5) path to the English vocabulary file,</span>
+<span class="sd">      (6) path to the French vocabulary file.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Get wmt data to the specified directory.</span>
+  <span class="n">train_path</span> <span class="o">=</span> <span class="n">get_wmt_enfr_train_set</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+  <span class="n">dev_path</span> <span class="o">=</span> <span class="n">get_wmt_enfr_dev_set</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+
+  <span class="n">from_train_path</span> <span class="o">=</span> <span class="n">train_path</span> <span class="o">+</span> <span class="s2">&quot;.en&quot;</span>
+  <span class="n">to_train_path</span> <span class="o">=</span> <span class="n">train_path</span> <span class="o">+</span> <span class="s2">&quot;.fr&quot;</span>
+  <span class="n">from_dev_path</span> <span class="o">=</span> <span class="n">dev_path</span> <span class="o">+</span> <span class="s2">&quot;.en&quot;</span>
+  <span class="n">to_dev_path</span> <span class="o">=</span> <span class="n">dev_path</span> <span class="o">+</span> <span class="s2">&quot;.fr&quot;</span>
+  <span class="k">return</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">from_train_path</span><span class="p">,</span> <span class="n">to_train_path</span><span class="p">,</span> <span class="n">from_dev_path</span><span class="p">,</span> <span class="n">to_dev_path</span><span class="p">,</span> <span class="n">en_vocabulary_size</span><span class="p">,</span>
+                      <span class="n">fr_vocabulary_size</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="prepare_data"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq_utils.prepare_data">[docs]</a><span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">from_train_path</span><span class="p">,</span> <span class="n">to_train_path</span><span class="p">,</span> <span class="n">from_dev_path</span><span class="p">,</span> <span class="n">to_dev_path</span><span class="p">,</span> <span class="n">from_vocabulary_size</span><span class="p">,</span>
+                 <span class="n">to_vocabulary_size</span><span class="p">,</span> <span class="n">tokenizer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Preapre all necessary files that are required for the training.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      data_dir: directory in which the data sets will be stored.</span>
+<span class="sd">      from_train_path: path to the file that includes &quot;from&quot; training samples.</span>
+<span class="sd">      to_train_path: path to the file that includes &quot;to&quot; training samples.</span>
+<span class="sd">      from_dev_path: path to the file that includes &quot;from&quot; dev samples.</span>
+<span class="sd">      to_dev_path: path to the file that includes &quot;to&quot; dev samples.</span>
+<span class="sd">      from_vocabulary_size: size of the &quot;from language&quot; vocabulary to create and use.</span>
+<span class="sd">      to_vocabulary_size: size of the &quot;to language&quot; vocabulary to create and use.</span>
+<span class="sd">      tokenizer: a function to use to tokenize each data sentence;</span>
+<span class="sd">        if None, basic_tokenizer will be used.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A tuple of 6 elements:</span>
+<span class="sd">        (1) path to the token-ids for &quot;from language&quot; training data-set,</span>
+<span class="sd">        (2) path to the token-ids for &quot;to language&quot; training data-set,</span>
+<span class="sd">        (3) path to the token-ids for &quot;from language&quot; development data-set,</span>
+<span class="sd">        (4) path to the token-ids for &quot;to language&quot; development data-set,</span>
+<span class="sd">        (5) path to the &quot;from language&quot; vocabulary file,</span>
+<span class="sd">        (6) path to the &quot;to language&quot; vocabulary file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+  <span class="c1"># Create vocabularies of the appropriate sizes.</span>
+  <span class="n">to_vocab_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s2">&quot;vocab</span><span class="si">%d</span><span class="s2">.to&quot;</span> <span class="o">%</span> <span class="n">to_vocabulary_size</span><span class="p">)</span>
+  <span class="n">from_vocab_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s2">&quot;vocab</span><span class="si">%d</span><span class="s2">.from&quot;</span> <span class="o">%</span> <span class="n">from_vocabulary_size</span><span class="p">)</span>
+  <span class="n">create_vocabulary</span><span class="p">(</span><span class="n">to_vocab_path</span><span class="p">,</span> <span class="n">to_train_path</span> <span class="p">,</span> <span class="n">to_vocabulary_size</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">)</span>
+  <span class="n">create_vocabulary</span><span class="p">(</span><span class="n">from_vocab_path</span><span class="p">,</span> <span class="n">from_train_path</span> <span class="p">,</span> <span class="n">from_vocabulary_size</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">)</span>
+
+  <span class="c1"># Create token ids for the training data.</span>
+  <span class="n">to_train_ids_path</span> <span class="o">=</span> <span class="n">to_train_path</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;.ids</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">to_vocabulary_size</span><span class="p">)</span>
+  <span class="n">from_train_ids_path</span> <span class="o">=</span> <span class="n">from_train_path</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;.ids</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">from_vocabulary_size</span><span class="p">)</span>
+  <span class="n">data_to_token_ids</span><span class="p">(</span><span class="n">to_train_path</span><span class="p">,</span> <span class="n">to_train_ids_path</span><span class="p">,</span> <span class="n">to_vocab_path</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">)</span>
+  <span class="n">data_to_token_ids</span><span class="p">(</span><span class="n">from_train_path</span><span class="p">,</span> <span class="n">from_train_ids_path</span><span class="p">,</span> <span class="n">from_vocab_path</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">)</span>
+
+  <span class="c1"># Create token ids for the development data.</span>
+  <span class="n">to_dev_ids_path</span> <span class="o">=</span> <span class="n">to_dev_path</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;.ids</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">to_vocabulary_size</span><span class="p">)</span>
+  <span class="n">from_dev_ids_path</span> <span class="o">=</span> <span class="n">from_dev_path</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;.ids</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">from_vocabulary_size</span><span class="p">)</span>
+  <span class="n">data_to_token_ids</span><span class="p">(</span><span class="n">to_dev_path</span><span class="p">,</span> <span class="n">to_dev_ids_path</span><span class="p">,</span> <span class="n">to_vocab_path</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">)</span>
+  <span class="n">data_to_token_ids</span><span class="p">(</span><span class="n">from_dev_path</span><span class="p">,</span> <span class="n">from_dev_ids_path</span><span class="p">,</span> <span class="n">from_vocab_path</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="n">from_train_ids_path</span><span class="p">,</span> <span class="n">to_train_ids_path</span><span class="p">,</span>
+          <span class="n">from_dev_ids_path</span><span class="p">,</span> <span class="n">to_dev_ids_path</span><span class="p">,</span>
+          <span class="n">from_vocab_path</span><span class="p">,</span> <span class="n">to_vocab_path</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

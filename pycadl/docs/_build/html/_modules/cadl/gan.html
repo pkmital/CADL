@@ -1,0 +1,781 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.gan &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.gan</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.gan</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Generative Adversarial Network.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">cadl</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">cadl.dataset_utils</span> <span class="k">import</span> <span class="n">create_input_pipeline</span>
+<span class="kn">from</span> <span class="nn">cadl.datasets</span> <span class="k">import</span> <span class="n">CELEB</span>
+
+
+<div class="viewcode-block" id="encoder"><a class="viewcode-back" href="../../source/cadl.html#cadl.gan.encoder">[docs]</a><span class="k">def</span> <span class="nf">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">filter_sizes</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">convolutional</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span>
+            <span class="n">output_activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">,</span>
+            <span class="n">reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Encoder network codes input `x` to layers defined by dimensions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : tf.Tensor</span>
+<span class="sd">        Input to the encoder network, e.g. tf.Placeholder or tf.Variable</span>
+<span class="sd">    dimensions : list, optional</span>
+<span class="sd">        List of the number of neurons in each layer (convolutional=False) -or-</span>
+<span class="sd">        List of the number of filters in each layer (convolutional=True), e.g.</span>
+<span class="sd">        [100, 100, 100, 100] for a 4-layer deep network with 100 in each layer.</span>
+<span class="sd">    filter_sizes : list, optional</span>
+<span class="sd">        List of the size of the kernel in each layer, e.g.:</span>
+<span class="sd">        [3, 3, 3, 3] is a 4-layer deep network w/ 3 x 3 kernels in every layer.</span>
+<span class="sd">    convolutional : bool, optional</span>
+<span class="sd">        Whether or not to use convolutional layers.</span>
+<span class="sd">    activation : fn, optional</span>
+<span class="sd">        Function for applying an activation, e.g. tf.nn.relu</span>
+<span class="sd">    output_activation : fn, optional</span>
+<span class="sd">        Function for applying an activation on the last layer, e.g. tf.nn.relu</span>
+<span class="sd">    reuse : bool, optional</span>
+<span class="sd">        For each layer&#39;s variable scope, whether to reuse existing variables.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    h : tf.Tensor</span>
+<span class="sd">        Output tensor of the encoder</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># %%</span>
+    <span class="c1"># ensure 2-d is converted to square tensor.</span>
+    <span class="k">if</span> <span class="n">convolutional</span><span class="p">:</span>
+        <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tensor</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">current_input</span> <span class="o">=</span> <span class="n">x_tensor</span>
+
+    <span class="k">for</span> <span class="n">layer_i</span><span class="p">,</span> <span class="n">n_output</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dimensions</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">layer_i</span><span class="p">),</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">convolutional</span><span class="p">:</span>
+                <span class="n">h</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">current_input</span><span class="p">,</span>
+                    <span class="n">n_output</span><span class="o">=</span><span class="n">n_output</span><span class="p">,</span>
+                    <span class="n">k_h</span><span class="o">=</span><span class="n">filter_sizes</span><span class="p">[</span><span class="n">layer_i</span><span class="p">],</span>
+                    <span class="n">k_w</span><span class="o">=</span><span class="n">filter_sizes</span><span class="p">[</span><span class="n">layer_i</span><span class="p">],</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span>
+                    <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">h</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">current_input</span><span class="p">,</span> <span class="n">n_output</span><span class="o">=</span><span class="n">n_output</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">activation</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+
+        <span class="n">current_input</span> <span class="o">=</span> <span class="n">output</span>
+
+    <span class="n">flattened</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">current_input</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;flatten&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_activation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">flattened</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">output_activation</span><span class="p">(</span><span class="n">flattened</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="decoder"><a class="viewcode-back" href="../../source/cadl.html#cadl.gan.decoder">[docs]</a><span class="k">def</span> <span class="nf">decoder</span><span class="p">(</span><span class="n">z</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">channels</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">filter_sizes</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">convolutional</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span>
+            <span class="n">output_activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">tanh</span><span class="p">,</span>
+            <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decoder network codes input `x` to layers defined by dimensions.</span>
+
+<span class="sd">    In contrast with `encoder`, this requires information on the number of</span>
+<span class="sd">    output channels in each layer for convolution.  Otherwise, it is mostly</span>
+<span class="sd">    the same.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    z : tf.Tensor</span>
+<span class="sd">        Input to the decoder network, e.g. tf.Placeholder or tf.Variable</span>
+<span class="sd">    dimensions : list, optional</span>
+<span class="sd">        List of the number of neurons in each layer (convolutional=False) -or-</span>
+<span class="sd">        List of the number of filters in each layer (convolutional=True), e.g.</span>
+<span class="sd">        [100, 100, 100, 100] for a 4-layer deep network with 100 in each layer.</span>
+<span class="sd">    channels : list, optional</span>
+<span class="sd">        For decoding when convolutional=True, require the number of output</span>
+<span class="sd">        channels in each layer.</span>
+<span class="sd">    filter_sizes : list, optional</span>
+<span class="sd">        List of the size of the kernel in each layer, e.g.:</span>
+<span class="sd">        [3, 3, 3, 3] is a 4-layer deep network w/ 3 x 3 kernels in every layer.</span>
+<span class="sd">    convolutional : bool, optional</span>
+<span class="sd">        Whether or not to use convolutional layers.</span>
+<span class="sd">    activation : fn, optional</span>
+<span class="sd">        Function for applying an activation, e.g. tf.nn.relu</span>
+<span class="sd">    output_activation : fn, optional</span>
+<span class="sd">        Function for applying an activation on the last layer, e.g. tf.nn.relu</span>
+<span class="sd">    reuse : bool, optional</span>
+<span class="sd">        For each layer&#39;s variable scope, whether to reuse existing variables.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    h : tf.Tensor</span>
+<span class="sd">        Output tensor of the decoder</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">convolutional</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;fc&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+            <span class="n">z1</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">z</span><span class="p">,</span>
+                <span class="n">n_output</span><span class="o">=</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+            <span class="n">rsz</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="n">z1</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+            <span class="n">current_input</span> <span class="o">=</span> <span class="n">activation</span><span class="p">(</span><span class="n">rsz</span><span class="p">)</span>
+
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="n">channels</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">filter_sizes</span> <span class="o">=</span> <span class="n">filter_sizes</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">current_input</span> <span class="o">=</span> <span class="n">z</span>
+
+    <span class="k">for</span> <span class="n">layer_i</span><span class="p">,</span> <span class="n">n_output</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dimensions</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">layer_i</span><span class="p">),</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">convolutional</span><span class="p">:</span>
+                <span class="n">h</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">deconv2d</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">current_input</span><span class="p">,</span>
+                    <span class="n">n_output_h</span><span class="o">=</span><span class="n">n_output</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">n_output_w</span><span class="o">=</span><span class="n">n_output</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">n_output_ch</span><span class="o">=</span><span class="n">channels</span><span class="p">[</span><span class="n">layer_i</span><span class="p">],</span>
+                    <span class="n">k_h</span><span class="o">=</span><span class="n">filter_sizes</span><span class="p">[</span><span class="n">layer_i</span><span class="p">],</span>
+                    <span class="n">k_w</span><span class="o">=</span><span class="n">filter_sizes</span><span class="p">[</span><span class="n">layer_i</span><span class="p">],</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span>
+                    <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">h</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">current_input</span><span class="p">,</span> <span class="n">n_output</span><span class="o">=</span><span class="n">n_output</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">layer_i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="n">activation</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="n">h</span>
+        <span class="n">current_input</span> <span class="o">=</span> <span class="n">output</span>
+
+    <span class="k">if</span> <span class="n">output_activation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">current_input</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">output_activation</span><span class="p">(</span><span class="n">current_input</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generator"><a class="viewcode-back" href="../../source/cadl.html#cadl.gan.generator">[docs]</a><span class="k">def</span> <span class="nf">generator</span><span class="p">(</span><span class="n">z</span><span class="p">,</span>
+              <span class="n">output_h</span><span class="p">,</span>
+              <span class="n">output_w</span><span class="p">,</span>
+              <span class="n">convolutional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">n_features</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+              <span class="n">rgb</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Simple interface to build a decoder network given the input parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    z : tf.Tensor</span>
+<span class="sd">        Input to the generator, i.e. tf.Placeholder of tf.Variable</span>
+<span class="sd">    output_h : int</span>
+<span class="sd">        Final generated height</span>
+<span class="sd">    output_w : int</span>
+<span class="sd">        Final generated width</span>
+<span class="sd">    convolutional : bool, optional</span>
+<span class="sd">        Whether or not to build a convolutional generative network.</span>
+<span class="sd">    n_features : int, optional</span>
+<span class="sd">        Number of channels to use in the last hidden layer.</span>
+<span class="sd">    rgb : bool, optional</span>
+<span class="sd">        Whether or not the final generated image is RGB or not.</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Whether or not to reuse the variables if they are already created.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    x_tilde : tf.Tensor</span>
+<span class="sd">        Output of the generator network.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_channels</span> <span class="o">=</span> <span class="mi">3</span> <span class="k">if</span> <span class="n">rgb</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;generator&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">decoder</span><span class="p">(</span>
+            <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">,</span>
+            <span class="n">convolutional</span><span class="o">=</span><span class="n">convolutional</span><span class="p">,</span>
+            <span class="n">filter_sizes</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+            <span class="n">channels</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">n_features</span> <span class="o">*</span> <span class="mi">8</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">n_features</span><span class="p">,</span>
+                <span class="n">n_channels</span>
+            <span class="p">],</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="p">[[</span><span class="n">output_h</span> <span class="o">//</span> <span class="mi">16</span><span class="p">,</span>
+                         <span class="n">output_w</span> <span class="o">//</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="n">output_h</span> <span class="o">//</span> <span class="mi">8</span><span class="p">,</span> <span class="n">output_w</span> <span class="o">//</span> <span class="mi">8</span><span class="p">],</span>
+                        <span class="p">[</span><span class="n">output_h</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="n">output_w</span> <span class="o">//</span> <span class="mi">4</span><span class="p">],</span>
+                        <span class="p">[</span><span class="n">output_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">output_w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="n">output_h</span><span class="p">,</span> <span class="n">output_w</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">convolutional</span> <span class="k">else</span> <span class="p">[</span><span class="mi">384</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="n">n_features</span><span class="p">],</span>
+            <span class="n">activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu6</span><span class="p">,</span>
+            <span class="n">output_activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">tanh</span><span class="p">,</span>
+            <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="discriminator"><a class="viewcode-back" href="../../source/cadl.html#cadl.gan.discriminator">[docs]</a><span class="k">def</span> <span class="nf">discriminator</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">convolutional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">rgb</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    convolutional : bool, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_features : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    rgb : bool, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : bool, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;discriminator&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">encoder</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">convolutional</span><span class="o">=</span><span class="n">convolutional</span><span class="p">,</span>
+            <span class="n">filter_sizes</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">n_features</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">*</span> <span class="mi">8</span>
+            <span class="p">]</span> <span class="k">if</span> <span class="n">convolutional</span> <span class="k">else</span> <span class="p">[</span><span class="n">n_features</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">],</span>
+            <span class="n">activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu6</span><span class="p">,</span>
+            <span class="n">output_activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GAN"><a class="viewcode-back" href="../../source/cadl.html#cadl.gan.GAN">[docs]</a><span class="k">def</span> <span class="nf">GAN</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">n_latent</span><span class="p">,</span> <span class="n">n_features</span><span class="p">,</span> <span class="n">rgb</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_shape : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_latent : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_features : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    rgb : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    debug : bool, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Real input samples</span>
+    <span class="c1"># n_features is either the image dimension or flattened number of features</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="mf">127.5</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span>
+    <span class="n">sum_x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="c1"># Discriminator for real input samples</span>
+    <span class="n">D_real_logits</span> <span class="o">=</span> <span class="n">discriminator</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="n">n_features</span><span class="p">,</span> <span class="n">rgb</span><span class="o">=</span><span class="n">rgb</span><span class="p">)</span>
+    <span class="n">D_real</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">D_real_logits</span><span class="p">)</span>
+    <span class="n">sum_D_real</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_real&quot;</span><span class="p">,</span> <span class="n">D_real</span><span class="p">)</span>
+
+    <span class="c1"># Generator tries to recreate input samples using latent feature vector</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_latent</span><span class="p">],</span> <span class="s1">&#39;z&#39;</span><span class="p">)</span>
+    <span class="n">sum_z</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">generator</span><span class="p">(</span>
+        <span class="n">z</span><span class="p">,</span>
+        <span class="n">output_h</span><span class="o">=</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">output_w</span><span class="o">=</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="n">n_features</span><span class="o">=</span><span class="n">n_features</span><span class="p">,</span>
+        <span class="n">rgb</span><span class="o">=</span><span class="n">rgb</span><span class="p">)</span>
+    <span class="n">sum_G</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="n">G</span><span class="p">)</span>
+
+    <span class="c1"># Discriminator for generated samples</span>
+    <span class="n">D_fake_logits</span> <span class="o">=</span> <span class="n">discriminator</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="n">n_features</span><span class="p">,</span> <span class="n">rgb</span><span class="o">=</span><span class="n">rgb</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">D_fake</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">D_fake_logits</span><span class="p">)</span>
+    <span class="n">sum_D_fake</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_fake&quot;</span><span class="p">,</span> <span class="n">D_fake</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;loss&#39;</span><span class="p">):</span>
+        <span class="c1"># Loss functions</span>
+        <span class="n">loss_D_real</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">binary_cross_entropy</span><span class="p">(</span>
+            <span class="n">D_real</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">D_real</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;loss_D_real&#39;</span><span class="p">)</span>
+        <span class="n">loss_D_fake</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">binary_cross_entropy</span><span class="p">(</span>
+            <span class="n">D_fake</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">D_fake</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;loss_D_fake&#39;</span><span class="p">)</span>
+        <span class="n">loss_D</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">((</span><span class="n">loss_D_real</span> <span class="o">+</span> <span class="n">loss_D_fake</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">loss_G</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">binary_cross_entropy</span><span class="p">(</span>
+                <span class="n">D_fake</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">D_fake</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;loss_G&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Summaries</span>
+        <span class="n">sum_loss_D_real</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;loss_D_real&quot;</span><span class="p">,</span> <span class="n">loss_D_real</span><span class="p">)</span>
+        <span class="n">sum_loss_D_fake</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;loss_D_fake&quot;</span><span class="p">,</span> <span class="n">loss_D_fake</span><span class="p">)</span>
+        <span class="n">sum_loss_D</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;loss_D&quot;</span><span class="p">,</span> <span class="n">loss_D</span><span class="p">)</span>
+        <span class="n">sum_loss_G</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;loss_G&quot;</span><span class="p">,</span> <span class="n">loss_G</span><span class="p">)</span>
+        <span class="n">sum_D_real</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_real&quot;</span><span class="p">,</span> <span class="n">D_real</span><span class="p">)</span>
+        <span class="n">sum_D_fake</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_fake&quot;</span><span class="p">,</span> <span class="n">D_fake</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;loss_D&#39;</span><span class="p">:</span> <span class="n">loss_D</span><span class="p">,</span>
+        <span class="s1">&#39;loss_G&#39;</span><span class="p">:</span> <span class="n">loss_G</span><span class="p">,</span>
+        <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+        <span class="s1">&#39;G&#39;</span><span class="p">:</span> <span class="n">G</span><span class="p">,</span>
+        <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="n">z</span><span class="p">,</span>
+        <span class="s1">&#39;sums&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;G&#39;</span><span class="p">:</span> <span class="n">sum_G</span><span class="p">,</span>
+            <span class="s1">&#39;D_real&#39;</span><span class="p">:</span> <span class="n">sum_D_real</span><span class="p">,</span>
+            <span class="s1">&#39;D_fake&#39;</span><span class="p">:</span> <span class="n">sum_D_fake</span><span class="p">,</span>
+            <span class="s1">&#39;loss_G&#39;</span><span class="p">:</span> <span class="n">sum_loss_G</span><span class="p">,</span>
+            <span class="s1">&#39;loss_D&#39;</span><span class="p">:</span> <span class="n">sum_loss_D</span><span class="p">,</span>
+            <span class="s1">&#39;loss_D_real&#39;</span><span class="p">:</span> <span class="n">sum_loss_D_real</span><span class="p">,</span>
+            <span class="s1">&#39;loss_D_fake&#39;</span><span class="p">:</span> <span class="n">sum_loss_D_fake</span><span class="p">,</span>
+            <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="n">sum_z</span><span class="p">,</span>
+            <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">sum_x</span>
+        <span class="p">}</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="train_input_pipeline"><a class="viewcode-back" href="../../source/cadl.html#cadl.gan.train_input_pipeline">[docs]</a><span class="k">def</span> <span class="nf">train_input_pipeline</span><span class="p">(</span><span class="n">files</span><span class="p">,</span>
+                         <span class="n">init_lr_g</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+                         <span class="n">init_lr_d</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+                         <span class="n">n_features</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                         <span class="n">n_latent</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                         <span class="n">n_epochs</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span>
+                         <span class="n">batch_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                         <span class="n">n_samples</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+                         <span class="n">input_shape</span><span class="o">=</span><span class="p">[</span><span class="mi">218</span><span class="p">,</span> <span class="mi">178</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+                         <span class="n">crop_shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+                         <span class="n">crop_factor</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    files : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    init_lr_g : float, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    init_lr_d : float, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_features : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_latent : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_epochs : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    batch_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_samples : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    input_shape : list, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    crop_shape : list, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    crop_factor : float, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    No Longer Returned</span>
+<span class="sd">    ------------------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span><span class="o">.</span><span class="n">as_default</span><span class="p">(),</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="n">create_input_pipeline</span><span class="p">(</span>
+            <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">n_epochs</span><span class="o">=</span><span class="n">n_epochs</span><span class="p">,</span>
+            <span class="n">crop_shape</span><span class="o">=</span><span class="n">crop_shape</span><span class="p">,</span>
+            <span class="n">crop_factor</span><span class="o">=</span><span class="n">crop_factor</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">)</span>
+
+        <span class="n">gan</span> <span class="o">=</span> <span class="n">GAN</span><span class="p">(</span>
+            <span class="n">input_shape</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">crop_shape</span><span class="p">,</span>
+            <span class="n">n_features</span><span class="o">=</span><span class="n">n_features</span><span class="p">,</span>
+            <span class="n">n_latent</span><span class="o">=</span><span class="n">n_latent</span><span class="p">,</span>
+            <span class="n">rgb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">vars_d</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">trainable_variables</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;discriminator&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Training discriminator variables:&#39;</span><span class="p">)</span>
+        <span class="p">[</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">trainable_variables</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;discriminator&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">vars_g</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">trainable_variables</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;generator&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Training generator variables:&#39;</span><span class="p">)</span>
+        <span class="p">[</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">trainable_variables</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;generator&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">zs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_latent</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">zs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">make_latent_manifold</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span>
+
+        <span class="n">lr_g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;learning_rate_g&#39;</span><span class="p">)</span>
+        <span class="n">lr_d</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;learning_rate_d&#39;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">tf.contrib.layers</span> <span class="k">import</span> <span class="n">apply_regularization</span>
+            <span class="n">d_reg</span> <span class="o">=</span> <span class="n">apply_regularization</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">l2_regularizer</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">),</span> <span class="n">vars_d</span><span class="p">)</span>
+            <span class="n">g_reg</span> <span class="o">=</span> <span class="n">apply_regularization</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">l2_regularizer</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">),</span> <span class="n">vars_g</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">d_reg</span><span class="p">,</span> <span class="n">g_reg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+
+        <span class="n">opt_g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span>
+            <span class="n">lr_g</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Adam_g&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
+                <span class="n">gan</span><span class="p">[</span><span class="s1">&#39;loss_G&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">g_reg</span><span class="p">,</span> <span class="n">var_list</span><span class="o">=</span><span class="n">vars_g</span><span class="p">)</span>
+        <span class="n">opt_d</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span>
+            <span class="n">lr_d</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Adam_d&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
+                <span class="n">gan</span><span class="p">[</span><span class="s1">&#39;loss_D&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">d_reg</span><span class="p">,</span> <span class="n">var_list</span><span class="o">=</span><span class="n">vars_d</span><span class="p">)</span>
+
+        <span class="c1"># %%</span>
+        <span class="c1"># We create a session to use the graph</span>
+
+        <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+        <span class="n">sums</span> <span class="o">=</span> <span class="n">gan</span><span class="p">[</span><span class="s1">&#39;sums&#39;</span><span class="p">]</span>
+        <span class="n">G_sum_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span>
+            <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;loss_G&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;loss_D_fake&#39;</span><span class="p">],</span>
+            <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;D_fake&#39;</span><span class="p">]</span>
+        <span class="p">])</span>
+        <span class="n">D_sum_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span>
+            <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;loss_D&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;loss_D_real&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;loss_D_fake&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">],</span>
+            <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;D_real&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">[</span><span class="s1">&#39;D_fake&#39;</span><span class="p">]</span>
+        <span class="p">])</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">FileWriter</span><span class="p">(</span><span class="s2">&quot;./logs&quot;</span><span class="p">,</span> <span class="n">sess</span><span class="o">.</span><span class="n">graph_def</span><span class="p">)</span>
+
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Coordinator</span><span class="p">()</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">get_default_graph</span><span class="p">()</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
+        <span class="n">threads</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">start_queue_runners</span><span class="p">(</span><span class="n">sess</span><span class="o">=</span><span class="n">sess</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="n">coord</span><span class="p">)</span>
+        <span class="c1"># g = tf.get_default_graph()</span>
+        <span class="c1"># [print(op.name) for op in g.get_operations()]</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;gan.ckpt&quot;</span><span class="p">):</span>
+            <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s2">&quot;gan.ckpt&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;GAN model restored.&quot;</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="n">step_i</span><span class="p">,</span> <span class="n">t_i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="n">loss_d</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">loss_g</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">n_loss_d</span><span class="p">,</span> <span class="n">total_loss_d</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="n">n_loss_g</span><span class="p">,</span> <span class="n">total_loss_g</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">coord</span><span class="o">.</span><span class="n">should_stop</span><span class="p">():</span>
+                <span class="n">batch_xs</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+                <span class="n">step_i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">batch_zs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span>
+                    <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n_latent</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+                <span class="n">this_lr_g</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1e-2</span><span class="p">,</span>
+                                <span class="nb">max</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">init_lr_g</span> <span class="o">*</span> <span class="p">(</span><span class="n">loss_g</span> <span class="o">/</span> <span class="n">loss_d</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+                <span class="n">this_lr_d</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1e-2</span><span class="p">,</span>
+                                <span class="nb">max</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">init_lr_d</span> <span class="o">*</span> <span class="p">(</span><span class="n">loss_d</span> <span class="o">/</span> <span class="n">loss_g</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+                <span class="c1"># this_lr_d *= ((1.0 - (step_i / 100000)) ** 2)</span>
+                <span class="c1"># this_lr_g *= ((1.0 - (step_i / 100000)) ** 2)</span>
+
+                <span class="c1"># if np.random.random() &gt; (loss_g / (loss_d + loss_g)):</span>
+                <span class="k">if</span> <span class="n">step_i</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">loss_d</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">sum_d</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">gan</span><span class="p">[</span><span class="s1">&#39;loss_D&#39;</span><span class="p">],</span> <span class="n">opt_d</span><span class="p">,</span> <span class="n">D_sum_op</span><span class="p">],</span>
+                        <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                            <span class="n">gan</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]:</span> <span class="n">batch_xs</span><span class="p">,</span>
+                            <span class="n">gan</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]:</span> <span class="n">batch_zs</span><span class="p">,</span>
+                            <span class="n">lr_d</span><span class="p">:</span> <span class="n">this_lr_d</span>
+                        <span class="p">})</span>
+                    <span class="n">total_loss_d</span> <span class="o">+=</span> <span class="n">loss_d</span>
+                    <span class="n">n_loss_d</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span><span class="n">sum_d</span><span class="p">,</span> <span class="n">step_i</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%04d</span><span class="s1"> d* = lr: </span><span class="si">%0.08f</span><span class="s1">, loss: </span><span class="si">%08.06f</span><span class="s1">, </span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">step_i</span><span class="p">,</span> <span class="n">this_lr_d</span><span class="p">,</span> <span class="n">loss_d</span>
+                    <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;g  = lr: </span><span class="si">%0.08f</span><span class="s1">, loss: </span><span class="si">%08.06f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">this_lr_g</span><span class="p">,</span> <span class="n">loss_g</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">loss_g</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">sum_g</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">gan</span><span class="p">[</span><span class="s1">&#39;loss_G&#39;</span><span class="p">],</span> <span class="n">opt_g</span><span class="p">,</span> <span class="n">G_sum_op</span><span class="p">],</span>
+                        <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">gan</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]:</span> <span class="n">batch_zs</span><span class="p">,</span>
+                                   <span class="n">lr_g</span><span class="p">:</span> <span class="n">this_lr_g</span><span class="p">})</span>
+                    <span class="n">total_loss_g</span> <span class="o">+=</span> <span class="n">loss_g</span>
+                    <span class="n">n_loss_g</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span><span class="n">sum_g</span><span class="p">,</span> <span class="n">step_i</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%04d</span><span class="s1"> d  = lr: </span><span class="si">%0.08f</span><span class="s1">, loss: </span><span class="si">%08.06f</span><span class="s1">, </span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">step_i</span><span class="p">,</span> <span class="n">this_lr_d</span><span class="p">,</span> <span class="n">loss_d</span>
+                    <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;g* = lr: </span><span class="si">%0.08f</span><span class="s1">, loss: </span><span class="si">%08.06f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">this_lr_g</span><span class="p">,</span> <span class="n">loss_g</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">step_i</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">samples</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">gan</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">],</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">gan</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]:</span> <span class="n">zs</span><span class="p">})</span>
+                    <span class="n">utils</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="n">samples</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mf">127.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span>
+                        <span class="s1">&#39;imgs/gan_</span><span class="si">%08d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">t_i</span><span class="p">)</span>
+                    <span class="n">t_i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;generator loss:&#39;</span><span class="p">,</span> <span class="n">total_loss_g</span> <span class="o">/</span> <span class="n">n_loss_g</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;discriminator loss:&#39;</span><span class="p">,</span> <span class="n">total_loss_d</span> <span class="o">/</span> <span class="n">n_loss_d</span><span class="p">)</span>
+
+                    <span class="c1"># Save the variables to disk.</span>
+                    <span class="n">save_path</span> <span class="o">=</span> <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+                        <span class="n">sess</span><span class="p">,</span>
+                        <span class="s2">&quot;./gan.ckpt&quot;</span><span class="p">,</span>
+                        <span class="n">global_step</span><span class="o">=</span><span class="n">step_i</span><span class="p">,</span>
+                        <span class="n">write_meta_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model saved in file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">save_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">tf</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">OutOfRangeError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done training -- epoch limit reached&#39;</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># One of the threads has issued an exception.  So let&#39;s tell all the</span>
+            <span class="c1"># threads to shutdown.</span>
+            <span class="n">coord</span><span class="o">.</span><span class="n">request_stop</span><span class="p">()</span>
+
+        <span class="c1"># Wait until all threads have finished.</span>
+        <span class="n">coord</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">threads</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">CELEB</span><span class="p">()</span>
+    <span class="n">train_input_pipeline</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

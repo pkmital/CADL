@@ -1,0 +1,1102 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.draw &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.draw</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.draw</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Deep Recurrent Attentive Writer.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">cadl.datasets</span> <span class="k">import</span> <span class="n">MNIST</span><span class="p">,</span> <span class="n">CIFAR10</span>
+<span class="kn">from</span> <span class="nn">cadl.dataset_utils</span> <span class="k">import</span> <span class="n">create_input_pipeline</span>
+<span class="kn">from</span> <span class="nn">cadl</span> <span class="k">import</span> <span class="n">utils</span><span class="p">,</span> <span class="n">gif</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="linear"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.linear">[docs]</a><span class="k">def</span> <span class="nf">linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_output</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_output : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_output</span><span class="p">],</span>
+        <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer</span><span class="p">())</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">n_output</span><span class="p">],</span> <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="p">),</span> <span class="n">b</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="encoder"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.encoder">[docs]</a><span class="k">def</span> <span class="nf">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">rnn</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_enc</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    rnn : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    batch_size : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    state : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_enc : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;encoder&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">h_enc</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">rnn</span><span class="o">.</span><span class="n">zero_state</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h_enc</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h_enc</span><span class="p">,</span> <span class="n">state</span></div>
+
+
+<div class="viewcode-block" id="variational_layer"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.variational_layer">[docs]</a><span class="k">def</span> <span class="nf">variational_layer</span><span class="p">(</span><span class="n">h_enc</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    h_enc : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    noise : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_z : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;variational&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="c1"># Equation 1: use the encoder to parameterize the mean of the approximate</span>
+        <span class="c1"># posterior distribution Q</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+            <span class="n">h_z_mu</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">h_enc</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span>
+
+        <span class="c1"># Equation 2: Similarly for the standard deviation</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;log_sigma&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+            <span class="n">h_z_log_sigma</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">h_enc</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span>
+
+        <span class="c1"># sample z_t ~ q(Z_t | h_enc_t)</span>
+        <span class="n">z_t</span> <span class="o">=</span> <span class="n">h_z_mu</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">h_z_log_sigma</span><span class="p">),</span> <span class="n">noise</span><span class="p">)</span>
+
+    <span class="c1"># return the sampled value from the latent distribution and its parameters</span>
+    <span class="k">return</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">h_z_mu</span><span class="p">,</span> <span class="n">h_z_log_sigma</span></div>
+
+
+<div class="viewcode-block" id="decoder"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.decoder">[docs]</a><span class="k">def</span> <span class="nf">decoder</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">rnn</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dec</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    z : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    rnn : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    batch_size : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    state : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_dec : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;decoder&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">h_dec</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">rnn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">rnn</span><span class="o">.</span><span class="n">zero_state</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h_dec</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">rnn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h_dec</span><span class="p">,</span> <span class="n">state</span></div>
+
+
+<div class="viewcode-block" id="create_attention_map"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.create_attention_map">[docs]</a><span class="k">def</span> <span class="nf">create_attention_map</span><span class="p">(</span><span class="n">h_dec</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    h_dec : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;attention&quot;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">h_dec</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">g_tilde_x</span><span class="p">,</span> <span class="n">g_tilde_y</span><span class="p">,</span> <span class="n">log_sigma</span><span class="p">,</span> <span class="n">log_delta_tilde</span><span class="p">,</span> <span class="n">log_gamma</span> <span class="o">=</span> \
+            <span class="n">tf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">g_tilde_x</span><span class="p">,</span> <span class="n">g_tilde_y</span><span class="p">,</span> <span class="n">log_sigma</span><span class="p">,</span> <span class="n">log_delta_tilde</span><span class="p">,</span> <span class="n">log_gamma</span></div>
+
+
+<div class="viewcode-block" id="create_filterbank"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.create_filterbank">[docs]</a><span class="k">def</span> <span class="nf">create_filterbank</span><span class="p">(</span><span class="n">g_x</span><span class="p">,</span> <span class="n">g_y</span><span class="p">,</span> <span class="n">log_sigma_sq</span><span class="p">,</span> <span class="n">log_delta</span><span class="p">,</span> <span class="n">A</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">B</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    g_x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    g_y : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    log_sigma_sq : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    log_delta : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    A : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    B : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    C : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    N : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Deleted Parameters</span>
+<span class="sd">    ------------------</span>
+<span class="sd">    log_sigma : type</span>
+<span class="sd">        description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;filterbank&quot;</span><span class="p">):</span>
+        <span class="c1"># Equation 22 and 23</span>
+        <span class="n">g_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">A</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">g_x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">g_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">B</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">g_y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># The authors suggest to use a real-valued center and stride, meaning</span>
+        <span class="c1"># the center of this grid is not necessarily located directly on a</span>
+        <span class="c1"># pixel, but can be between pixels. To compute the stride, we use</span>
+        <span class="c1"># equation 24:</span>
+
+        <span class="c1"># Equation 24 delta = (max(A, B) - 1) / (N - 1) * tf.exp(log_delta)</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_delta</span><span class="p">)</span>
+        <span class="c1"># Note that we&#39;ve converted our `log_delta` to `delta` by taking the</span>
+        <span class="c1"># exponential.</span>
+
+        <span class="c1"># To determine the mean location of the ith and jth filter of the N x N</span>
+        <span class="c1"># grid of filters, we can use the formulas from the paper, equations 19</span>
+        <span class="c1"># and 20.  We&#39;ll create grid positions for the x and y positions</span>
+        <span class="c1"># independently.  So for each observation in our mini batch, we&#39;ll have</span>
+        <span class="c1"># N number of positions for our x and our y grid positions, or 12 x 12</span>
+        <span class="c1"># = 144 grid positions in total for each observation in our mini batch.</span>
+
+        <span class="c1"># Equations 19 and 20</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">N</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">mu_x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">g_x</span> <span class="o">+</span> <span class="p">(</span><span class="n">ns</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">mu_y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">g_y</span> <span class="o">+</span> <span class="p">(</span><span class="n">ns</span> <span class="o">-</span> <span class="n">N</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Finally we&#39;re ready to define the filterbank matrices `F_x` and `F_y`</span>
+        <span class="c1"># from equations 25 and 26.  `F_x` and `F_x` require us to use $2 *</span>
+        <span class="c1"># \sigma^2$.  So we&#39;ll calculate that first for each of our sigmas, one</span>
+        <span class="c1"># per observation in our mini batch.  We take exponential of</span>
+        <span class="c1"># `log_sigma` to get $\sigma^2$ and then multiply by 2.  we&#39;ll also</span>
+        <span class="c1"># reshape it to the number of observations we have in the first</span>
+        <span class="c1"># dimension, and create singleton dimensions for broadcasting them</span>
+        <span class="c1"># across our filterbanks.</span>
+        <span class="n">sigma_sq</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_sigma_sq</span><span class="p">),</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Now we&#39;ll create a range for our entire image:</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">B</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">A</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># And then using broadcasting, we can calculate the Gaussian defining</span>
+        <span class="c1"># the filterbank:</span>
+        <span class="n">F_x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">xs</span> <span class="o">-</span> <span class="n">mu_x</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma_sq</span><span class="p">))</span>
+        <span class="n">F_y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">ys</span> <span class="o">-</span> <span class="n">mu_y</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma_sq</span><span class="p">))</span>
+
+        <span class="c1"># Finally we&#39;ll normalize the filterbank across each location so that</span>
+        <span class="c1"># the sum of the energy across the x and y locations sum to 1.  We&#39;ll</span>
+        <span class="c1"># also ensure that we do not divide by zero by making sure the maximum</span>
+        <span class="c1"># value is at least epsilon.  There will be one filterbank defining the</span>
+        <span class="c1"># horizontal filters, and another for the vertical filters.  The</span>
+        <span class="c1"># horizontal filterbanks, `F_x[i, a]` will be N x B, so N filters</span>
+        <span class="c1"># across the B number of pixels.  Same for the vertical ones,</span>
+        <span class="c1"># `F_y[j, b]`, there will be N filters across the A number of pixels.</span>
+
+        <span class="c1"># Normalize</span>
+        <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1e-10</span>
+        <span class="n">F_x</span> <span class="o">=</span> <span class="n">F_x</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">F_x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">keep_dims</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">epsilon</span><span class="p">)</span>
+        <span class="n">F_y</span> <span class="o">=</span> <span class="n">F_y</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">F_y</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">keep_dims</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">epsilon</span><span class="p">)</span>
+
+    <span class="c1"># return the filterbanks</span>
+    <span class="k">return</span> <span class="n">F_x</span><span class="p">,</span> <span class="n">F_y</span></div>
+
+
+<div class="viewcode-block" id="filter_image"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.filter_image">[docs]</a><span class="k">def</span> <span class="nf">filter_image</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">F_x</span><span class="p">,</span> <span class="n">F_y</span><span class="p">,</span> <span class="n">log_gamma</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">inverted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    F_x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    F_y : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    log_gamma : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    A : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    B : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    C : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    N : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    inverted : bool, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Deleted Parameters</span>
+<span class="sd">    ------------------</span>
+<span class="sd">    gamma : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;filter&quot;</span><span class="p">):</span>
+        <span class="c1"># To filter the image, we&#39;ll want to transpose our filterbanks</span>
+        <span class="c1"># dimensions allowing to to multiply the image in the next step</span>
+        <span class="c1"># For the read operation, we transpose X (equation 27)</span>
+        <span class="c1"># For write, we transpose Y, and use inverse gamma (equation 29)</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_gamma</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inverted</span><span class="p">:</span>
+            <span class="n">F_y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">F_y</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">gamma</span>
+            <span class="c1"># Now we left and right multiply the image in `x` by each filter</span>
+            <span class="k">if</span> <span class="n">C</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">glimpse</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">F_y</span><span class="p">,</span>
+                                    <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">]),</span> <span class="n">F_x</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">C</span><span class="p">])</span>
+                <span class="n">xs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">glimpses</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">x_i</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">:</span>
+                    <span class="n">glimpses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">F_y</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">x_i</span><span class="p">),</span> <span class="n">F_x</span><span class="p">)))</span>
+                <span class="n">glimpse</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">x_i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x_i</span> <span class="ow">in</span> <span class="n">glimpses</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">F_x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">F_x</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="c1"># Now we left and right multiply the image in `x` by each filter</span>
+            <span class="k">if</span> <span class="n">C</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">glimpse</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">F_y</span><span class="p">,</span>
+                                    <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">]),</span> <span class="n">F_x</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">])</span>
+                <span class="n">xs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">glimpses</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">x_i</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">:</span>
+                    <span class="n">glimpses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">F_y</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">x_i</span><span class="p">),</span> <span class="n">F_x</span><span class="p">)))</span>
+                <span class="n">glimpse</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">x_i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x_i</span> <span class="ow">in</span> <span class="n">glimpses</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="c1"># Finally, we&#39;ll flatten the filtered image to a vector</span>
+        <span class="n">glimpse</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">glimpse</span><span class="p">,</span>
+                             <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">glimpse</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">1</span><span class="p">:])])</span>
+
+        <span class="c1"># And weight the filtered glimpses by gamma</span>
+        <span class="k">return</span> <span class="n">glimpse</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="read"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">x_t</span><span class="p">,</span>
+         <span class="n">x_hat_t</span><span class="p">,</span>
+         <span class="n">h_dec_t</span><span class="p">,</span>
+         <span class="n">read_n</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+         <span class="n">A</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span>
+         <span class="n">B</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span>
+         <span class="n">C</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+         <span class="n">use_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+         <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read from the input image, `x`, and reconstruction error image `x_hat`.</span>
+
+<span class="sd">    Optionally apply a filterbank w/ `use_attention`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x_t : tf.Tensor</span>
+<span class="sd">        Input image to optionally filter</span>
+<span class="sd">    x_hat_t : tf.Tensor</span>
+<span class="sd">        Reconstruction error to optionally filter</span>
+<span class="sd">    h_dec_t : tf.Tensor</span>
+<span class="sd">        Output of the decoder of the network (could also be the encoder but the</span>
+<span class="sd">        authors suggest to use the decoder instead, see end of section 2.1)</span>
+<span class="sd">    read_n : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    A : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    B : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    C : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    use_attention : bool, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;read&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">use_attention</span><span class="p">:</span>
+            <span class="c1"># Use the decoder&#39;s output to create 5 measures to define the</span>
+            <span class="c1"># placement and characteristics of the filterbank</span>
+            <span class="n">g_x_tilde</span><span class="p">,</span> <span class="n">g_y_tilde</span><span class="p">,</span> \
+                <span class="n">log_sigma_sq_tilde</span><span class="p">,</span> <span class="n">log_delta_tilde</span><span class="p">,</span> <span class="n">log_gamma_tilde</span> <span class="o">=</span> \
+                <span class="n">create_attention_map</span><span class="p">(</span><span class="n">h_dec_t</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+
+            <span class="c1"># Now create the filterbank</span>
+            <span class="n">F_x_tilde</span><span class="p">,</span> <span class="n">F_y_tilde</span> <span class="o">=</span> <span class="n">create_filterbank</span><span class="p">(</span>
+                <span class="n">g_x_tilde</span><span class="p">,</span>
+                <span class="n">g_y_tilde</span><span class="p">,</span>
+                <span class="n">log_sigma_sq_tilde</span><span class="p">,</span>
+                <span class="n">log_delta_tilde</span><span class="p">,</span>
+                <span class="n">N</span><span class="o">=</span><span class="n">read_n</span><span class="p">,</span>
+                <span class="n">A</span><span class="o">=</span><span class="n">A</span><span class="p">,</span>
+                <span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">,</span>
+                <span class="n">C</span><span class="o">=</span><span class="n">C</span><span class="p">)</span>
+
+            <span class="c1"># And apply the filterbanks to the input image</span>
+            <span class="n">x_t</span> <span class="o">=</span> <span class="n">filter_image</span><span class="p">(</span><span class="n">x_t</span><span class="p">,</span> <span class="n">F_x_tilde</span><span class="p">,</span> <span class="n">F_y_tilde</span><span class="p">,</span> <span class="n">log_gamma_tilde</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span>
+                               <span class="n">C</span><span class="p">,</span> <span class="n">read_n</span><span class="p">)</span>
+
+            <span class="c1"># And similarly, apply the filterbanks to the error image</span>
+            <span class="n">x_hat_t</span> <span class="o">=</span> <span class="n">filter_image</span><span class="p">(</span><span class="n">x_hat_t</span><span class="p">,</span> <span class="n">F_x_tilde</span><span class="p">,</span> <span class="n">F_y_tilde</span><span class="p">,</span>
+                                   <span class="n">log_gamma_tilde</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">read_n</span><span class="p">)</span>
+
+    <span class="c1"># Equation 27, concat the two N x N patches from the image and the error</span>
+    <span class="c1"># image.  If we aren&#39;t using attention, these are just the unfiltered</span>
+    <span class="c1"># images.</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">x_t</span><span class="p">,</span> <span class="n">x_hat_t</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">h_dec_t</span><span class="p">,</span> <span class="n">write_n</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">A</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">B</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">use_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    h_dec_t : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    write_n : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    A : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    B : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    C : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    use_attention : bool, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Equation 28: again, like in the read layer, we can add an additional</span>
+    <span class="c1"># nonlinearity here to enforce the characteristics of the final activation</span>
+    <span class="c1"># we expect to see.  For instance, if our images are normalized 0 to 1,</span>
+    <span class="c1"># then we can use a sigmoid activation.</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;write&quot;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="c1"># Next, we&#39;ll want to apply a few more additional operations if we&#39;re</span>
+        <span class="c1"># using attention</span>
+        <span class="k">if</span> <span class="n">use_attention</span><span class="p">:</span>
+            <span class="n">w_t</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">h_dec_t</span><span class="p">,</span> <span class="n">write_n</span> <span class="o">*</span> <span class="n">write_n</span> <span class="o">*</span> <span class="n">C</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">C</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">w_t</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">w_t</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">write_n</span><span class="p">,</span> <span class="n">write_n</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">w_t</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">w_t</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">write_n</span><span class="p">,</span> <span class="n">write_n</span><span class="p">,</span> <span class="n">C</span><span class="p">])</span>
+
+            <span class="c1"># Use the decoder&#39;s output to create 5 measures to define the</span>
+            <span class="c1"># placement and characteristics of the filterbank</span>
+            <span class="n">g_x_hat</span><span class="p">,</span> <span class="n">g_y_hat</span><span class="p">,</span> <span class="n">log_sigma_sq_hat</span><span class="p">,</span> <span class="n">log_delta_hat</span><span class="p">,</span> <span class="n">log_gamma_hat</span> <span class="o">=</span> \
+                <span class="n">create_attention_map</span><span class="p">(</span><span class="n">h_dec_t</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+
+            <span class="c1"># Now create the filterbank</span>
+            <span class="n">F_x_hat</span><span class="p">,</span> <span class="n">F_y_hat</span> <span class="o">=</span> <span class="n">create_filterbank</span><span class="p">(</span>
+                <span class="n">g_x_hat</span><span class="p">,</span>
+                <span class="n">g_y_hat</span><span class="p">,</span>
+                <span class="n">log_sigma_sq_hat</span><span class="p">,</span>
+                <span class="n">log_delta_hat</span><span class="p">,</span>
+                <span class="n">N</span><span class="o">=</span><span class="n">write_n</span><span class="p">,</span>
+                <span class="n">A</span><span class="o">=</span><span class="n">A</span><span class="p">,</span>
+                <span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">,</span>
+                <span class="n">C</span><span class="o">=</span><span class="n">C</span><span class="p">)</span>
+
+            <span class="c1"># And apply the filterbanks to the input image, Equation 29</span>
+            <span class="n">w_t</span> <span class="o">=</span> <span class="n">filter_image</span><span class="p">(</span>
+                <span class="n">w_t</span><span class="p">,</span>
+                <span class="n">F_x_hat</span><span class="p">,</span>
+                <span class="n">F_y_hat</span><span class="p">,</span>
+                <span class="n">log_gamma_hat</span><span class="p">,</span>
+                <span class="n">A</span><span class="p">,</span>
+                <span class="n">B</span><span class="p">,</span>
+                <span class="n">C</span><span class="p">,</span>
+                <span class="n">write_n</span><span class="p">,</span>
+                <span class="n">inverted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">w_t</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">linear</span><span class="p">(</span><span class="n">h_dec_t</span><span class="p">,</span> <span class="n">A</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">C</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="binary_cross_entropy"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.binary_cross_entropy">[docs]</a><span class="k">def</span> <span class="nf">binary_cross_entropy</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    o : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    eps : float, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">o</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">o</span> <span class="o">+</span> <span class="n">eps</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="create_model"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.create_model">[docs]</a><span class="k">def</span> <span class="nf">create_model</span><span class="p">(</span>
+        <span class="n">A</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span>  <span class="c1"># img_h</span>
+        <span class="n">B</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span>  <span class="c1"># img_w</span>
+        <span class="n">C</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># img_c</span>
+        <span class="n">T</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">n_enc</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+        <span class="n">n_z</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">n_dec</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+        <span class="n">read_n</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">write_n</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&lt;FRESHLY_INSERTED&gt;&quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">A</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">C</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_z</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;noise&#39;</span><span class="p">)</span>
+    <span class="n">rnn_enc</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">n_enc</span><span class="p">)</span>
+    <span class="n">rnn_dec</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">n_dec</span><span class="p">)</span>
+    <span class="n">enc_state</span><span class="p">,</span> <span class="n">dec_state</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="n">canvas</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">A</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">C</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;c_0&#39;</span><span class="p">)]</span>
+    <span class="n">h_enc_t</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n_dec</span><span class="p">])</span>
+    <span class="n">h_dec_t</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n_dec</span><span class="p">])</span>
+
+    <span class="n">reuse</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">z_mus</span><span class="p">,</span> <span class="n">z_log_sigmas</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+        <span class="c1"># This assumes the input image is normalized between 0 - 1</span>
+        <span class="n">x_hat_t</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">canvas</span><span class="p">[</span><span class="n">t_i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">r_t</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span>
+            <span class="n">x_t</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">x_hat_t</span><span class="o">=</span><span class="n">x_hat_t</span><span class="p">,</span>
+            <span class="n">h_dec_t</span><span class="o">=</span><span class="n">h_dec_t</span><span class="p">,</span>
+            <span class="n">read_n</span><span class="o">=</span><span class="n">read_n</span><span class="p">,</span>
+            <span class="n">A</span><span class="o">=</span><span class="n">A</span><span class="p">,</span>
+            <span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">,</span>
+            <span class="n">C</span><span class="o">=</span><span class="n">C</span><span class="p">,</span>
+            <span class="n">use_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+        <span class="n">h_enc_t</span><span class="p">,</span> <span class="n">enc_state</span> <span class="o">=</span> <span class="n">encoder</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">r_t</span><span class="p">,</span> <span class="n">h_dec_t</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">rnn</span><span class="o">=</span><span class="n">rnn_enc</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">state</span><span class="o">=</span><span class="n">enc_state</span><span class="p">,</span>
+            <span class="n">n_enc</span><span class="o">=</span><span class="n">n_enc</span><span class="p">,</span>
+            <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+        <span class="n">z_t</span><span class="p">,</span> <span class="n">z_mu</span><span class="p">,</span> <span class="n">z_log_sigma</span> <span class="o">=</span> <span class="n">variational_layer</span><span class="p">(</span>
+            <span class="n">h_enc</span><span class="o">=</span><span class="n">h_enc_t</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="n">noise</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="n">n_z</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+
+        <span class="n">z_mus</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_mu</span><span class="p">)</span>
+        <span class="n">z_log_sigmas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_log_sigma</span><span class="p">)</span>
+        <span class="n">h_dec_t</span><span class="p">,</span> <span class="n">dec_state</span> <span class="o">=</span> <span class="n">decoder</span><span class="p">(</span>
+            <span class="n">z</span><span class="o">=</span><span class="n">z_t</span><span class="p">,</span>
+            <span class="n">rnn</span><span class="o">=</span><span class="n">rnn_dec</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">state</span><span class="o">=</span><span class="n">dec_state</span><span class="p">,</span>
+            <span class="n">n_dec</span><span class="o">=</span><span class="n">n_dec</span><span class="p">,</span>
+            <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+        <span class="n">w_t</span> <span class="o">=</span> <span class="n">write</span><span class="p">(</span>
+            <span class="n">h_dec_t</span><span class="o">=</span><span class="n">h_dec_t</span><span class="p">,</span>
+            <span class="n">write_n</span><span class="o">=</span><span class="n">write_n</span><span class="p">,</span>
+            <span class="n">A</span><span class="o">=</span><span class="n">A</span><span class="p">,</span>
+            <span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">,</span>
+            <span class="n">C</span><span class="o">=</span><span class="n">C</span><span class="p">,</span>
+            <span class="n">use_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+        <span class="n">c_t</span> <span class="o">=</span> <span class="n">canvas</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">w_t</span>
+        <span class="n">canvas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c_t</span><span class="p">)</span>
+        <span class="n">reuse</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">x_recon</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">canvas</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;loss&#39;</span><span class="p">):</span>
+        <span class="n">loss_x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">binary_cross_entropy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_recon</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">loss_zs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">z_mu</span><span class="p">,</span> <span class="n">z_log_sigma</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">z_mus</span><span class="p">,</span> <span class="n">z_log_sigmas</span><span class="p">):</span>
+            <span class="n">loss_zs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">z_mu</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z_log_sigma</span><span class="p">))</span> <span class="o">-</span>
+                    <span class="mi">2</span> <span class="o">*</span> <span class="n">z_log_sigma</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">loss_z</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">loss_zs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">T</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">loss_x</span> <span class="o">+</span> <span class="n">loss_z</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+        <span class="s1">&#39;loss_x&#39;</span><span class="p">:</span> <span class="n">loss_x</span><span class="p">,</span>
+        <span class="s1">&#39;loss_z&#39;</span><span class="p">:</span> <span class="n">loss_z</span><span class="p">,</span>
+        <span class="s1">&#39;canvas&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">c_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">c_i</span> <span class="ow">in</span> <span class="n">canvas</span><span class="p">],</span>
+        <span class="s1">&#39;cost&#39;</span><span class="p">:</span> <span class="n">cost</span><span class="p">,</span>
+        <span class="s1">&#39;recon&#39;</span><span class="p">:</span> <span class="n">x_recon</span><span class="p">,</span>
+        <span class="s1">&#39;noise&#39;</span><span class="p">:</span> <span class="n">noise</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="test_mnist"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.test_mnist">[docs]</a><span class="k">def</span> <span class="nf">test_mnist</span><span class="p">():</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="mi">28</span>  <span class="c1"># img_h</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="mi">28</span>  <span class="c1"># img_w</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">n_enc</span> <span class="o">=</span> <span class="mi">256</span>
+    <span class="n">n_z</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">n_dec</span> <span class="o">=</span> <span class="mi">256</span>
+    <span class="n">read_n</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">write_n</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span>
+    <span class="n">mnist</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="p">[</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">])</span>
+
+    <span class="n">n_examples</span> <span class="o">=</span> <span class="n">batch_size</span>
+    <span class="n">zs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_z</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">zs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">make_latent_manifold</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span> <span class="n">n_examples</span><span class="p">)</span>
+
+    <span class="c1"># We create a session to use the graph</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">draw</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span>
+            <span class="n">A</span><span class="o">=</span><span class="n">A</span><span class="p">,</span>
+            <span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">,</span>
+            <span class="n">C</span><span class="o">=</span><span class="n">C</span><span class="p">,</span>
+            <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">n_enc</span><span class="o">=</span><span class="n">n_enc</span><span class="p">,</span>
+            <span class="n">n_z</span><span class="o">=</span><span class="n">n_z</span><span class="p">,</span>
+            <span class="n">n_dec</span><span class="o">=</span><span class="n">n_dec</span><span class="p">,</span>
+            <span class="n">read_n</span><span class="o">=</span><span class="n">read_n</span><span class="p">,</span>
+            <span class="n">write_n</span><span class="o">=</span><span class="n">write_n</span><span class="p">)</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">)</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">compute_gradients</span><span class="p">(</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grads</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">g</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">grads</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">clip_by_norm</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">train_op</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">apply_gradients</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span>
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+        <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+
+        <span class="c1"># Fit all training data</span>
+        <span class="n">batch_i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">n_epochs</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">test_xs</span> <span class="o">=</span> <span class="n">mnist</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">images</span><span class="p">[:</span><span class="n">n_examples</span><span class="p">]</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span><span class="n">test_xs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)),</span> <span class="s1">&#39;test_xs.png&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_epochs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">batch_xs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">mnist</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">next_batch</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span>
+                <span class="n">lx</span><span class="p">,</span> <span class="n">lz</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;loss_x&#39;</span><span class="p">],</span> <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;loss_z&#39;</span><span class="p">],</span> <span class="n">train_op</span><span class="p">],</span>
+                    <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]:</span> <span class="n">batch_xs</span><span class="p">,</span>
+                               <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;noise&#39;</span><span class="p">]:</span> <span class="n">noise</span><span class="p">})[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;x:&#39;</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="s1">&#39;z:&#39;</span><span class="p">,</span> <span class="n">lz</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">batch_i</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Plot example reconstructions</span>
+                    <span class="n">recon</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;canvas&#39;</span><span class="p">],</span>
+                        <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]:</span> <span class="n">test_xs</span><span class="p">,</span>
+                                   <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;noise&#39;</span><span class="p">]:</span> <span class="n">noise</span><span class="p">})</span>
+                    <span class="n">recon</span> <span class="o">=</span> <span class="p">[</span><span class="n">utils</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">))</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">recon</span><span class="p">]</span>
+                    <span class="n">gif</span><span class="o">.</span><span class="n">build_gif</span><span class="p">(</span>
+                        <span class="n">recon</span><span class="p">,</span>
+                        <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+                        <span class="n">saveto</span><span class="o">=</span><span class="s1">&#39;manifold_</span><span class="si">%08d</span><span class="s1">.gif&#39;</span> <span class="o">%</span> <span class="n">batch_i</span><span class="p">)</span>
+
+                    <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s1">&#39;./draw.ckpt&#39;</span><span class="p">,</span> <span class="n">global_step</span><span class="o">=</span><span class="n">batch_i</span><span class="p">)</span>
+
+                <span class="n">batch_i</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="train_dataset"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.train_dataset">[docs]</a><span class="k">def</span> <span class="nf">train_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span>
+                  <span class="n">A</span><span class="p">,</span>
+                  <span class="n">B</span><span class="p">,</span>
+                  <span class="n">C</span><span class="p">,</span>
+                  <span class="n">T</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                  <span class="n">n_enc</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                  <span class="n">n_z</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                  <span class="n">n_dec</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                  <span class="n">read_n</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+                  <span class="n">write_n</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+                  <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                  <span class="n">n_epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">ds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">CIFAR10</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="p">[</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">])</span>
+        <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">n_examples</span> <span class="o">=</span> <span class="n">batch_size</span>
+    <span class="n">zs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_z</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">zs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">make_latent_manifold</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span> <span class="n">n_examples</span><span class="p">)</span>
+
+    <span class="c1"># We create a session to use the graph</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">draw</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span>
+            <span class="n">A</span><span class="o">=</span><span class="n">A</span><span class="p">,</span>
+            <span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">,</span>
+            <span class="n">C</span><span class="o">=</span><span class="n">C</span><span class="p">,</span>
+            <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">n_enc</span><span class="o">=</span><span class="n">n_enc</span><span class="p">,</span>
+            <span class="n">n_z</span><span class="o">=</span><span class="n">n_z</span><span class="p">,</span>
+            <span class="n">n_dec</span><span class="o">=</span><span class="n">n_dec</span><span class="p">,</span>
+            <span class="n">read_n</span><span class="o">=</span><span class="n">read_n</span><span class="p">,</span>
+            <span class="n">write_n</span><span class="o">=</span><span class="n">write_n</span><span class="p">)</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">)</span>
+
+        <span class="c1"># Clip gradients</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">compute_gradients</span><span class="p">(</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grads</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">g</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">grads</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">clip_by_norm</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">train_op</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">apply_gradients</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span>
+
+        <span class="c1"># Add summary variables</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="n">tensor</span><span class="o">=</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;loss_z&#39;</span><span class="p">,</span> <span class="n">tensor</span><span class="o">=</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;loss_z&#39;</span><span class="p">])</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;loss_x&#39;</span><span class="p">,</span> <span class="n">tensor</span><span class="o">=</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;loss_x&#39;</span><span class="p">])</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;recon_t0_histogram&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;canvas&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;recon_t-1_histogram&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;canvas&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;recon_t0_image&#39;</span><span class="p">,</span>
+            <span class="n">tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;canvas&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)),</span>
+            <span class="n">max_outputs</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;recon_t-1_image&#39;</span><span class="p">,</span>
+            <span class="n">tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;canvas&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)),</span>
+            <span class="n">max_outputs</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">sums</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">merge_all</span><span class="p">()</span>
+        <span class="n">train_writer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">FileWriter</span><span class="p">(</span><span class="n">logdir</span><span class="o">=</span><span class="s1">&#39;draw/train&#39;</span><span class="p">)</span>
+        <span class="n">valid_writer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">FileWriter</span><span class="p">(</span><span class="n">logdir</span><span class="o">=</span><span class="s1">&#39;draw/valid&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Init</span>
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+        <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+
+        <span class="c1"># Fit all training data</span>
+        <span class="n">batch_i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">test_xs</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">images</span><span class="p">[:</span><span class="n">n_examples</span><span class="p">]</span> <span class="o">/</span> <span class="mf">255.0</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span><span class="n">test_xs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)),</span> <span class="s1">&#39;draw/test_xs.png&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_epochs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">batch_xs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">next_batch</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span>
+                <span class="n">cost</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">,</span> <span class="n">train_op</span><span class="p">],</span>
+                    <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                        <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]:</span> <span class="n">batch_xs</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span>
+                        <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;noise&#39;</span><span class="p">]:</span> <span class="n">noise</span>
+                    <span class="p">})[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">train_writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">batch_i</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;train cost:&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">batch_i</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Plot example reconstructions</span>
+                    <span class="n">recon</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;canvas&#39;</span><span class="p">],</span>
+                        <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]:</span> <span class="n">test_xs</span><span class="p">,</span>
+                                   <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;noise&#39;</span><span class="p">]:</span> <span class="n">noise</span><span class="p">})</span>
+                    <span class="n">recon</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">recon</span>
+                    <span class="p">]</span>
+                    <span class="n">gif</span><span class="o">.</span><span class="n">build_gif</span><span class="p">(</span>
+                        <span class="n">recon</span><span class="p">,</span>
+                        <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+                        <span class="n">saveto</span><span class="o">=</span><span class="s1">&#39;draw/manifold_</span><span class="si">%08d</span><span class="s1">.gif&#39;</span> <span class="o">%</span> <span class="n">batch_i</span><span class="p">)</span>
+                    <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s1">&#39;./draw/draw.ckpt&#39;</span><span class="p">,</span> <span class="n">global_step</span><span class="o">=</span><span class="n">batch_i</span><span class="p">)</span>
+                <span class="n">batch_i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Run validation</span>
+            <span class="k">if</span> <span class="n">batch_i</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">batch_xs</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">valid</span><span class="o">.</span><span class="n">next_batch</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+                    <span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span>
+                    <span class="n">cost</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">],</span> <span class="n">sums</span><span class="p">],</span>
+                        <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                            <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]:</span> <span class="n">batch_xs</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span>
+                            <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;noise&#39;</span><span class="p">]:</span> <span class="n">noise</span>
+                        <span class="p">})[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="n">valid_writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">batch_i</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;valid cost:&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
+                    <span class="n">batch_i</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="train_input_pipeline"><a class="viewcode-back" href="../../source/cadl.html#cadl.draw.train_input_pipeline">[docs]</a><span class="k">def</span> <span class="nf">train_input_pipeline</span><span class="p">(</span>
+        <span class="n">files</span><span class="p">,</span>
+        <span class="n">A</span><span class="p">,</span>  <span class="c1"># img_h</span>
+        <span class="n">B</span><span class="p">,</span>  <span class="c1"># img_w</span>
+        <span class="n">C</span><span class="p">,</span>
+        <span class="n">T</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">n_enc</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+        <span class="n">n_z</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+        <span class="n">n_dec</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+        <span class="n">read_n</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+        <span class="n">write_n</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+        <span class="n">n_epochs</span><span class="o">=</span><span class="mf">1e9</span><span class="p">,</span>
+        <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">)):</span>
+
+    <span class="c1"># We create a session to use the graph</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="n">create_input_pipeline</span><span class="p">(</span>
+            <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">n_epochs</span><span class="o">=</span><span class="n">n_epochs</span><span class="p">,</span>
+            <span class="n">crop_shape</span><span class="o">=</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">),</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">)</span>
+
+        <span class="n">draw</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span>
+            <span class="n">A</span><span class="o">=</span><span class="n">A</span><span class="p">,</span>
+            <span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">,</span>
+            <span class="n">C</span><span class="o">=</span><span class="n">C</span><span class="p">,</span>
+            <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">n_enc</span><span class="o">=</span><span class="n">n_enc</span><span class="p">,</span>
+            <span class="n">n_z</span><span class="o">=</span><span class="n">n_z</span><span class="p">,</span>
+            <span class="n">n_dec</span><span class="o">=</span><span class="n">n_dec</span><span class="p">,</span>
+            <span class="n">read_n</span><span class="o">=</span><span class="n">read_n</span><span class="p">,</span>
+            <span class="n">write_n</span><span class="o">=</span><span class="n">write_n</span><span class="p">)</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">)</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">compute_gradients</span><span class="p">(</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grads</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">g</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">grads</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">clip_by_norm</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">train_op</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">apply_gradients</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span>
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Coordinator</span><span class="p">()</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">get_default_graph</span><span class="p">()</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
+        <span class="n">threads</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">start_queue_runners</span><span class="p">(</span><span class="n">sess</span><span class="o">=</span><span class="n">sess</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="n">coord</span><span class="p">)</span>
+        <span class="c1"># Fit all training data</span>
+        <span class="n">batch_i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">epoch_i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">n_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+        <span class="n">test_xs</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">C</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span><span class="n">test_xs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)),</span> <span class="s1">&#39;test_xs.png&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">coord</span><span class="o">.</span><span class="n">should_stop</span><span class="p">()</span> <span class="ow">and</span> <span class="n">epoch_i</span> <span class="o">&lt;</span> <span class="n">n_epochs</span><span class="p">:</span>
+                <span class="n">batch_xs</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+                <span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span>
+                <span class="n">lx</span><span class="p">,</span> <span class="n">lz</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;loss_x&#39;</span><span class="p">],</span> <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;loss_z&#39;</span><span class="p">],</span> <span class="n">train_op</span><span class="p">],</span>
+                    <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                        <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]:</span> <span class="n">batch_xs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span> <span class="o">*</span> <span class="n">B</span> <span class="o">*</span> <span class="n">C</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span>
+                        <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;noise&#39;</span><span class="p">]:</span> <span class="n">noise</span>
+                    <span class="p">})[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;x:&#39;</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="s1">&#39;z:&#39;</span><span class="p">,</span> <span class="n">lz</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">batch_i</span> <span class="o">%</span> <span class="n">n_files</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">batch_i</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">epoch_i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">batch_i</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Plot example reconstructions</span>
+                    <span class="n">recon</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;canvas&#39;</span><span class="p">],</span>
+                        <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">draw</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]:</span> <span class="n">test_xs</span><span class="p">,</span>
+                                   <span class="n">draw</span><span class="p">[</span><span class="s1">&#39;noise&#39;</span><span class="p">]:</span> <span class="n">noise</span><span class="p">})</span>
+                    <span class="n">recon</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">recon</span>
+                    <span class="p">]</span>
+                    <span class="n">gif</span><span class="o">.</span><span class="n">build_gif</span><span class="p">(</span><span class="n">recon</span><span class="p">,</span> <span class="n">saveto</span><span class="o">=</span><span class="s1">&#39;manifold_</span><span class="si">%08d</span><span class="s1">.gif&#39;</span> <span class="o">%</span> <span class="n">batch_i</span><span class="p">)</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+                <span class="n">batch_i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">except</span> <span class="n">tf</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">OutOfRangeError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done.&#39;</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># One of the threads has issued an exception.  So let&#39;s tell all the</span>
+            <span class="c1"># threads to shutdown.</span>
+            <span class="n">coord</span><span class="o">.</span><span class="n">request_stop</span><span class="p">()</span>
+
+        <span class="c1"># Wait until all threads have finished.</span>
+        <span class="n">coord</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">threads</span><span class="p">)</span>
+
+        <span class="c1"># Clean up the session.</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

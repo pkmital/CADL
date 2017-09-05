@@ -1,0 +1,774 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.dataset_utils &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.dataset_utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.dataset_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Utils for creating datasets.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">dft</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">download_and_extract_zip</span><span class="p">,</span> <span class="n">download_and_extract_tar</span>
+
+
+<div class="viewcode-block" id="create_input_pipeline"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.create_input_pipeline">[docs]</a><span class="k">def</span> <span class="nf">create_input_pipeline</span><span class="p">(</span><span class="n">files</span><span class="p">,</span>
+                          <span class="n">batch_size</span><span class="p">,</span>
+                          <span class="n">n_epochs</span><span class="p">,</span>
+                          <span class="n">shape</span><span class="p">,</span>
+                          <span class="n">crop_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">crop_factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                          <span class="n">n_threads</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a pipefile from a list of image files.</span>
+<span class="sd">    Includes batch generator/central crop/resizing options.</span>
+<span class="sd">    The resulting generator will dequeue the images batch_size at a time until</span>
+<span class="sd">    it throws tf.errors.OutOfRangeError when there are no more images left in</span>
+<span class="sd">    the queue.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    files : list</span>
+<span class="sd">        List of paths to image files.</span>
+<span class="sd">    batch_size : int</span>
+<span class="sd">        Number of image files to load at a time.</span>
+<span class="sd">    n_epochs : int</span>
+<span class="sd">        Number of epochs to run before raising tf.errors.OutOfRangeError</span>
+<span class="sd">    shape : list</span>
+<span class="sd">        [height, width, channels]</span>
+<span class="sd">    crop_shape : list</span>
+<span class="sd">        [height, width] to crop image to.</span>
+<span class="sd">    crop_factor : float</span>
+<span class="sd">        Percentage of image to take starting from center.</span>
+<span class="sd">    n_threads : int, optional</span>
+<span class="sd">        Number of threads to use for batch shuffling</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># We first create a &quot;producer&quot; queue.  It creates a production line which</span>
+    <span class="c1"># will queue up the file names and allow another queue to deque the file</span>
+    <span class="c1"># names all using a tf queue runner.</span>
+    <span class="c1"># Put simply, this is the entry point of the computational graph.</span>
+    <span class="c1"># It will generate the list of file names.</span>
+    <span class="c1"># We also specify it&#39;s capacity beforehand.</span>
+    <span class="n">producer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">string_input_producer</span><span class="p">(</span>
+        <span class="n">files</span><span class="p">,</span> <span class="n">capacity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">),</span> <span class="n">num_epochs</span><span class="o">=</span><span class="n">n_epochs</span><span class="p">)</span>
+
+    <span class="c1"># We need something which can open the files and read its contents.</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">WholeFileReader</span><span class="p">()</span>
+
+    <span class="c1"># We pass the filenames to this object which can read the file&#39;s contents.</span>
+    <span class="c1"># This will create another queue running which dequeues the previous queue.</span>
+    <span class="n">keys</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">producer</span><span class="p">)</span>
+
+    <span class="c1"># And then have to decode its contents as we know it is a jpeg image</span>
+    <span class="n">imgs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">decode_jpeg</span><span class="p">(</span>
+        <span class="n">vals</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="mi">3</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># We have to explicitly define the shape of the tensor.</span>
+    <span class="c1"># This is because the decode_jpeg operation is still a node in the graph</span>
+    <span class="c1"># and doesn&#39;t yet know the shape of the image.  Future operations however</span>
+    <span class="c1"># need explicit knowledge of the image&#39;s shape in order to be created.</span>
+    <span class="n">imgs</span><span class="o">.</span><span class="n">set_shape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c1"># Next we&#39;ll centrally crop the image to the size of 100x100.</span>
+    <span class="c1"># This operation required explicit knowledge of the image&#39;s shape.</span>
+    <span class="k">if</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">rsz_shape</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">crop_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">crop_factor</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span>
+                <span class="n">crop_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">crop_factor</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rsz_shape</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">crop_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">crop_factor</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">crop_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">crop_factor</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="n">rszs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">resize_images</span><span class="p">(</span><span class="n">imgs</span><span class="p">,</span> <span class="n">rsz_shape</span><span class="p">)</span>
+    <span class="n">crops</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">resize_image_with_crop_or_pad</span><span class="p">(</span><span class="n">rszs</span><span class="p">,</span> <span class="n">crop_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                    <span class="n">crop_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+             <span class="k">if</span> <span class="n">crop_shape</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">imgs</span><span class="p">)</span>
+
+    <span class="c1"># Now we&#39;ll create a batch generator that will also shuffle our examples.</span>
+    <span class="c1"># We tell it how many it should have in its buffer when it randomly</span>
+    <span class="c1"># permutes the order.</span>
+    <span class="n">min_after_dequeue</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">//</span> <span class="mi">100</span>
+
+    <span class="c1"># The capacity should be larger than min_after_dequeue, and determines how</span>
+    <span class="c1"># many examples are prefetched.  TF docs recommend setting this value to:</span>
+    <span class="c1"># min_after_dequeue + (num_threads + a small safety margin) * batch_size</span>
+    <span class="n">capacity</span> <span class="o">=</span> <span class="n">min_after_dequeue</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_threads</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">batch_size</span>
+
+    <span class="c1"># Randomize the order and output batches of batch_size.</span>
+    <span class="n">batch</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">shuffle_batch</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">crops</span><span class="p">],</span>
+        <span class="n">enqueue_many</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">capacity</span><span class="o">=</span><span class="n">capacity</span><span class="p">,</span>
+        <span class="n">min_after_dequeue</span><span class="o">=</span><span class="n">min_after_dequeue</span><span class="p">,</span>
+        <span class="n">num_threads</span><span class="o">=</span><span class="n">n_threads</span><span class="p">)</span>
+
+    <span class="c1"># alternatively, we could use shuffle_batch_join to use multiple reader</span>
+    <span class="c1"># instances, or set shuffle_batch&#39;s n_threads to higher than 1.</span>
+
+    <span class="k">return</span> <span class="n">batch</span></div>
+
+
+<div class="viewcode-block" id="gtzan_music_speech_download"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.gtzan_music_speech_download">[docs]</a><span class="k">def</span> <span class="nf">gtzan_music_speech_download</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="s1">&#39;gtzan_music_speech&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download the GTZAN music and speech dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dst : str, optional</span>
+<span class="sd">        Location to put the GTZAN music and speech datset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;http://opihi.cs.uvic.ca/sound/music_speech.tar.gz&#39;</span>
+    <span class="n">download_and_extract_tar</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gtzan_music_speech_load"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.gtzan_music_speech_load">[docs]</a><span class="k">def</span> <span class="nf">gtzan_music_speech_load</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="s1">&#39;gtzan_music_speech&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the GTZAN Music and Speech dataset.</span>
+
+<span class="sd">    Downloads the dataset if it does not exist into the dst directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dst : str, optional</span>
+<span class="sd">        Location of GTZAN Music and Speech dataset.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Xs, ys : np.ndarray, np.ndarray</span>
+<span class="sd">        Array of data, Array of labels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">scipy.io</span> <span class="k">import</span> <span class="n">wavfile</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+        <span class="n">gtzan_music_speech_download</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+    <span class="n">music_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="s1">&#39;music_speech&#39;</span><span class="p">),</span> <span class="s1">&#39;music_wav&#39;</span><span class="p">)</span>
+    <span class="n">music</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">music_dir</span><span class="p">,</span> <span class="n">file_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">file_i</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">music_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">file_i</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.wav&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">speech_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="s1">&#39;music_speech&#39;</span><span class="p">),</span> <span class="s1">&#39;speech_wav&#39;</span><span class="p">)</span>
+    <span class="n">speech</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">speech_dir</span><span class="p">,</span> <span class="n">file_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">file_i</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">speech_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">file_i</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.wav&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">Xs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">music</span><span class="p">:</span>
+        <span class="n">sr</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">wavfile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">/</span> <span class="mf">16384.0</span> <span class="o">-</span> <span class="mf">1.0</span>
+        <span class="n">re</span><span class="p">,</span> <span class="n">im</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">dft_np</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">mag</span><span class="p">,</span> <span class="n">phs</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">ztoc</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">)</span>
+        <span class="n">Xs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">mag</span><span class="p">,</span> <span class="n">phs</span><span class="p">))</span>
+        <span class="n">ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">speech</span><span class="p">:</span>
+        <span class="n">sr</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">wavfile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">/</span> <span class="mf">16384.0</span> <span class="o">-</span> <span class="mf">1.0</span>
+        <span class="n">re</span><span class="p">,</span> <span class="n">im</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">dft_np</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">mag</span><span class="p">,</span> <span class="n">phs</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">ztoc</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">)</span>
+        <span class="n">Xs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">mag</span><span class="p">,</span> <span class="n">phs</span><span class="p">))</span>
+        <span class="n">ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">Xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Xs</span><span class="p">)</span>
+    <span class="n">Xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Xs</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Xs</span><span class="p">,</span> <span class="n">ys</span></div>
+
+
+<div class="viewcode-block" id="cifar10_download"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.cifar10_download">[docs]</a><span class="k">def</span> <span class="nf">cifar10_download</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="s1">&#39;cifar10&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download the CIFAR10 dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dst : str, optional</span>
+<span class="sd">        Directory to download into.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz&#39;</span>
+    <span class="n">download_and_extract_tar</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tiny_imagenet_load"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.tiny_imagenet_load">[docs]</a><span class="k">def</span> <span class="nf">tiny_imagenet_load</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="s1">&#39;tiny_imagenet&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Loads the paths to every file in the Tiny Imagenet Dataset.</span>
+
+<span class="sd">    Downloads the dataset if it does not exist into the dst directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dst : str, optional</span>
+<span class="sd">        Location of Tiny ImageNet dataset.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    all_files : list</span>
+<span class="sd">        List of paths to every file in the Tiny ImageNet Dataset</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+        <span class="n">tiny_imagenet_download</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+    <span class="n">all_files</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_labels</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">words</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="s1">&#39;tiny-imagenet-200&#39;</span><span class="p">),</span> <span class="s1">&#39;words.txt&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">words</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()})</span>
+
+    <span class="k">for</span> <span class="n">ds_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="s1">&#39;tiny-imagenet-200&#39;</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ds_type</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;JPEG&#39;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">ds_type</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">label</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="n">root</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]]</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                            <span class="k">raise</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">all_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+                    <span class="n">all_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">all_files</span><span class="p">,</span> <span class="n">all_labels</span></div>
+
+
+<div class="viewcode-block" id="tiny_imagenet_download"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.tiny_imagenet_download">[docs]</a><span class="k">def</span> <span class="nf">tiny_imagenet_download</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="s1">&#39;tiny_imagenet&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download the Tiny ImageNet dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dst : str, optional</span>
+<span class="sd">        Directory to download into.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;http://cs231n.stanford.edu/tiny-imagenet-200.zip&#39;</span>
+    <span class="n">download_and_extract_zip</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cifar10_load"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.cifar10_load">[docs]</a><span class="k">def</span> <span class="nf">cifar10_load</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="s1">&#39;cifar10&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the CIFAR10 dataset.</span>
+
+<span class="sd">    Downloads the dataset if it does not exist into the dst directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dst : str, optional</span>
+<span class="sd">        Location of CIFAR10 dataset.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Xs, ys : np.ndarray, np.ndarray</span>
+<span class="sd">        Array of data, Array of labels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+        <span class="n">cifar10_download</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+    <span class="n">Xs</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+        <span class="n">cf</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/cifar-10-batches-py/data_batch_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">),</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;LATIN&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Xs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">Xs</span><span class="p">,</span> <span class="n">cf</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]]</span>
+            <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">ys</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cf</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">])]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Xs</span> <span class="o">=</span> <span class="n">cf</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+            <span class="n">ys</span> <span class="o">=</span> <span class="n">cf</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+    <span class="n">Xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">Xs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Xs</span><span class="p">,</span> <span class="n">ys</span></div>
+
+
+<div class="viewcode-block" id="dense_to_one_hot"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.dense_to_one_hot">[docs]</a><span class="k">def</span> <span class="nf">dense_to_one_hot</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert class labels from scalars to one-hot vectors.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    labels : array</span>
+<span class="sd">        Input labels to convert to one-hot representation.</span>
+<span class="sd">    n_classes : int, optional</span>
+<span class="sd">        Number of possible one-hot.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    one_hot : array</span>
+<span class="sd">        One hot representation of input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n_classes</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)[</span><span class="n">labels</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="DatasetSplit"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.DatasetSplit">[docs]</a><span class="k">class</span> <span class="nc">DatasetSplit</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Utility class for batching data and handling multiple splits.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    current_batch_idx : int</span>
+<span class="sd">        Description</span>
+<span class="sd">    images : np.ndarray</span>
+<span class="sd">        Xs of the dataset.  Not necessarily images.</span>
+<span class="sd">    labels : np.ndarray</span>
+<span class="sd">        ys of the dataset.</span>
+<span class="sd">    n_classes : int</span>
+<span class="sd">        Number of possible labels</span>
+<span class="sd">    num_examples : int</span>
+<span class="sd">        Number of total observations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a DatasetSplit object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        images : np.ndarray</span>
+<span class="sd">            Xs/inputs</span>
+<span class="sd">        labels : np.ndarray</span>
+<span class="sd">            ys/outputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_examples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DatasetSplit.next_batch"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.DatasetSplit.next_batch">[docs]</a>    <span class="k">def</span> <span class="nf">next_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Batch generator with randomization.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        batch_size : int, optional</span>
+<span class="sd">            Size of each minibatch.</span>
+
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        Xs, ys : np.ndarray, np.ndarray</span>
+<span class="sd">            Next batch of inputs and labels (if no labels, then None).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Shuffle each epoch</span>
+        <span class="n">current_permutation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">)))</span>
+        <span class="n">epoch_images</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="n">current_permutation</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epoch_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">current_permutation</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+
+        <span class="c1"># Then iterate over the epoch</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_batch_idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_batch_idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">):</span>
+            <span class="n">end_idx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_batch_idx</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">))</span>
+            <span class="n">this_batch</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;images&#39;</span><span class="p">:</span>
+                <span class="n">epoch_images</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_batch_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">],</span>
+                <span class="s1">&#39;labels&#39;</span><span class="p">:</span>
+                <span class="n">epoch_labels</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_batch_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_batch_idx</span> <span class="o">+=</span> <span class="n">batch_size</span>
+            <span class="k">yield</span> <span class="n">this_batch</span><span class="p">[</span><span class="s1">&#39;images&#39;</span><span class="p">],</span> <span class="n">this_batch</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="Dataset"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.Dataset">[docs]</a><span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a dataset from data and their labels.</span>
+
+<span class="sd">    Allows easy use of train/valid/test splits; Batch generator.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    all_idxs : list</span>
+<span class="sd">        All indexes across all splits.</span>
+<span class="sd">    all_inputs : list</span>
+<span class="sd">        All inputs across all splits.</span>
+<span class="sd">    all_labels : list</span>
+<span class="sd">        All labels across all splits.</span>
+<span class="sd">    n_classes : int</span>
+<span class="sd">        Number of labels.</span>
+<span class="sd">    split : list</span>
+<span class="sd">        Percentage split of train, valid, test sets.</span>
+<span class="sd">    test_idxs : list</span>
+<span class="sd">        Indexes of the test split.</span>
+<span class="sd">    train_idxs : list</span>
+<span class="sd">        Indexes of the train split.</span>
+<span class="sd">    valid_idxs : list</span>
+<span class="sd">        Indexes of the valid split.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Xs</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">one_hot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a Dataset object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Xs : np.ndarray</span>
+<span class="sd">            Images/inputs to a network</span>
+<span class="sd">        ys : np.ndarray</span>
+<span class="sd">            Labels/outputs to a network</span>
+<span class="sd">        split : list, optional</span>
+<span class="sd">            Percentage of train, valid, and test sets.</span>
+<span class="sd">        one_hot : bool, optional</span>
+<span class="sd">            Whether or not to use one-hot encoding of labels (ys).</span>
+<span class="sd">        n_classes : int, optional</span>
+<span class="sd">            Number of classes represented in ys (used for one hot embedding).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">=</span> <span class="n">n_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">split</span>
+
+        <span class="c1"># Now mix all the labels that are currently stored as blocks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span> <span class="o">=</span> <span class="n">Xs</span>
+        <span class="n">n_idxs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span><span class="p">)</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_idxs</span><span class="p">)</span>
+        <span class="n">rand_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span><span class="p">[</span><span class="n">rand_idxs</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="o">=</span> <span class="n">ys</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">one_hot</span> <span class="k">else</span> <span class="n">dense_to_one_hot</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="n">n_classes</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span><span class="p">[</span><span class="n">rand_idxs</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Get splits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_idxs</span> <span class="o">=</span> <span class="n">idxs</span><span class="p">[:</span><span class="nb">round</span><span class="p">(</span><span class="n">split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_idxs</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_idxs</span> <span class="o">=</span> <span class="n">idxs</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_idxs</span><span class="p">):</span>
+                               <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_idxs</span><span class="p">)</span> <span class="o">+</span> <span class="nb">round</span><span class="p">(</span><span class="n">split</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_idxs</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_idxs</span> <span class="o">=</span> <span class="n">idxs</span><span class="p">[(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_idxs</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_idxs</span><span class="p">)):</span>
+                              <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_idxs</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_idxs</span><span class="p">)</span>
+                               <span class="p">)</span> <span class="o">+</span> <span class="nb">round</span><span class="p">(</span><span class="n">split</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_idxs</span><span class="p">)]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">X</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Inputs/Xs/Images.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        all_inputs : np.ndarray</span>
+<span class="sd">            Original Inputs/Xs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Outputs/ys/Labels.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        all_labels : np.ndarray</span>
+<span class="sd">            Original Outputs/ys.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Train split.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        split : DatasetSplit</span>
+<span class="sd">            Split of the train dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_idxs</span><span class="p">):</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">train_idxs</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">train_idxs</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">DatasetSplit</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Validation split.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        split : DatasetSplit</span>
+<span class="sd">            Split of the validation dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_idxs</span><span class="p">):</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_idxs</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_idxs</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">DatasetSplit</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test split.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        split : DatasetSplit</span>
+<span class="sd">            Split of the test dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_idxs</span><span class="p">):</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">test_idxs</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">test_idxs</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">DatasetSplit</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Dataset.mean"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.Dataset.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mean of the inputs/Xs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        mean : np.ndarray</span>
+<span class="sd">            Calculates mean across 0th (batch) dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dataset.std"><a class="viewcode-back" href="../../source/cadl.html#cadl.dataset_utils.Dataset.std">[docs]</a>    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Standard deviation of the inputs/Xs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        std : np.ndarray</span>
+<span class="sd">            Calculates std across 0th (batch) dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_inputs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

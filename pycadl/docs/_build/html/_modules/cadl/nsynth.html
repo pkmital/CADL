@@ -1,0 +1,881 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.nsynth &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.nsynth</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.nsynth</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;NSynth: WaveNet Autoencoder.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">NSynth model code and utilities are licensed under APL from the</span>
+
+<span class="sd">Google Magenta project</span>
+<span class="sd">----------------------</span>
+<span class="sd">https://github.com/tensorflow/magenta/blob/master/magenta/models/nsynth</span>
+
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="k">import</span> <span class="n">wavfile</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">magenta.models.nsynth</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">magenta.models.nsynth</span> <span class="k">import</span> <span class="n">reader</span>
+<span class="kn">from</span> <span class="nn">magenta.models.nsynth.wavenet</span> <span class="k">import</span> <span class="n">masked</span>
+<span class="kn">from</span> <span class="nn">skimage.transform</span> <span class="k">import</span> <span class="n">resize</span>
+
+
+<div class="viewcode-block" id="get_model"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.get_model">[docs]</a><span class="k">def</span> <span class="nf">get_model</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="causal_linear"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.causal_linear">[docs]</a><span class="k">def</span> <span class="nf">causal_linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">filter_length</span><span class="p">,</span> <span class="n">rate</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_inputs : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_outputs : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    filter_length : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    rate : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    batch_size : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># create queue</span>
+    <span class="n">q_1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">FIFOQueue</span><span class="p">(</span>
+        <span class="n">rate</span><span class="p">,</span>
+        <span class="n">dtypes</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+        <span class="n">shapes</span><span class="o">=</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">))</span>
+    <span class="n">q_2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">FIFOQueue</span><span class="p">(</span>
+        <span class="n">rate</span><span class="p">,</span>
+        <span class="n">dtypes</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+        <span class="n">shapes</span><span class="o">=</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">))</span>
+    <span class="n">init_1</span> <span class="o">=</span> <span class="n">q_1</span><span class="o">.</span><span class="n">enqueue_many</span><span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rate</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">)))</span>
+    <span class="n">init_2</span> <span class="o">=</span> <span class="n">q_2</span><span class="o">.</span><span class="n">enqueue_many</span><span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rate</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">)))</span>
+    <span class="n">state_1</span> <span class="o">=</span> <span class="n">q_1</span><span class="o">.</span><span class="n">dequeue</span><span class="p">()</span>
+    <span class="n">push_1</span> <span class="o">=</span> <span class="n">q_1</span><span class="o">.</span><span class="n">enqueue</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">state_2</span> <span class="o">=</span> <span class="n">q_2</span><span class="o">.</span><span class="n">dequeue</span><span class="p">()</span>
+    <span class="n">push_2</span> <span class="o">=</span> <span class="n">q_2</span><span class="o">.</span><span class="n">enqueue</span><span class="p">(</span><span class="n">state_1</span><span class="p">)</span>
+
+    <span class="c1"># get pretrained weights</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/W&#39;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">filter_length</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/biases&#39;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n_outputs</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">W_q_2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">W_q_1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">W_x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1"># perform op w/ cached states</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">state_2</span><span class="p">,</span> <span class="n">W_q_2</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">state_1</span><span class="p">,</span> <span class="n">W_q_1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">W_x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="n">b</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="n">init_1</span><span class="p">,</span> <span class="n">init_2</span><span class="p">),</span> <span class="p">(</span><span class="n">push_1</span><span class="p">,</span> <span class="n">push_2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="linear"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.linear">[docs]</a><span class="k">def</span> <span class="nf">linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_inputs : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_outputs : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/W&#39;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/biases&#39;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n_outputs</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">W</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">b</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FastGenerationConfig"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.FastGenerationConfig">[docs]</a><span class="k">class</span> <span class="nc">FastGenerationConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Configuration object that helps manage the graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FastGenerationConfig.build"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.FastGenerationConfig.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build the graph for this configuration.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inputs</span>
+<span class="sd">            A dict of inputs. For training, should contain &#39;wav&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A dict of outputs that includes the &#39;predictions&#39;, &#39;loss&#39;, the &#39;encoding&#39;,</span>
+<span class="sd">        the &#39;quantized_input&#39;, and whatever metrics we want to track for eval.</span>
+
+<span class="sd">        Deleted Parameters</span>
+<span class="sd">        ------------------</span>
+<span class="sd">        is_training</span>
+<span class="sd">            Whether we are training or not. Not used in this config.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_stages</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">num_layers</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="n">filter_length</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="mi">512</span>
+        <span class="n">skip_width</span> <span class="o">=</span> <span class="mi">256</span>
+        <span class="n">num_z</span> <span class="o">=</span> <span class="mi">16</span>
+
+        <span class="c1"># Encode the source with 8-bit Mu-Law.</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;wav&#39;</span><span class="p">]</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">x_quantized</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">mu_law</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x_scaled</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">x_quantized</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">128.0</span>
+        <span class="n">x_scaled</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">encoding</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;encoding&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">num_z</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">en</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">encoding</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">init_ops</span><span class="p">,</span> <span class="n">push_ops</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="c1">###</span>
+        <span class="c1"># The WaveNet Decoder.</span>
+        <span class="c1">###</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">x_scaled</span>
+        <span class="n">l</span><span class="p">,</span> <span class="n">inits</span><span class="p">,</span> <span class="n">pushs</span> <span class="o">=</span> <span class="n">causal_linear</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">n_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">n_outputs</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;startconv&#39;</span><span class="p">,</span>
+            <span class="n">rate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">filter_length</span><span class="o">=</span><span class="n">filter_length</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">init_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">init</span><span class="p">)</span> <span class="k">for</span> <span class="n">init</span> <span class="ow">in</span> <span class="n">inits</span><span class="p">]</span>
+        <span class="p">[</span><span class="n">push_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">push</span><span class="p">)</span> <span class="k">for</span> <span class="n">push</span> <span class="ow">in</span> <span class="n">pushs</span><span class="p">]</span>
+
+        <span class="c1"># Set up skip connections.</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">skip_width</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;skip_start&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Residual blocks with skip connections.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">):</span>
+            <span class="n">dilation</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="n">num_stages</span><span class="p">)</span>
+
+            <span class="c1"># dilated masked cnn</span>
+            <span class="n">d</span><span class="p">,</span> <span class="n">inits</span><span class="p">,</span> <span class="n">pushs</span> <span class="o">=</span> <span class="n">causal_linear</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">n_inputs</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+                <span class="n">n_outputs</span><span class="o">=</span><span class="n">width</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;dilatedconv_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">rate</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">filter_length</span><span class="o">=</span><span class="n">filter_length</span><span class="p">)</span>
+            <span class="p">[</span><span class="n">init_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">init</span><span class="p">)</span> <span class="k">for</span> <span class="n">init</span> <span class="ow">in</span> <span class="n">inits</span><span class="p">]</span>
+            <span class="p">[</span><span class="n">push_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">push</span><span class="p">)</span> <span class="k">for</span> <span class="n">push</span> <span class="ow">in</span> <span class="n">pushs</span><span class="p">]</span>
+
+            <span class="c1"># local conditioning</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">d</span> <span class="o">+</span> <span class="n">linear</span><span class="p">(</span><span class="n">en</span><span class="p">,</span> <span class="n">num_z</span><span class="p">,</span> <span class="n">width</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cond_map_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+            <span class="c1"># gated cnn</span>
+            <span class="k">assert</span> <span class="n">d</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">m</span><span class="p">])</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">m</span><span class="p">:])</span>
+
+            <span class="c1"># residuals</span>
+            <span class="n">l</span> <span class="o">+=</span> <span class="n">linear</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;res_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+            <span class="c1"># skips</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="n">linear</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">skip_width</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;skip_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">skip_width</span><span class="p">,</span> <span class="n">skip_width</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;out1&#39;</span><span class="p">)</span> <span class="o">+</span> \
+            <span class="n">linear</span><span class="p">(</span><span class="n">en</span><span class="p">,</span> <span class="n">num_z</span><span class="p">,</span> <span class="n">skip_width</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cond_map_out1&#39;</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+        <span class="c1">###</span>
+        <span class="c1"># Compute the logits and get the loss.</span>
+        <span class="c1">###</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">skip_width</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;logits&#39;</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">256</span><span class="p">])</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;softmax&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;init_ops&#39;</span><span class="p">:</span> <span class="n">init_ops</span><span class="p">,</span>
+            <span class="s1">&#39;push_ops&#39;</span><span class="p">:</span> <span class="n">push_ops</span><span class="p">,</span>
+            <span class="s1">&#39;encoding&#39;</span><span class="p">:</span> <span class="n">encoding</span><span class="p">,</span>
+            <span class="s1">&#39;predictions&#39;</span><span class="p">:</span> <span class="n">probs</span><span class="p">,</span>
+            <span class="s1">&#39;quantized_input&#39;</span><span class="p">:</span> <span class="n">x_quantized</span><span class="p">,</span>
+        <span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.Config">[docs]</a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Configuration object that helps manage the graph.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ae_bottleneck_width : int</span>
+<span class="sd">        Description</span>
+<span class="sd">    ae_hop_length : int</span>
+<span class="sd">        Description</span>
+<span class="sd">    encoding : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    learning_rate_schedule : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    num_iters : int</span>
+<span class="sd">        Description</span>
+<span class="sd">    train_path : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">train_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        encoding : TYPE</span>
+<span class="sd">            Description</span>
+<span class="sd">        train_path : None, optional</span>
+<span class="sd">            Description</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_iters</span> <span class="o">=</span> <span class="mi">200000</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate_schedule</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="mf">2e-4</span><span class="p">,</span>
+            <span class="mi">90000</span><span class="p">:</span> <span class="mf">4e-4</span> <span class="o">/</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="mi">120000</span><span class="p">:</span> <span class="mf">6e-5</span><span class="p">,</span>
+            <span class="mi">150000</span><span class="p">:</span> <span class="mf">4e-5</span><span class="p">,</span>
+            <span class="mi">180000</span><span class="p">:</span> <span class="mf">2e-5</span><span class="p">,</span>
+            <span class="mi">210000</span><span class="p">:</span> <span class="mf">6e-6</span><span class="p">,</span>
+            <span class="mi">240000</span><span class="p">:</span> <span class="mf">2e-6</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ae_hop_length</span> <span class="o">=</span> <span class="mi">512</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ae_bottleneck_width</span> <span class="o">=</span> <span class="mi">16</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_path</span> <span class="o">=</span> <span class="n">train_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="n">encoding</span>
+
+<div class="viewcode-block" id="Config.get_batch"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.Config.get_batch">[docs]</a>    <span class="k">def</span> <span class="nf">get_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        batch_size : TYPE</span>
+<span class="sd">            Description</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        TYPE</span>
+<span class="sd">            Description</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">data_train</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">NSynthDataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_path</span><span class="p">,</span> <span class="n">is_training</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data_train</span><span class="o">.</span><span class="n">get_wavenet_batch</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">6144</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_condition</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">encoding</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Condition the input on the encoding.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x</span>
+<span class="sd">            The [mb, length, channels] float tensor input.</span>
+<span class="sd">        encoding</span>
+<span class="sd">            The [mb, encoding_length, channels] float tensor encoding.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        The output after broadcasting the encoding to x&#39;s shape and adding them.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mb</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+        <span class="n">enc_mb</span><span class="p">,</span> <span class="n">enc_length</span><span class="p">,</span> <span class="n">enc_channels</span> <span class="o">=</span> <span class="n">encoding</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">enc_mb</span> <span class="o">==</span> <span class="n">mb</span>
+        <span class="k">assert</span> <span class="n">enc_channels</span> <span class="o">==</span> <span class="n">channels</span>
+
+        <span class="n">encoding</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">encoding</span><span class="p">,</span> <span class="p">[</span><span class="n">mb</span><span class="p">,</span> <span class="n">enc_length</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">channels</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">mb</span><span class="p">,</span> <span class="n">enc_length</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">channels</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">+=</span> <span class="n">encoding</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">mb</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">channels</span><span class="p">])</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="n">mb</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">channels</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+<div class="viewcode-block" id="Config.build"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.Config.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">is_training</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build the graph for this configuration.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inputs</span>
+<span class="sd">            A dict of inputs. For training, should contain &#39;wav&#39;.</span>
+<span class="sd">        is_training</span>
+<span class="sd">            Whether we are training or not. Not used in this config.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A dict of outputs that includes the &#39;predictions&#39;, &#39;loss&#39;, the &#39;encoding&#39;,</span>
+<span class="sd">        the &#39;quantized_input&#39;, and whatever metrics we want to track for eval.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="n">is_training</span>
+        <span class="n">num_stages</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">num_layers</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="n">filter_length</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="mi">512</span>
+        <span class="n">skip_width</span> <span class="o">=</span> <span class="mi">256</span>
+        <span class="n">ae_num_stages</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">ae_num_layers</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="n">ae_filter_length</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">ae_width</span> <span class="o">=</span> <span class="mi">128</span>
+
+        <span class="c1"># Encode the source with 8-bit Mu-Law.</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;wav&#39;</span><span class="p">]</span>
+        <span class="n">x_quantized</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">mu_law</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x_scaled</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">x_quantized</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">128.0</span>
+        <span class="n">x_scaled</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoding</span><span class="p">:</span>
+            <span class="c1">###</span>
+            <span class="c1"># The Non-Causal Temporal Encoder.</span>
+            <span class="c1">###</span>
+            <span class="n">en</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+                <span class="n">x_scaled</span><span class="p">,</span>
+                <span class="n">causal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">num_filters</span><span class="o">=</span><span class="n">ae_width</span><span class="p">,</span>
+                <span class="n">filter_length</span><span class="o">=</span><span class="n">ae_filter_length</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ae_startconv&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">num_layer</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">ae_num_layers</span><span class="p">):</span>
+                <span class="n">dilation</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="n">num_layer</span> <span class="o">%</span> <span class="n">ae_num_stages</span><span class="p">)</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">en</span><span class="p">)</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+                    <span class="n">d</span><span class="p">,</span>
+                    <span class="n">causal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">num_filters</span><span class="o">=</span><span class="n">ae_width</span><span class="p">,</span>
+                    <span class="n">filter_length</span><span class="o">=</span><span class="n">ae_filter_length</span><span class="p">,</span>
+                    <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ae_dilatedconv_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_layer</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                <span class="n">en</span> <span class="o">+=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+                    <span class="n">d</span><span class="p">,</span>
+                    <span class="n">num_filters</span><span class="o">=</span><span class="n">ae_width</span><span class="p">,</span>
+                    <span class="n">filter_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ae_res_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_layer</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+            <span class="n">en</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+                <span class="n">en</span><span class="p">,</span>
+                <span class="n">num_filters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ae_bottleneck_width</span><span class="p">,</span>
+                <span class="n">filter_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ae_bottleneck&#39;</span><span class="p">)</span>
+            <span class="n">en</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">pool1d</span><span class="p">(</span><span class="n">en</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ae_hop_length</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ae_pool&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;avg&#39;</span><span class="p">)</span>
+            <span class="n">encoding</span> <span class="o">=</span> <span class="n">en</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">encoding</span> <span class="o">=</span> <span class="n">en</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ae_pool&#39;</span><span class="p">,</span>
+                <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">125</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1">###</span>
+        <span class="c1"># The WaveNet Decoder.</span>
+        <span class="c1">###</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">shift_right</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">)</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+            <span class="n">l</span><span class="p">,</span> <span class="n">num_filters</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">filter_length</span><span class="o">=</span><span class="n">filter_length</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;startconv&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Set up skip connections.</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+            <span class="n">l</span><span class="p">,</span> <span class="n">num_filters</span><span class="o">=</span><span class="n">skip_width</span><span class="p">,</span> <span class="n">filter_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;skip_start&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Residual blocks with skip connections.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">):</span>
+            <span class="n">dilation</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="n">num_stages</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+                <span class="n">l</span><span class="p">,</span>
+                <span class="n">num_filters</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span>
+                <span class="n">filter_length</span><span class="o">=</span><span class="n">filter_length</span><span class="p">,</span>
+                <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;dilatedconv_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condition</span><span class="p">(</span><span class="n">d</span><span class="p">,</span>
+                                <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+                                    <span class="n">en</span><span class="p">,</span>
+                                    <span class="n">num_filters</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span>
+                                    <span class="n">filter_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cond_map_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
+
+            <span class="k">assert</span> <span class="n">d</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">d_sigmoid</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">m</span><span class="p">])</span>
+            <span class="n">d_tanh</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">m</span><span class="p">:])</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">d_sigmoid</span> <span class="o">*</span> <span class="n">d_tanh</span>
+
+            <span class="n">l</span> <span class="o">+=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+                <span class="n">d</span><span class="p">,</span> <span class="n">num_filters</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">filter_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;res_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+                <span class="n">d</span><span class="p">,</span> <span class="n">num_filters</span><span class="o">=</span><span class="n">skip_width</span><span class="p">,</span> <span class="n">filter_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;skip_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">num_filters</span><span class="o">=</span><span class="n">skip_width</span><span class="p">,</span> <span class="n">filter_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;out1&#39;</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condition</span><span class="p">(</span><span class="n">s</span><span class="p">,</span>
+                            <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
+                                <span class="n">en</span><span class="p">,</span>
+                                <span class="n">num_filters</span><span class="o">=</span><span class="n">skip_width</span><span class="p">,</span>
+                                <span class="n">filter_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cond_map_out1&#39;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+        <span class="c1">###</span>
+        <span class="c1"># Compute the logits and get the loss.</span>
+        <span class="c1">###</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">masked</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">num_filters</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">filter_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;logits&#39;</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">256</span><span class="p">])</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;softmax&#39;</span><span class="p">)</span>
+        <span class="n">x_indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_quantized</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">+</span> <span class="mi">128</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sparse_softmax_cross_entropy_with_logits</span><span class="p">(</span>
+                <span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">x_indices</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;nll&#39;</span><span class="p">),</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;predictions&#39;</span><span class="p">:</span> <span class="n">probs</span><span class="p">,</span>
+            <span class="s1">&#39;loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span>
+            <span class="s1">&#39;eval&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;nll&#39;</span><span class="p">:</span> <span class="n">loss</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;quantized_input&#39;</span><span class="p">:</span> <span class="n">x_quantized</span><span class="p">,</span>
+            <span class="s1">&#39;encoding&#39;</span><span class="p">:</span> <span class="n">encoding</span><span class="p">,</span>
+        <span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="inv_mu_law"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.inv_mu_law">[docs]</a><span class="k">def</span> <span class="nf">inv_mu_law</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">255.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A TF implementation of inverse Mu-Law.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x</span>
+<span class="sd">        The Mu-Law samples to decode.</span>
+<span class="sd">    mu</span>
+<span class="sd">        The Mu we used to encode these samples.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out</span>
+<span class="sd">        The decoded data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mf">2.</span> <span class="o">/</span> <span class="p">(</span><span class="n">mu</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">/</span> <span class="n">mu</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="n">mu</span><span class="p">)</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="load_audio"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.load_audio">[docs]</a><span class="k">def</span> <span class="nf">load_audio</span><span class="p">(</span><span class="n">wav_file</span><span class="p">,</span> <span class="n">sample_length</span><span class="o">=</span><span class="mi">64000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    wav_file : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    sample_length : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">wav_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">utils</span><span class="o">.</span><span class="n">load_audio</span><span class="p">(</span><span class="n">wav_file</span><span class="p">)[:</span><span class="n">sample_length</span><span class="p">]])</span>
+    <span class="n">wav_data_padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">sample_length</span><span class="p">))</span>
+    <span class="n">wav_data_padded</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="n">wav_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">wav_data</span>
+    <span class="n">wav_data</span> <span class="o">=</span> <span class="n">wav_data_padded</span>
+    <span class="k">return</span> <span class="n">wav_data</span></div>
+
+
+<div class="viewcode-block" id="load_nsynth"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.load_nsynth">[docs]</a><span class="k">def</span> <span class="nf">load_nsynth</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sample_length</span><span class="o">=</span><span class="mi">64000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    encoding : bool, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    batch_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    sample_length : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;/gpu:0&#39;</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sample_length</span><span class="p">])</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">build</span><span class="p">({</span><span class="s2">&quot;wav&quot;</span><span class="p">:</span> <span class="n">X</span><span class="p">},</span> <span class="n">is_training</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">graph</span></div>
+
+
+<div class="viewcode-block" id="load_fastgen_nsynth"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.load_fastgen_nsynth">[docs]</a><span class="k">def</span> <span class="nf">load_fastgen_nsynth</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sample_length</span><span class="o">=</span><span class="mi">64000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    batch_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    sample_length : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">FastGenerationConfig</span><span class="p">()</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">build</span><span class="p">({</span><span class="s2">&quot;wav&quot;</span><span class="p">:</span> <span class="n">X</span><span class="p">})</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">graph</span></div>
+
+
+<div class="viewcode-block" id="synthesize"><a class="viewcode-back" href="../../source/cadl.html#cadl.nsynth.synthesize">[docs]</a><span class="k">def</span> <span class="nf">synthesize</span><span class="p">(</span><span class="n">wav_file</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="s1">&#39;synthesis.wav&#39;</span><span class="p">,</span>
+               <span class="n">sample_length</span><span class="o">=</span><span class="mi">64000</span><span class="p">,</span>
+               <span class="n">synth_length</span><span class="o">=</span><span class="mi">16000</span><span class="p">,</span>
+               <span class="n">ckpt_path</span><span class="o">=</span><span class="s1">&#39;./model.ckpt-200000&#39;</span><span class="p">,</span>
+               <span class="n">resample_encoding</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    wav_file : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    out_file : str, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    sample_length : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    synth_length : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    ckpt_path : str, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    resample_encoding : bool, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Audio to resynthesize</span>
+    <span class="n">wav_data</span> <span class="o">=</span> <span class="n">load_audio</span><span class="p">(</span><span class="n">wav_file</span><span class="p">,</span> <span class="n">sample_length</span><span class="p">)</span>
+
+    <span class="c1"># Load up the model for encoding and find the encoding of &#39;wav_data&#39;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span><span class="o">.</span><span class="n">as_default</span><span class="p">(),</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">load_nsynth</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+        <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">)</span>
+        <span class="n">encoding</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;encoding&#39;</span><span class="p">],</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]:</span> <span class="n">wav_data</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Resample encoding to sample_length</span>
+    <span class="n">encoding_length</span> <span class="o">=</span> <span class="n">encoding</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">resample_encoding</span><span class="p">:</span>
+        <span class="n">max_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">encoding</span><span class="p">))</span>
+        <span class="n">encoding</span> <span class="o">=</span> <span class="n">resize</span><span class="p">(</span><span class="n">encoding</span> <span class="o">/</span> <span class="n">max_val</span><span class="p">,</span> <span class="p">(</span><span class="n">sample_length</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
+        <span class="n">encoding</span> <span class="o">=</span> <span class="p">(</span><span class="n">encoding</span> <span class="o">*</span> <span class="n">max_val</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span><span class="o">.</span><span class="n">as_default</span><span class="p">(),</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">load_fastgen_nsynth</span><span class="p">()</span>
+        <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+        <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">)</span>
+
+        <span class="c1"># initialize queues w/ 0s</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;init_ops&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Regenerate the audio file sample by sample</span>
+        <span class="n">wav_synth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">sample_length</span><span class="p">,),</span>
+                             <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">audio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">sample_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">synth_length</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">sample_i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">resample_encoding</span><span class="p">:</span>
+                <span class="n">enc_i</span> <span class="o">=</span> <span class="n">sample_i</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">enc_i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_i</span> <span class="o">/</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">sample_length</span><span class="p">)</span> <span class="o">*</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">encoding_length</span><span class="p">))</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;predictions&#39;</span><span class="p">],</span> <span class="n">net</span><span class="p">[</span><span class="s1">&#39;push_ops&#39;</span><span class="p">]],</span>
+                <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                    <span class="n">net</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]:</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">audio</span><span class="p">),</span>
+                    <span class="n">net</span><span class="p">[</span><span class="s1">&#39;encoding&#39;</span><span class="p">]:</span> <span class="n">encoding</span><span class="p">[</span><span class="n">enc_i</span><span class="p">]})[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cdf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span><span class="p">(</span><span class="n">cdf</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">idx</span><span class="p">):</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">audio</span> <span class="o">=</span> <span class="n">inv_mu_law</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">128</span><span class="p">)</span>
+            <span class="n">wav_synth</span><span class="p">[</span><span class="n">sample_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">audio</span>
+
+    <span class="n">wavfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="mi">16000</span><span class="p">,</span> <span class="n">wav_synth</span><span class="p">)</span>
+
+    <span class="n">sess</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">wav_synth</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

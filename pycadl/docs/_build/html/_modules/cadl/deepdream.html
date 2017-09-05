@@ -1,0 +1,666 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.deepdream &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.deepdream</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.deepdream</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Deep Dream using the Inception v5 network.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage.filters</span> <span class="k">import</span> <span class="n">gaussian_filter</span>
+<span class="kn">from</span> <span class="nn">skimage.transform</span> <span class="k">import</span> <span class="n">resize</span>
+<span class="kn">from</span> <span class="nn">scipy.misc</span> <span class="k">import</span> <span class="n">imsave</span>
+<span class="kn">from</span> <span class="nn">cadl</span> <span class="k">import</span> <span class="n">inception</span><span class="p">,</span> <span class="n">vgg16</span><span class="p">,</span> <span class="n">i2v</span>
+<span class="kn">from</span> <span class="nn">cadl</span> <span class="k">import</span> <span class="n">gif</span>
+
+
+<div class="viewcode-block" id="get_labels"><a class="viewcode-back" href="../../source/cadl.html#cadl.deepdream.get_labels">[docs]</a><span class="k">def</span> <span class="nf">get_labels</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s1">&#39;inception&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return labels corresponding to the `neuron_i` parameter of deep dream.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : str, optional</span>
+<span class="sd">        Which model to load. Must be one of: [&#39;inception&#39;], &#39;i2v_tag&#39;, &#39;i2v&#39;,</span>
+<span class="sd">        &#39;vgg16&#39;, or &#39;vgg_face&#39;.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Unknown model.  Must be one of: [&#39;inception&#39;], &#39;i2v_tag&#39;, &#39;i2v&#39;,</span>
+<span class="sd">        &#39;vgg16&#39;, or &#39;vgg_face&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;inception&#39;</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">inception</span><span class="o">.</span><span class="n">get_inception_model</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">net</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;i2v_tag&#39;</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">i2v</span><span class="o">.</span><span class="n">get_i2v_tag_model</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">net</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;vgg16&#39;</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">get_vgg_model</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">net</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;vgg_face&#39;</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">get_vgg_face_model</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">net</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown model or this model does not have labels!&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_layer_names"><a class="viewcode-back" href="../../source/cadl.html#cadl.deepdream.get_layer_names">[docs]</a><span class="k">def</span> <span class="nf">get_layer_names</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s1">&#39;inception&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retun every layer&#39;s index and name in the given model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : str, optional</span>
+<span class="sd">        Which model to load. Must be one of: [&#39;inception&#39;], &#39;i2v_tag&#39;, &#39;i2v&#39;,</span>
+<span class="sd">        &#39;vgg16&#39;, or &#39;vgg_face&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    names : list of tuples</span>
+<span class="sd">        The index and layer&#39;s name for every layer in the given model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;inception&#39;</span><span class="p">:</span>
+            <span class="n">net</span> <span class="o">=</span> <span class="n">inception</span><span class="o">.</span><span class="n">get_inception_model</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;vgg_face&#39;</span><span class="p">:</span>
+            <span class="n">net</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">get_vgg_face_model</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;vgg16&#39;</span><span class="p">:</span>
+            <span class="n">net</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">get_vgg_model</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;i2v&#39;</span><span class="p">:</span>
+            <span class="n">net</span> <span class="o">=</span> <span class="n">i2v</span><span class="o">.</span><span class="n">get_i2v_model</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;i2v-tag&#39;</span><span class="p">:</span>
+            <span class="n">net</span> <span class="o">=</span> <span class="n">i2v</span><span class="o">.</span><span class="n">get_i2v_tag_model</span><span class="p">()</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">import_graph_def</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;graph_def&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;net&#39;</span><span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">op</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">op</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">get_operations</span><span class="p">())]</span>
+        <span class="k">return</span> <span class="n">names</span></div>
+
+
+<span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="n">input_img</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">downsize</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Internal use only. Load the given model&#39;s graph and preprocess an image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_img : np.ndarray</span>
+<span class="sd">        Image to process with the model&#39;s normalizaiton process.</span>
+<span class="sd">    model : str</span>
+<span class="sd">        Which model to load. Must be one of: [&#39;inception&#39;], &#39;i2v_tag&#39;, &#39;i2v&#39;,</span>
+<span class="sd">        &#39;vgg16&#39;, or &#39;vgg_face&#39;.</span>
+<span class="sd">    downsize : bool</span>
+<span class="sd">        Optionally crop/resize the input image to the standard shape.  Only</span>
+<span class="sd">        applies to inception network which is all convolutional.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    net, img, preprocess, deprocess : dict, np.ndarray, function, function</span>
+<span class="sd">        net : The networks graph_def and labels</span>
+<span class="sd">        img : The preprocessed input image</span>
+<span class="sd">        preprocess: Function for preprocessing an image</span>
+<span class="sd">        deprocess: Function for deprocessing an image</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If model is unknown.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;inception&#39;</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">inception</span><span class="o">.</span><span class="n">get_inception_model</span><span class="p">()</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">inception</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span>
+            <span class="n">input_img</span><span class="p">,</span> <span class="n">resize</span><span class="o">=</span><span class="n">downsize</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="n">downsize</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">deprocess</span><span class="p">,</span> <span class="n">preprocess</span> <span class="o">=</span> <span class="n">inception</span><span class="o">.</span><span class="n">deprocess</span><span class="p">,</span> <span class="n">inception</span><span class="o">.</span><span class="n">preprocess</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;vgg_face&#39;</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">get_vgg_face_model</span><span class="p">()</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">input_img</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">deprocess</span><span class="p">,</span> <span class="n">preprocess</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">deprocess</span><span class="p">,</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">preprocess</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;vgg16&#39;</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">get_vgg_model</span><span class="p">()</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">input_img</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">deprocess</span><span class="p">,</span> <span class="n">preprocess</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">deprocess</span><span class="p">,</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">preprocess</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;i2v&#39;</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">i2v</span><span class="o">.</span><span class="n">get_i2v_model</span><span class="p">()</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">i2v</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">input_img</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">deprocess</span><span class="p">,</span> <span class="n">preprocess</span> <span class="o">=</span> <span class="n">i2v</span><span class="o">.</span><span class="n">deprocess</span><span class="p">,</span> <span class="n">i2v</span><span class="o">.</span><span class="n">preprocess</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;i2v_tag&#39;</span><span class="p">:</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">i2v</span><span class="o">.</span><span class="n">get_i2v_tag_model</span><span class="p">()</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">i2v</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">input_img</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">deprocess</span><span class="p">,</span> <span class="n">preprocess</span> <span class="o">=</span> <span class="n">i2v</span><span class="o">.</span><span class="n">deprocess</span><span class="p">,</span> <span class="n">i2v</span><span class="o">.</span><span class="n">preprocess</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown model name!  Supported: &quot;</span> <span class="o">+</span>
+                         <span class="s2">&quot;[&#39;inception&#39;, &#39;vgg_face&#39;, &#39;vgg16&#39;, &#39;i2v&#39;, &#39;i2v_tag&#39;]&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">net</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">preprocess</span><span class="p">,</span> <span class="n">deprocess</span>
+
+
+<span class="k">def</span> <span class="nf">_apply</span><span class="p">(</span><span class="n">img</span><span class="p">,</span>
+           <span class="n">gradient</span><span class="p">,</span>
+           <span class="n">it_i</span><span class="p">,</span>
+           <span class="n">decay</span><span class="o">=</span><span class="mf">0.998</span><span class="p">,</span>
+           <span class="n">sigma</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+           <span class="n">blur_step</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+           <span class="n">step</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+           <span class="n">crop</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+           <span class="n">crop_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+           <span class="n">pth</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Interal use only. Apply the gradient to an image with the given params.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : np.ndarray</span>
+<span class="sd">        Tensor to apply gradient ascent to.</span>
+<span class="sd">    gradient : np.ndarray</span>
+<span class="sd">        Gradient to ascend to.</span>
+<span class="sd">    it_i : int</span>
+<span class="sd">        Current iteration (used for step modulos)</span>
+<span class="sd">    decay : float, optional</span>
+<span class="sd">        Amount to decay.</span>
+<span class="sd">    sigma : float, optional</span>
+<span class="sd">        Sigma for Gaussian Kernel.</span>
+<span class="sd">    blur_step : int, optional</span>
+<span class="sd">        How often to blur.</span>
+<span class="sd">    step : float, optional</span>
+<span class="sd">        Step for gradient ascent.</span>
+<span class="sd">    crop : int, optional</span>
+<span class="sd">        Amount to crop from each border.</span>
+<span class="sd">    crop_step : int, optional</span>
+<span class="sd">        How often to crop.</span>
+<span class="sd">    pth : int, optional</span>
+<span class="sd">        Percentile to mask out.</span>
+
+<span class="sd">    No Longer Returned</span>
+<span class="sd">    ------------------</span>
+<span class="sd">    img : np.ndarray</span>
+<span class="sd">        Ascended image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gradient</span> <span class="o">/=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">gradient</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-10</span><span class="p">)</span>
+    <span class="n">img</span> <span class="o">+=</span> <span class="n">gradient</span> <span class="o">*</span> <span class="n">step</span>
+    <span class="n">img</span> <span class="o">*=</span> <span class="n">decay</span>
+
+    <span class="k">if</span> <span class="n">pth</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">img</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">img</span><span class="p">),</span> <span class="n">pth</span><span class="p">))</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span> <span class="o">-</span> <span class="n">img</span> <span class="o">*</span> <span class="n">mask</span>
+
+    <span class="k">if</span> <span class="n">blur_step</span> <span class="ow">and</span> <span class="n">it_i</span> <span class="o">%</span> <span class="n">blur_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ch_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ch_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gaussian_filter</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ch_i</span><span class="p">],</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">crop</span> <span class="ow">and</span> <span class="n">it_i</span> <span class="o">%</span> <span class="n">crop_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="o">*</span><span class="n">ch</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># Crop a 1 pixel border from height and width</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:,</span> <span class="n">crop</span><span class="p">:</span><span class="o">-</span><span class="n">crop</span><span class="p">,</span> <span class="n">crop</span><span class="p">:</span><span class="o">-</span><span class="n">crop</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="c1"># Resize</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">resize</span><span class="p">(</span>
+            <span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="deep_dream"><a class="viewcode-back" href="../../source/cadl.html#cadl.deepdream.deep_dream">[docs]</a><span class="k">def</span> <span class="nf">deep_dream</span><span class="p">(</span><span class="n">input_img</span><span class="p">,</span>
+               <span class="n">downsize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">model</span><span class="o">=</span><span class="s1">&#39;inception&#39;</span><span class="p">,</span>
+               <span class="n">layer_i</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+               <span class="n">neuron_i</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+               <span class="n">n_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+               <span class="n">save_gif</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">save_images</span><span class="o">=</span><span class="s1">&#39;imgs&#39;</span><span class="p">,</span>
+               <span class="n">device</span><span class="o">=</span><span class="s1">&#39;/cpu:0&#39;</span><span class="p">,</span>
+               <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Deep Dream with the given parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_img : np.ndarray</span>
+<span class="sd">        Image to apply deep dream to.  Should be 3-dimenionsal H x W x C</span>
+<span class="sd">        RGB uint8 or float32.</span>
+<span class="sd">    downsize : bool, optional</span>
+<span class="sd">        Whether or not to downsize the image.  Only applies to</span>
+<span class="sd">        model==&#39;inception&#39;.</span>
+<span class="sd">    model : str, optional</span>
+<span class="sd">        Which model to load.  Must be one of: [&#39;inception&#39;], &#39;i2v_tag&#39;, &#39;i2v&#39;,</span>
+<span class="sd">        &#39;vgg16&#39;, or &#39;vgg_face&#39;.</span>
+<span class="sd">    layer_i : int, optional</span>
+<span class="sd">        Which layer to use for finding the gradient.  E.g. the softmax layer</span>
+<span class="sd">        for inception is -1, for vgg networks it is -2.  Use the function</span>
+<span class="sd">        &quot;get_layer_names&quot; to find the layer number that you need.</span>
+<span class="sd">    neuron_i : int, optional</span>
+<span class="sd">        Which neuron to use.  -1 for the entire layer.</span>
+<span class="sd">    n_iterations : int, optional</span>
+<span class="sd">        Number of iterations to dream.</span>
+<span class="sd">    save_gif : bool, optional</span>
+<span class="sd">        Save a GIF.</span>
+<span class="sd">    save_images : str, optional</span>
+<span class="sd">        Folder to save images to.</span>
+<span class="sd">    device : str, optional</span>
+<span class="sd">        Which device to use, e.g. [&#39;/cpu:0&#39;] or &#39;/gpu:0&#39;.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        See &quot;_apply&quot; for additional parameters.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    imgs : list of np.array</span>
+<span class="sd">        Images of every iteration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">net</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">preprocess</span><span class="p">,</span> <span class="n">deprocess</span> <span class="o">=</span> <span class="n">_setup</span><span class="p">(</span><span class="n">input_img</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">downsize</span><span class="p">)</span>
+    <span class="n">batch</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="o">*</span><span class="n">ch</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">):</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">import_graph_def</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;graph_def&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;net&#39;</span><span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">get_operations</span><span class="p">()]</span>
+        <span class="n">input_name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:0&#39;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">input_name</span><span class="p">)</span>
+
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">names</span><span class="p">[</span><span class="n">layer_i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:0&#39;</span><span class="p">)</span>
+        <span class="n">layer_shape</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">layer</span><span class="p">),</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">img</span><span class="p">})</span>
+        <span class="n">layer_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">layer_shape</span><span class="p">)</span> <span class="o">/</span> <span class="n">layer_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">layer_vec</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">neuron_i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">layer_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">ascent</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gradients</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+        <span class="n">imgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">it_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iterations</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">it_i</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">img</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">img</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">neuron_i</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">this_res</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">ascent</span><span class="p">,</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">img</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">this_res</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="n">ascent</span><span class="p">,</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">img</span><span class="p">,</span>
+                                       <span class="n">layer</span><span class="p">:</span> <span class="n">layer_vec</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">_apply</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">this_res</span><span class="p">,</span> <span class="n">it_i</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">imgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deprocess</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="n">save_images</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">save_images</span><span class="p">):</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">save_images</span><span class="p">)</span>
+                <span class="n">imsave</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_images</span><span class="p">,</span> <span class="s1">&#39;frame</span><span class="si">{}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">it_i</span><span class="p">)),</span>
+                    <span class="n">imgs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">save_gif</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gif</span><span class="o">.</span><span class="n">build_gif</span><span class="p">(</span><span class="n">imgs</span><span class="p">,</span> <span class="n">saveto</span><span class="o">=</span><span class="n">save_gif</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">imgs</span></div>
+
+
+<div class="viewcode-block" id="guided_dream"><a class="viewcode-back" href="../../source/cadl.html#cadl.deepdream.guided_dream">[docs]</a><span class="k">def</span> <span class="nf">guided_dream</span><span class="p">(</span><span class="n">input_img</span><span class="p">,</span>
+                 <span class="n">guide_img</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">downsize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">layers</span><span class="o">=</span><span class="p">[</span><span class="mi">162</span><span class="p">,</span> <span class="mi">183</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">247</span><span class="p">],</span>
+                 <span class="n">label_i</span><span class="o">=</span><span class="mi">962</span><span class="p">,</span>
+                 <span class="n">layer_i</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">feature_loss_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">tv_loss_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">l2_loss_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">softmax_loss_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">model</span><span class="o">=</span><span class="s1">&#39;inception&#39;</span><span class="p">,</span>
+                 <span class="n">neuron_i</span><span class="o">=</span><span class="mi">920</span><span class="p">,</span>
+                 <span class="n">n_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                 <span class="n">save_gif</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">save_images</span><span class="o">=</span><span class="s1">&#39;imgs&#39;</span><span class="p">,</span>
+                 <span class="n">device</span><span class="o">=</span><span class="s1">&#39;/cpu:0&#39;</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Deep Dream v2.  Use an optional guide image and other techniques.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_img : np.ndarray</span>
+<span class="sd">        Image to apply deep dream to.  Should be 3-dimenionsal H x W x C</span>
+<span class="sd">        RGB uint8 or float32.</span>
+<span class="sd">    guide_img : np.ndarray, optional</span>
+<span class="sd">        Optional image to find features at different layers for.  Must pass in</span>
+<span class="sd">        a list of layers that you want to find features for.  Then the guided</span>
+<span class="sd">        dream will try to match this images features at those layers.</span>
+<span class="sd">    downsize : bool, optional</span>
+<span class="sd">        Whether or not to downsize the image.  Only applies to</span>
+<span class="sd">        model==&#39;inception&#39;.</span>
+<span class="sd">    layers : list, optional</span>
+<span class="sd">        A list of layers to find features for in the &quot;guide_img&quot;.</span>
+<span class="sd">    label_i : int, optional</span>
+<span class="sd">        Which label to use for the softmax layer.  Use the &quot;get_labels&quot; function</span>
+<span class="sd">        to find the index corresponding the object of interest.  If None, not</span>
+<span class="sd">        used.</span>
+<span class="sd">    layer_i : int, optional</span>
+<span class="sd">        Which layer to use for finding the gradient.  E.g. the softmax layer</span>
+<span class="sd">        for inception is -1, for vgg networks it is -2.  Use the function</span>
+<span class="sd">        &quot;get_layer_names&quot; to find the layer number that you need.</span>
+<span class="sd">    feature_loss_weight : float, optional</span>
+<span class="sd">        Weighting for the feature loss from the guide_img.</span>
+<span class="sd">    tv_loss_weight : float, optional</span>
+<span class="sd">        Total variational loss weighting.  Enforces smoothness.</span>
+<span class="sd">    l2_loss_weight : float, optional</span>
+<span class="sd">        L2 loss weighting.  Enforces smaller values and reduces saturation.</span>
+<span class="sd">    softmax_loss_weight : float, optional</span>
+<span class="sd">        Softmax loss weighting.  Must set label_i.</span>
+<span class="sd">    model : str, optional</span>
+<span class="sd">        Which model to load.  Must be one of: [&#39;inception&#39;], &#39;i2v_tag&#39;, &#39;i2v&#39;,</span>
+<span class="sd">        &#39;vgg16&#39;, or &#39;vgg_face&#39;.</span>
+<span class="sd">    neuron_i : int, optional</span>
+<span class="sd">        Which neuron to use.  -1 for the entire layer.</span>
+<span class="sd">    n_iterations : int, optional</span>
+<span class="sd">        Number of iterations to dream.</span>
+<span class="sd">    save_gif : bool, optional</span>
+<span class="sd">        Save a GIF.</span>
+<span class="sd">    save_images : str, optional</span>
+<span class="sd">        Folder to save images to.</span>
+<span class="sd">    device : str, optional</span>
+<span class="sd">        Which device to use, e.g. [&#39;/cpu:0&#39;] or &#39;/gpu:0&#39;.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        See &quot;_apply&quot; for additional parameters.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    imgs : list of np.ndarray</span>
+<span class="sd">        Images of the dream.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">net</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">preprocess</span><span class="p">,</span> <span class="n">deprocess</span> <span class="o">=</span> <span class="n">_setup</span><span class="p">(</span><span class="n">input_img</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">downsize</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">input_img</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">img</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">guide_img</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">guide_img</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">(</span><span class="n">guide_img</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">model</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">guide_img</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">batch</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="o">*</span><span class="n">ch</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">):</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">import_graph_def</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;graph_def&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;net&#39;</span><span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">get_operations</span><span class="p">()]</span>
+        <span class="n">input_name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:0&#39;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">input_name</span><span class="p">)</span>
+
+        <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="n">names</span><span class="p">[</span><span class="n">layer_i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:0&#39;</span> <span class="k">for</span> <span class="n">layer_i</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">]</span>
+        <span class="n">feature_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">feature_i</span> <span class="ow">in</span> <span class="n">features</span><span class="p">:</span>
+            <span class="n">layer</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">feature_i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">guide_img</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">feature_loss</span> <span class="o">+=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Reshape it to 2D vector</span>
+                <span class="n">layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="c1"># Do the same for our guide image</span>
+                <span class="n">guide_layer</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">guide_img</span><span class="p">})</span>
+                <span class="n">guide_layer</span> <span class="o">=</span> <span class="n">guide_layer</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="c1"># Now calculate their dot product</span>
+                <span class="n">correlation</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">guide_layer</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
+                <span class="n">feature_loss</span> <span class="o">+=</span> <span class="n">feature_loss_weight</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span>
+                    <span class="n">correlation</span><span class="p">)</span>
+        <span class="n">softmax_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">label_i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">layer</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">names</span><span class="p">[</span><span class="n">layer_i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:0&#39;</span><span class="p">)</span>
+            <span class="n">layer_shape</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">layer</span><span class="p">),</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">img</span><span class="p">})</span>
+            <span class="n">layer_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">layer_shape</span><span class="p">)</span> <span class="o">/</span> <span class="n">layer_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">layer_vec</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">neuron_i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">layer_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">softmax_loss</span> <span class="o">+=</span> <span class="n">softmax_loss_weight</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">l2_loss</span><span class="p">(</span><span class="n">layer</span> <span class="o">-</span> <span class="n">layer_vec</span><span class="p">))</span>
+
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="p">:</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span>
+                       <span class="n">x</span><span class="p">[:,</span> <span class="p">:</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="p">:</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span>
+                       <span class="n">x</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">tv_loss</span> <span class="o">=</span> <span class="n">tv_loss_weight</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">dx</span> <span class="o">+</span> <span class="n">dy</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">))</span>
+        <span class="n">l2_loss</span> <span class="o">=</span> <span class="n">l2_loss_weight</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">l2_loss</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+        <span class="n">ascent</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gradients</span><span class="p">(</span><span class="n">feature_loss</span> <span class="o">+</span> <span class="n">softmax_loss</span> <span class="o">+</span> <span class="n">tv_loss</span> <span class="o">+</span> <span class="n">l2_loss</span><span class="p">,</span>
+                              <span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+        <span class="n">imgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">it_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iterations</span><span class="p">):</span>
+            <span class="n">this_res</span><span class="p">,</span> <span class="n">this_feature_loss</span><span class="p">,</span> <span class="n">this_softmax_loss</span><span class="p">,</span> <span class="n">this_tv_loss</span><span class="p">,</span> <span class="n">this_l2_loss</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">ascent</span><span class="p">,</span> <span class="n">feature_loss</span><span class="p">,</span> <span class="n">softmax_loss</span><span class="p">,</span> <span class="n">tv_loss</span><span class="p">,</span> <span class="n">l2_loss</span><span class="p">],</span>
+                <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">img</span><span class="p">})</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;feature:&#39;</span><span class="p">,</span> <span class="n">this_feature_loss</span><span class="p">,</span> <span class="s1">&#39;softmax:&#39;</span><span class="p">,</span> <span class="n">this_softmax_loss</span><span class="p">,</span>
+                  <span class="s1">&#39;tv&#39;</span><span class="p">,</span> <span class="n">this_tv_loss</span><span class="p">,</span> <span class="s1">&#39;l2&#39;</span><span class="p">,</span> <span class="n">this_l2_loss</span><span class="p">)</span>
+
+            <span class="n">_apply</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="o">-</span><span class="n">this_res</span><span class="p">,</span> <span class="n">it_i</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">imgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deprocess</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="n">save_images</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">imsave</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_images</span><span class="p">,</span> <span class="s1">&#39;frame</span><span class="si">{}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">it_i</span><span class="p">)),</span>
+                    <span class="n">imgs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">save_gif</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gif</span><span class="o">.</span><span class="n">build_gif</span><span class="p">(</span><span class="n">imgs</span><span class="p">,</span> <span class="n">saveto</span><span class="o">=</span><span class="n">save_gif</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">imgs</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

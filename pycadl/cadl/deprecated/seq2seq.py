@@ -7,7 +7,7 @@ import tensorflow as tf
 import numpy as np
 import nltk
 import pickle
-from acadl import cornell
+from cadl import cornell
 
 # Special vocabulary symbols:
 # PAD is used to pad a sequence to a fixed size

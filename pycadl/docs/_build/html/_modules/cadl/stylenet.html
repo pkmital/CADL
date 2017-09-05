@@ -1,0 +1,521 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.stylenet &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.stylenet</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.stylenet</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Style Net w/ tests for Video Style Net.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Video Style Net requires OpenCV 3.0.0+ w/ Contrib for Python to be installed.</span>
+
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">cadl</span> <span class="k">import</span> <span class="n">vgg16</span>
+<span class="kn">from</span> <span class="nn">cadl</span> <span class="k">import</span> <span class="n">gif</span>
+<span class="kn">from</span> <span class="nn">scipy.misc</span> <span class="k">import</span> <span class="n">imresize</span>
+
+
+<div class="viewcode-block" id="make_4d"><a class="viewcode-back" href="../../source/cadl.html#cadl.stylenet.make_4d">[docs]</a><span class="k">def</span> <span class="nf">make_4d</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a 4-dimensional N x H x W x C image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : np.ndarray</span>
+<span class="sd">        Given image as H x W x C or H x W.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    img : np.ndarray</span>
+<span class="sd">        N x H x W x C image.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Unexpected number of dimensions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">img</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Incorrect dimensions for image!&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">img</span></div>
+
+
+<div class="viewcode-block" id="stylize"><a class="viewcode-back" href="../../source/cadl.html#cadl.stylenet.stylize">[docs]</a><span class="k">def</span> <span class="nf">stylize</span><span class="p">(</span><span class="n">content_img</span><span class="p">,</span>
+            <span class="n">style_img</span><span class="p">,</span>
+            <span class="n">base_img</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">saveto</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">gif_step</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">n_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="n">style_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">content_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Stylization w/ the given content and style images.</span>
+
+<span class="sd">    Follows the approach in Leon Gatys et al.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    content_img : np.ndarray</span>
+<span class="sd">        Image to use for finding the content features.</span>
+<span class="sd">    style_img : TYPE</span>
+<span class="sd">        Image to use for finding the style features.</span>
+<span class="sd">    base_img : None, optional</span>
+<span class="sd">        Image to use for the base content.  Can be noise or an existing image.</span>
+<span class="sd">        If None, the content image will be used.</span>
+<span class="sd">    saveto : str, optional</span>
+<span class="sd">        Name of GIF image to write to, e.g. &quot;stylization.gif&quot;</span>
+<span class="sd">    gif_step : int, optional</span>
+<span class="sd">        Modulo of iterations to save the current stylization.</span>
+<span class="sd">    n_iterations : int, optional</span>
+<span class="sd">        Number of iterations to run for.</span>
+<span class="sd">    style_weight : float, optional</span>
+<span class="sd">        Weighting on the style features.</span>
+<span class="sd">    content_weight : float, optional</span>
+<span class="sd">        Weighting on the content features.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    stylization : np.ndarray</span>
+<span class="sd">        Final iteration of the stylization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Preprocess both content and style images</span>
+    <span class="n">content_img</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">content_img</span><span class="p">,</span> <span class="n">dsize</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">))[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="n">style_img</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">style_img</span><span class="p">,</span> <span class="n">dsize</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">))[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">base_img</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">base_img</span> <span class="o">=</span> <span class="n">content_img</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">base_img</span> <span class="o">=</span> <span class="n">make_4d</span><span class="p">(</span><span class="n">vgg16</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">base_img</span><span class="p">,</span> <span class="n">dsize</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">)))</span>
+
+    <span class="c1"># Get Content and Style features</span>
+    <span class="n">net</span> <span class="o">=</span> <span class="n">vgg16</span><span class="o">.</span><span class="n">get_vgg_model</span><span class="p">()</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">import_graph_def</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;graph_def&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;vgg&#39;</span><span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">get_operations</span><span class="p">()]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:0&#39;</span><span class="p">)</span>
+        <span class="n">content_layer</span> <span class="o">=</span> <span class="s1">&#39;vgg/conv3_2/conv3_2:0&#39;</span>
+        <span class="n">content_features</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">content_layer</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
+            <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                <span class="n">x</span><span class="p">:</span> <span class="n">content_img</span><span class="p">,</span>
+                <span class="s1">&#39;vgg/dropout_1/random_uniform:0&#39;</span><span class="p">:</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4096</span><span class="p">],</span>
+                <span class="s1">&#39;vgg/dropout/random_uniform:0&#39;</span><span class="p">:</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4096</span><span class="p">]</span>
+            <span class="p">})</span>
+        <span class="n">style_layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;vgg/conv1_1/conv1_1:0&#39;</span><span class="p">,</span> <span class="s1">&#39;vgg/conv2_1/conv2_1:0&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;vgg/conv3_1/conv3_1:0&#39;</span><span class="p">,</span> <span class="s1">&#39;vgg/conv4_1/conv4_1:0&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;vgg/conv5_1/conv5_1:0&#39;</span>
+        <span class="p">]</span>
+        <span class="n">style_activations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">style_i</span> <span class="ow">in</span> <span class="n">style_layers</span><span class="p">:</span>
+            <span class="n">style_activation_i</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">style_i</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
+                <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                    <span class="n">x</span><span class="p">:</span> <span class="n">style_img</span><span class="p">,</span>
+                    <span class="s1">&#39;vgg/dropout_1/random_uniform:0&#39;</span><span class="p">:</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4096</span><span class="p">],</span>
+                    <span class="s1">&#39;vgg/dropout/random_uniform:0&#39;</span><span class="p">:</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4096</span><span class="p">]</span>
+                <span class="p">})</span>
+            <span class="n">style_activations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">style_activation_i</span><span class="p">)</span>
+        <span class="n">style_features</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">style_activation_i</span> <span class="ow">in</span> <span class="n">style_activations</span><span class="p">:</span>
+            <span class="n">s_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">style_activation_i</span><span class="p">,</span>
+                             <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">style_activation_i</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="n">gram_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">s_i</span><span class="p">)</span> <span class="o">/</span> <span class="n">s_i</span><span class="o">.</span><span class="n">size</span>
+            <span class="n">style_features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gram_matrix</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+
+    <span class="c1"># Optimize both</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">net_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">base_img</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">import_graph_def</span><span class="p">(</span>
+            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;graph_def&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;vgg&#39;</span><span class="p">,</span> <span class="n">input_map</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;images:0&#39;</span><span class="p">:</span> <span class="n">net_input</span><span class="p">})</span>
+
+        <span class="n">content_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">l2_loss</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">content_layer</span><span class="p">)</span> <span class="o">-</span> <span class="n">content_features</span><span class="p">)</span> <span class="o">/</span>
+            <span class="n">content_features</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">style_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">style_layer_i</span><span class="p">,</span> <span class="n">style_gram_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">style_layers</span><span class="p">,</span> <span class="n">style_features</span><span class="p">):</span>
+            <span class="n">layer_i</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="n">style_layer_i</span><span class="p">)</span>
+            <span class="n">layer_shape</span> <span class="o">=</span> <span class="n">layer_i</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+            <span class="n">layer_size</span> <span class="o">=</span> <span class="n">layer_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">layer_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">layer_shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">layer_flat</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">layer_i</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">layer_shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+            <span class="n">gram_matrix</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">layer_flat</span><span class="p">),</span>
+                                    <span class="n">layer_flat</span><span class="p">)</span> <span class="o">/</span> <span class="n">layer_size</span>
+            <span class="n">style_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">style_loss</span><span class="p">,</span>
+                                <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">l2_loss</span><span class="p">((</span><span class="n">gram_matrix</span> <span class="o">-</span> <span class="n">style_gram_i</span><span class="p">)</span> <span class="o">/</span>
+                                              <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">style_gram_i</span><span class="o">.</span><span class="n">size</span><span class="p">)))</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">content_weight</span> <span class="o">*</span> <span class="n">content_loss</span> <span class="o">+</span> <span class="n">style_weight</span> <span class="o">*</span> <span class="n">style_loss</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+        <span class="n">imgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">it_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iterations</span><span class="p">):</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">this_loss</span><span class="p">,</span> <span class="n">synth</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">net_input</span><span class="p">],</span>
+                <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;vgg/dropout_1/random_uniform:0&#39;</span><span class="p">:</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+                        <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="s1">&#39;vgg/dropout_1/random_uniform:0&#39;</span><span class="p">)</span>
+                        <span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()),</span>
+                    <span class="s1">&#39;vgg/dropout/random_uniform:0&#39;</span><span class="p">:</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+                        <span class="n">g</span><span class="o">.</span><span class="n">get_tensor_by_name</span><span class="p">(</span><span class="s1">&#39;vgg/dropout/random_uniform:0&#39;</span><span class="p">)</span>
+                        <span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">())</span>
+                <span class="p">})</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;iteration </span><span class="si">%d</span><span class="s2">, loss: </span><span class="si">%f</span><span class="s2">, range: (</span><span class="si">%f</span><span class="s2"> - </span><span class="si">%f</span><span class="s2">)&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">it_i</span><span class="p">,</span> <span class="n">this_loss</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">synth</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">synth</span><span class="p">)),</span>
+                <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">it_i</span> <span class="o">%</span> <span class="n">gif_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">imgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">synth</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">saveto</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gif</span><span class="o">.</span><span class="n">build_gif</span><span class="p">(</span><span class="n">imgs</span><span class="p">,</span> <span class="n">saveto</span><span class="o">=</span><span class="n">saveto</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">synth</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="warp_img"><a class="viewcode-back" href="../../source/cadl.html#cadl.stylenet.warp_img">[docs]</a><span class="k">def</span> <span class="nf">warp_img</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply the motion vectors to the given image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : np.ndarray</span>
+<span class="sd">        Input image to apply motion to.</span>
+<span class="sd">    dx : np.ndarray</span>
+<span class="sd">        H x W matrix defining the magnitude of the X vector</span>
+<span class="sd">    dy : np.ndarray</span>
+<span class="sd">        H x W matrix defining the magnitude of the Y vector</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    img : np.ndarray</span>
+<span class="sd">        Image with pixels warped according to dx, dy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">warped</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">row_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">col_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">dx_i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dx</span><span class="p">[</span><span class="n">row_i</span><span class="p">,</span> <span class="n">col_i</span><span class="p">]))</span>
+            <span class="n">dy_i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dy</span><span class="p">[</span><span class="n">row_i</span><span class="p">,</span> <span class="n">col_i</span><span class="p">]))</span>
+            <span class="n">sample_dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">dx_i</span> <span class="o">+</span> <span class="n">col_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">sample_dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">dy_i</span> <span class="o">+</span> <span class="n">row_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">warped</span><span class="p">[</span><span class="n">sample_dy</span><span class="p">,</span> <span class="n">sample_dx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">row_i</span><span class="p">,</span> <span class="n">col_i</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">return</span> <span class="n">warped</span></div>
+
+
+<div class="viewcode-block" id="test_video"><a class="viewcode-back" href="../../source/cadl.html#cadl.stylenet.test_video">[docs]</a><span class="k">def</span> <span class="nf">test_video</span><span class="p">(</span><span class="n">style_img</span><span class="o">=</span><span class="s1">&#39;arles.jpg&#39;</span><span class="p">,</span> <span class="n">videodir</span><span class="o">=</span><span class="s1">&#39;kurosawa&#39;</span><span class="p">):</span>
+
+    <span class="n">has_cv2</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">cv2</span>
+        <span class="n">has_cv2</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">optflow</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">optflow</span><span class="o">.</span><span class="n">createOptFlow_DeepFlow</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">has_cv2</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">style_img</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">style_img</span><span class="p">)</span>
+    <span class="n">content_files</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">videodir</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">videodir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">content_img</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">content_files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">style_img</span> <span class="o">=</span> <span class="n">imresize</span><span class="p">(</span><span class="n">style_img</span><span class="p">,</span> <span class="p">(</span><span class="mi">448</span><span class="p">,</span> <span class="mi">448</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+    <span class="n">content_img</span> <span class="o">=</span> <span class="n">imresize</span><span class="p">(</span><span class="n">content_img</span><span class="p">,</span> <span class="p">(</span><span class="mi">448</span><span class="p">,</span> <span class="mi">448</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+    <span class="k">if</span> <span class="n">has_cv2</span><span class="p">:</span>
+        <span class="n">prev_lum</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">content_img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2HSV</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">prev_lum</span> <span class="o">=</span> <span class="p">(</span><span class="n">content_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.3</span> <span class="o">+</span> <span class="n">content_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.59</span> <span class="o">+</span>
+                    <span class="n">content_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.11</span><span class="p">)</span>
+    <span class="n">imgs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">stylized</span> <span class="o">=</span> <span class="n">stylize</span><span class="p">(</span>
+        <span class="n">content_img</span><span class="p">,</span>
+        <span class="n">style_img</span><span class="p">,</span>
+        <span class="n">content_weight</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+        <span class="n">style_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">n_iterations</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="n">content_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;stylized.png&#39;</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">stylized</span><span class="p">)</span>
+    <span class="n">imgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stylized</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">content_files</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">content_img</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">content_img</span> <span class="o">=</span> <span class="n">imresize</span><span class="p">(</span><span class="n">content_img</span><span class="p">,</span> <span class="p">(</span><span class="mi">448</span><span class="p">,</span>
+                                             <span class="mi">448</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+        <span class="k">if</span> <span class="n">has_cv2</span><span class="p">:</span>
+            <span class="n">lum</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">content_img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2HSV</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span>
+            <span class="n">flow</span> <span class="o">=</span> <span class="n">optflow</span><span class="o">.</span><span class="n">calc</span><span class="p">(</span><span class="n">prev_lum</span><span class="p">,</span> <span class="n">lum</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">warped</span> <span class="o">=</span> <span class="n">warp_img</span><span class="p">(</span><span class="n">stylized</span><span class="p">,</span> <span class="n">flow</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">flow</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">stylized</span> <span class="o">=</span> <span class="n">stylize</span><span class="p">(</span>
+                <span class="n">content_img</span><span class="p">,</span>
+                <span class="n">style_img</span><span class="p">,</span>
+                <span class="n">content_weight</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+                <span class="n">style_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">base_img</span><span class="o">=</span><span class="n">warped</span><span class="p">,</span>
+                <span class="n">n_iterations</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lum</span> <span class="o">=</span> <span class="p">(</span><span class="n">content_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.3</span> <span class="o">+</span> <span class="n">content_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.59</span> <span class="o">+</span>
+                   <span class="n">content_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.11</span><span class="p">)</span>
+            <span class="n">stylized</span> <span class="o">=</span> <span class="n">stylize</span><span class="p">(</span>
+                <span class="n">content_img</span><span class="p">,</span>
+                <span class="n">style_img</span><span class="p">,</span>
+                <span class="n">content_weight</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+                <span class="n">style_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">base_img</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">n_iterations</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+        <span class="n">imgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stylized</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="n">f</span> <span class="o">+</span> <span class="s1">&#39;stylized.png&#39;</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">stylized</span><span class="p">)</span>
+        <span class="n">prev_lum</span> <span class="o">=</span> <span class="n">lum</span>
+    <span class="k">return</span> <span class="n">imgs</span></div>
+
+
+<div class="viewcode-block" id="test"><a class="viewcode-back" href="../../source/cadl.html#cadl.stylenet.test">[docs]</a><span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Test for artistic stylization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">urllib</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/&#39;</span> <span class="o">+</span>
+         <span class="s1">&#39;Claude_Monet%2C_Impression%2C_soleil_levant.jpg/617px-Claude_Monet&#39;</span> <span class="o">+</span>
+         <span class="s1">&#39;%2C_Impression%2C_soleil_levant.jpg?download&#39;</span><span class="p">)</span>
+    <span class="n">filepath</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/&#39;</span> <span class="o">+</span>
+         <span class="s1">&#39;El_jard%C3%ADn_de_las_Delicias%2C_de_El_Bosco.jpg/640px-El_jard&#39;</span> <span class="o">+</span>
+         <span class="s1">&#39;%C3%ADn_de_las_Delicias%2C_de_El_Bosco.jpg&#39;</span><span class="p">)</span>
+    <span class="n">filepath</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span>
+
+    <span class="n">stylize</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">n_iterations</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">test_video</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

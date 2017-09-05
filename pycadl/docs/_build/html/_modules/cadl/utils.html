@@ -1,0 +1,1166 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.utils &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Various utilities including downloading, common layers, etc..</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="k">import</span> <span class="n">wavfile</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+
+
+<span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+<div class="viewcode-block" id="stdout_redirect"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.stdout_redirect">[docs]</a><span class="k">def</span> <span class="nf">stdout_redirect</span><span class="p">(</span><span class="n">where</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    where : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Yields</span>
+<span class="sd">    ------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">where</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">where</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stdout__</span></div>
+
+
+<div class="viewcode-block" id="exists"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.exists">[docs]</a><span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="n">site</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    site : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">site</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">ok</span></div>
+
+
+<div class="viewcode-block" id="download"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.download">[docs]</a><span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Use urllib to download a file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        Url to download</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        Location of downloaded file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">fname</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Downloading &#39;</span> <span class="o">+</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">total_length</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;content-length&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">total_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dl</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">total_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">total_length</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">4096</span><span class="p">):</span>
+                <span class="n">dl</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">done</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">50</span> <span class="o">*</span> <span class="n">dl</span> <span class="o">/</span> <span class="n">total_length</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">[</span><span class="si">%s%s</span><span class="s2">] </span><span class="si">%.2f</span><span class="s2"> of </span><span class="si">%.2f</span><span class="s2"> MB&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="s1">&#39;=&#39;</span> <span class="o">*</span> <span class="n">done</span><span class="p">,</span>
+                    <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="mi">50</span><span class="o">-</span><span class="n">done</span><span class="p">),</span>
+                    <span class="n">dl</span> <span class="o">/</span> <span class="mf">1024.0</span> <span class="o">/</span> <span class="mf">1024.0</span><span class="p">,</span>
+                    <span class="n">total_length</span> <span class="o">/</span> <span class="mf">1024.0</span> <span class="o">/</span> <span class="mf">1024.0</span><span class="p">))</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fname</span></div>
+
+
+<div class="viewcode-block" id="download_and_extract_tar"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.download_and_extract_tar">[docs]</a><span class="k">def</span> <span class="nf">download_and_extract_tar</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dst</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download and extract a tar file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        Url to tar file to download.</span>
+<span class="sd">    dst : str</span>
+<span class="sd">        Location to save tar file contents.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">tarfile</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">download</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+        <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r:gz&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="download_and_extract_zip"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.download_and_extract_zip">[docs]</a><span class="k">def</span> <span class="nf">download_and_extract_zip</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dst</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download and extract a zip file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        Url to zip file to download.</span>
+<span class="sd">    dst : str</span>
+<span class="sd">        Location to save zip file contents.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">zipfile</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">download</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+        <span class="n">zf</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="n">zf</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_audio"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.load_audio">[docs]</a><span class="k">def</span> <span class="nf">load_audio</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">b_normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the audiofile at the provided filename using scipy.io.wavfile.</span>
+<span class="sd">    </span>
+<span class="sd">    Optionally normalizes the audio to the maximum value.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        File to load.</span>
+<span class="sd">    b_normalize : bool, optional</span>
+<span class="sd">        Normalize to the maximum value.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sr</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">wavfile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">b_normalize</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span><span class="p">)))</span>
+        <span class="n">s</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s</span></div>
+
+
+<div class="viewcode-block" id="corrupt"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.corrupt">[docs]</a><span class="k">def</span> <span class="nf">corrupt</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Take an input tensor and add uniform masking.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Tensor/Placeholder</span>
+<span class="sd">        Input to corrupt.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    x_corrupted : Tensor</span>
+<span class="sd">        50 pct of values corrupted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random_uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                                               <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                               <span class="n">maxval</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                               <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="interp"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.interp">[docs]</a><span class="k">def</span> <span class="nf">interp</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Intepolate between the arrays l and r, n_samples times.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    l : np.ndarray</span>
+<span class="sd">        Left edge</span>
+<span class="sd">    r : np.ndarray</span>
+<span class="sd">        Right edge</span>
+<span class="sd">    n_samples : int</span>
+<span class="sd">        Number of samples</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    arr : np.ndarray</span>
+<span class="sd">        Inteporalted array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">l</span> <span class="o">+</span> <span class="n">step_i</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_samples</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">step_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)])</span></div>
+
+
+<div class="viewcode-block" id="make_latent_manifold"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.make_latent_manifold">[docs]</a><span class="k">def</span> <span class="nf">make_latent_manifold</span><span class="p">(</span><span class="n">corners</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a 2d manifold out of the provided corners: n_samples * n_samples.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    corners : list of np.ndarray</span>
+<span class="sd">        The four corners to intepolate.</span>
+<span class="sd">    n_samples : int</span>
+<span class="sd">        Number of samples to use in interpolation.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    arr : np.ndarray</span>
+<span class="sd">        Stacked array of all 2D interpolated samples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="n">interp</span><span class="p">(</span><span class="n">corners</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">corners</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_samples</span><span class="p">)</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">interp</span><span class="p">(</span><span class="n">corners</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">corners</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">n_samples</span><span class="p">)</span>
+
+    <span class="n">embedding</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">row_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">):</span>
+        <span class="n">embedding</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">interp</span><span class="p">(</span><span class="n">left</span><span class="p">[</span><span class="n">row_i</span><span class="p">],</span> <span class="n">right</span><span class="p">[</span><span class="n">row_i</span><span class="p">],</span> <span class="n">n_samples</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">embedding</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="imcrop_tosquare"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.imcrop_tosquare">[docs]</a><span class="k">def</span> <span class="nf">imcrop_tosquare</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make any image a square image.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : np.ndarray</span>
+<span class="sd">        Input image to crop, assumed at least 2d.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    crop : np.ndarray</span>
+<span class="sd">        Cropped image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">extra</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">size</span>
+    <span class="n">crop</span> <span class="o">=</span> <span class="n">img</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">extra</span><span class="p">):</span>
+        <span class="n">crop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="n">extra</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[:</span><span class="n">size</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">crop</span></div>
+
+
+<div class="viewcode-block" id="slice_montage"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.slice_montage">[docs]</a><span class="k">def</span> <span class="nf">slice_montage</span><span class="p">(</span><span class="n">montage</span><span class="p">,</span> <span class="n">img_h</span><span class="p">,</span> <span class="n">img_w</span><span class="p">,</span> <span class="n">n_imgs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Slice a montage image into n_img h x w images.</span>
+<span class="sd">    </span>
+<span class="sd">    Performs the opposite of the montage function.  Takes a montage image and</span>
+<span class="sd">    slices it back into a N x H x W x C image.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    montage : np.ndarray</span>
+<span class="sd">        Montage image to slice.</span>
+<span class="sd">    img_h : int</span>
+<span class="sd">        Height of sliced image</span>
+<span class="sd">    img_w : int</span>
+<span class="sd">        Width of sliced image</span>
+<span class="sd">    n_imgs : int</span>
+<span class="sd">        Number of images to slice</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sliced : np.ndarray</span>
+<span class="sd">        Sliced images as 4d array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sliced_ds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_imgs</span><span class="p">))):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_imgs</span><span class="p">))):</span>
+            <span class="n">sliced_ds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">montage</span><span class="p">[</span>
+                <span class="mi">1</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">img_h</span><span class="p">:</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">img_h</span><span class="p">,</span>
+                <span class="mi">1</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="n">j</span> <span class="o">*</span> <span class="n">img_w</span><span class="p">:</span><span class="mi">1</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">img_w</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sliced_ds</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="montage"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.montage">[docs]</a><span class="k">def</span> <span class="nf">montage</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">saveto</span><span class="o">=</span><span class="s1">&#39;montage.png&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Draw all images as a montage separated by 1 pixel borders.</span>
+<span class="sd">    </span>
+<span class="sd">    Also saves the file to the destination specified by `saveto`.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    images : numpy.ndarray</span>
+<span class="sd">        Input array to create montage of.  Array should be:</span>
+<span class="sd">        batch x height x width x channels.</span>
+<span class="sd">    saveto : str</span>
+<span class="sd">        Location to save the resulting montage image.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    m : numpy.ndarray</span>
+<span class="sd">        Montage image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+    <span class="n">img_h</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">img_w</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">n_plots</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">*</span> <span class="mf">0.5</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="mf">0.5</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_plots</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_plots</span><span class="p">):</span>
+            <span class="n">this_filter</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="n">j</span>
+            <span class="k">if</span> <span class="n">this_filter</span> <span class="o">&lt;</span> <span class="n">images</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">this_img</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="n">this_filter</span><span class="p">]</span>
+                <span class="n">m</span><span class="p">[</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">img_h</span><span class="p">:</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">img_h</span><span class="p">,</span>
+                  <span class="mi">1</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="n">j</span> <span class="o">*</span> <span class="n">img_w</span><span class="p">:</span><span class="mi">1</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">img_w</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_img</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">arr</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">saveto</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">m</span></div>
+
+
+<div class="viewcode-block" id="montage_filters"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.montage_filters">[docs]</a><span class="k">def</span> <span class="nf">montage_filters</span><span class="p">(</span><span class="n">W</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Draws all filters (n_input * n_output filters) as a</span>
+<span class="sd">    montage image separated by 1 pixel borders.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    W : Tensor</span>
+<span class="sd">        Input tensor to create montage of.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    m : numpy.ndarray</span>
+<span class="sd">        Montage image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="p">[</span><span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+    <span class="n">n_plots</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+         <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="mf">0.5</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_plots</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_plots</span><span class="p">):</span>
+            <span class="n">this_filter</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="n">j</span>
+            <span class="k">if</span> <span class="n">this_filter</span> <span class="o">&lt;</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">m</span><span class="p">[</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                  <span class="mi">1</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="n">j</span> <span class="o">*</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="mi">1</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">W</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">this_filter</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">m</span></div>
+
+
+<div class="viewcode-block" id="get_celeb_files"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.get_celeb_files">[docs]</a><span class="k">def</span> <span class="nf">get_celeb_files</span><span class="p">(</span><span class="n">dst</span><span class="o">=</span><span class="s1">&#39;img_align_celeba&#39;</span><span class="p">,</span> <span class="n">max_images</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download the first 100 images of the celeb dataset.</span>
+<span class="sd">    </span>
+<span class="sd">    Files will be placed in a directory &#39;img_align_celeba&#39; if one</span>
+<span class="sd">    doesn&#39;t exist.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    files : list of strings</span>
+<span class="sd">        Locations to the first 100 images of the celeb net dataset.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dst : str, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    max_images : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create a directory</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+    <span class="c1"># Now perform the following 100 times:</span>
+    <span class="k">for</span> <span class="n">img_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_images</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+
+        <span class="c1"># create a string using the current loop counter</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="s1">&#39;000</span><span class="si">%03d</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="n">img_i</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f</span><span class="p">)):</span>
+
+            <span class="c1"># and get the url with that string appended the end</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://s3.amazonaws.com/cadl/celeb-align/&#39;</span> <span class="o">+</span> <span class="n">f</span>
+
+            <span class="c1"># We&#39;ll print this out to the console so we can see how far we&#39;ve gone</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="c1"># And now download the url to a location inside our new directory</span>
+            <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+
+    <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">file_i</span><span class="p">)</span>
+             <span class="k">for</span> <span class="n">file_i</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+             <span class="k">if</span> <span class="s1">&#39;.jpg&#39;</span> <span class="ow">in</span> <span class="n">file_i</span><span class="p">][:</span><span class="n">max_images</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">files</span></div>
+
+
+<div class="viewcode-block" id="get_celeb_imgs"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.get_celeb_imgs">[docs]</a><span class="k">def</span> <span class="nf">get_celeb_imgs</span><span class="p">(</span><span class="n">max_images</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the first `max_images` images of the celeb dataset.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    imgs : list of np.ndarray</span>
+<span class="sd">        List of the first 100 images from the celeb dataset</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    max_images : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">f_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">f_i</span> <span class="ow">in</span> <span class="n">get_celeb_files</span><span class="p">(</span><span class="n">max_images</span><span class="o">=</span><span class="n">max_images</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="gauss"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.gauss">[docs]</a><span class="k">def</span> <span class="nf">gauss</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">stddev</span><span class="p">,</span> <span class="n">ksize</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Use Tensorflow to compute a Gaussian Kernel.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mean : float</span>
+<span class="sd">        Mean of the Gaussian (e.g. 0.0).</span>
+<span class="sd">    stddev : float</span>
+<span class="sd">        Standard Deviation of the Gaussian (e.g. 1.0).</span>
+<span class="sd">    ksize : int</span>
+<span class="sd">        Size of kernel (e.g. 16).</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    kernel : np.ndarray</span>
+<span class="sd">        Computed Gaussian Kernel using Tensorflow.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">ksize</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">neg</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">mean</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span>
+                           <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">stddev</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))))</span> <span class="o">*</span>
+             <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">stddev</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="mf">3.1415</span><span class="p">))))</span>
+        <span class="k">return</span> <span class="n">z</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="gauss2d"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.gauss2d">[docs]</a><span class="k">def</span> <span class="nf">gauss2d</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">stddev</span><span class="p">,</span> <span class="n">ksize</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Use Tensorflow to compute a 2D Gaussian Kernel.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mean : float</span>
+<span class="sd">        Mean of the Gaussian (e.g. 0.0).</span>
+<span class="sd">    stddev : float</span>
+<span class="sd">        Standard Deviation of the Gaussian (e.g. 1.0).</span>
+<span class="sd">    ksize : int</span>
+<span class="sd">        Size of kernel (e.g. 16).</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    kernel : np.ndarray</span>
+<span class="sd">        Computed 2D Gaussian Kernel using Tensorflow.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">gauss</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">stddev</span><span class="p">,</span> <span class="n">ksize</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">):</span>
+        <span class="n">z_2d</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="p">[</span><span class="n">ksize</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">ksize</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">z_2d</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="convolve"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.convolve">[docs]</a><span class="k">def</span> <span class="nf">convolve</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">kernel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Use Tensorflow to convolve a 4D image with a 4D kernel.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : np.ndarray</span>
+<span class="sd">        4-dimensional image shaped N x H x W x C</span>
+<span class="sd">    kernel : np.ndarray</span>
+<span class="sd">        4-dimensional image shape K_H, K_W, C_I, C_O corresponding to the</span>
+<span class="sd">        kernel&#39;s height and width, the number of input channels, and the</span>
+<span class="sd">        number of output channels.  Note that C_I should = C.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : np.ndarray</span>
+<span class="sd">        Convolved result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">):</span>
+        <span class="n">convolved</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">convolved</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="gabor"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.gabor">[docs]</a><span class="k">def</span> <span class="nf">gabor</span><span class="p">(</span><span class="n">ksize</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Use Tensorflow to compute a 2D Gabor Kernel.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ksize : int, optional</span>
+<span class="sd">        Size of kernel.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gabor : np.ndarray</span>
+<span class="sd">        Gabor kernel with ksize x ksize dimensions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">g</span><span class="p">):</span>
+        <span class="n">z_2d</span> <span class="o">=</span> <span class="n">gauss2d</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">ksize</span><span class="p">)</span>
+        <span class="n">ones</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">ksize</span><span class="p">))</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">ksize</span><span class="p">))</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="p">[</span><span class="n">ksize</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">wave</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">ones</span><span class="p">)</span>
+        <span class="n">gabor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">wave</span><span class="p">,</span> <span class="n">z_2d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gabor</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="build_submission"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.build_submission">[docs]</a><span class="k">def</span> <span class="nf">build_submission</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">file_list</span><span class="p">,</span> <span class="n">optional_file_list</span><span class="o">=</span><span class="p">()):</span>
+    <span class="sd">&quot;&quot;&quot;Helper utility to check homework assignment submissions and package them.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Output zip file name</span>
+<span class="sd">    file_list : tuple</span>
+<span class="sd">        Tuple of files to include</span>
+<span class="sd">    optional_file_list : tuple, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># check each file exists</span>
+    <span class="k">for</span> <span class="n">part_i</span><span class="p">,</span> <span class="n">file_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_i</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">You are missing the file </span><span class="si">{}</span><span class="s1">.  &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_i</span><span class="p">)</span> <span class="o">+</span>
+                  <span class="s1">&#39;It does not look like you have completed Part </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">part_i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">zipdir</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">zf</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Summary</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : TYPE</span>
+<span class="sd">            Description</span>
+<span class="sd">        zf : TYPE</span>
+<span class="sd">            Description</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="c1"># make sure the files are part of the necessary file list</span>
+                <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">file_list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">optional_file_list</span><span class="p">):</span>
+                    <span class="n">zf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">file</span><span class="p">))</span>
+
+    <span class="c1"># create a zip file with the necessary files</span>
+    <span class="n">zipf</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span><span class="p">)</span>
+    <span class="n">zipdir</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">zipf</span><span class="p">)</span>
+    <span class="n">zipf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Your assignment zip file has been created!&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Now submit the file:</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s1">to Kadenze for grading!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Normalize the image range for visualization</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    s : float, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">a</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span> <span class="mf">1e-4</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span></div>
+
+
+<span class="c1"># %%</span>
+<div class="viewcode-block" id="weight_variable"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.weight_variable">[docs]</a><span class="k">def</span> <span class="nf">weight_variable</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper function to create a weight variable initialized with</span>
+<span class="sd">    a normal distribution</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape : list</span>
+<span class="sd">        Size of weight variable</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+        <span class="n">initial</span><span class="o">.</span><span class="n">set_shape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="c1"># %%</span>
+<div class="viewcode-block" id="bias_variable"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.bias_variable">[docs]</a><span class="k">def</span> <span class="nf">bias_variable</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper function to create a bias variable initialized with</span>
+<span class="sd">    a constant value.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape : list</span>
+<span class="sd">        Size of weight variable</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+        <span class="n">initial</span><span class="o">.</span><span class="n">set_shape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random_normal</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="binary_cross_entropy"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.binary_cross_entropy">[docs]</a><span class="k">def</span> <span class="nf">binary_cross_entropy</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Binary Cross Entropy measures cross entropy of a binary variable.</span>
+<span class="sd">    </span>
+<span class="sd">    loss(x, z) = - sum_i (x[i] * log(z[i]) + (1 - x[i]) * log(1 - z[i]))</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    z : tf.Tensor</span>
+<span class="sd">        A `Tensor` of the same type and shape as `x`.</span>
+<span class="sd">    x : tf.Tensor</span>
+<span class="sd">        A `Tensor` of type `float32` or `float64`.</span>
+<span class="sd">    name : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">name</span> <span class="ow">or</span> <span class="s1">&#39;bce&#39;</span><span class="p">):</span>
+        <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-12</span>
+        <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">z</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="o">+</span>
+                  <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">z</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="conv2d"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.conv2d">[docs]</a><span class="k">def</span> <span class="nf">conv2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_output</span><span class="p">,</span>
+           <span class="n">k_h</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k_w</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">d_h</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">d_w</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+           <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;conv2d&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper for creating a 2d convolution operation.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : tf.Tensor</span>
+<span class="sd">        Input tensor to convolve.</span>
+<span class="sd">    n_output : int</span>
+<span class="sd">        Number of filters.</span>
+<span class="sd">    k_h : int, optional</span>
+<span class="sd">        Kernel height</span>
+<span class="sd">    k_w : int, optional</span>
+<span class="sd">        Kernel width</span>
+<span class="sd">    d_h : int, optional</span>
+<span class="sd">        Height stride</span>
+<span class="sd">    d_w : int, optional</span>
+<span class="sd">        Width stride</span>
+<span class="sd">    padding : str, optional</span>
+<span class="sd">        Padding type: &quot;SAME&quot; or &quot;VALID&quot;</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        Variable scope</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    op : tf.Tensor</span>
+<span class="sd">        Output of convolution</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">name</span> <span class="ow">or</span> <span class="s1">&#39;conv2d&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">k_h</span><span class="p">,</span> <span class="n">k_w</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_output</span><span class="p">],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer_conv2d</span><span class="p">())</span>
+
+        <span class="n">conv</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;conv&#39;</span><span class="p">,</span>
+            <span class="nb">input</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="n">W</span><span class="p">,</span>
+            <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">d_h</span><span class="p">,</span> <span class="n">d_w</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
+
+        <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n_output</span><span class="p">],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">conv</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">h</span><span class="p">,</span> <span class="n">W</span></div>
+
+
+<div class="viewcode-block" id="deconv2d"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.deconv2d">[docs]</a><span class="k">def</span> <span class="nf">deconv2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_output_h</span><span class="p">,</span> <span class="n">n_output_w</span><span class="p">,</span> <span class="n">n_output_ch</span><span class="p">,</span> <span class="n">n_input_ch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">k_h</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k_w</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">d_h</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">d_w</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+             <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;deconv2d&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Deconvolution helper.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : tf.Tensor</span>
+<span class="sd">        Input tensor to convolve.</span>
+<span class="sd">    n_output_h : int</span>
+<span class="sd">        Height of output</span>
+<span class="sd">    n_output_w : int</span>
+<span class="sd">        Width of output</span>
+<span class="sd">    n_output_ch : int</span>
+<span class="sd">        Number of filters.</span>
+<span class="sd">    n_input_ch : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    k_h : int, optional</span>
+<span class="sd">        Kernel height</span>
+<span class="sd">    k_w : int, optional</span>
+<span class="sd">        Kernel width</span>
+<span class="sd">    d_h : int, optional</span>
+<span class="sd">        Height stride</span>
+<span class="sd">    d_w : int, optional</span>
+<span class="sd">        Width stride</span>
+<span class="sd">    padding : str, optional</span>
+<span class="sd">        Padding type: &quot;SAME&quot; or &quot;VALID&quot;</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        Variable scope</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    op : tf.Tensor</span>
+<span class="sd">        Output of deconvolution</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">name</span> <span class="ow">or</span> <span class="s1">&#39;deconv2d&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">k_h</span><span class="p">,</span> <span class="n">k_h</span><span class="p">,</span> <span class="n">n_output_ch</span><span class="p">,</span> <span class="n">n_input_ch</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer_conv2d</span><span class="p">())</span>
+
+        <span class="n">conv</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d_transpose</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;conv_t&#39;</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="n">W</span><span class="p">,</span>
+            <span class="n">output_shape</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_output_h</span><span class="p">,</span> <span class="n">n_output_w</span><span class="p">,</span> <span class="n">n_output_ch</span><span class="p">]),</span>
+            <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">d_h</span><span class="p">,</span> <span class="n">d_w</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
+
+        <span class="n">conv</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_output_h</span><span class="p">,</span> <span class="n">n_output_w</span><span class="p">,</span> <span class="n">n_output_ch</span><span class="p">])</span>
+
+        <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n_output_ch</span><span class="p">],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">conv</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">h</span><span class="p">,</span> <span class="n">W</span></div>
+
+
+<div class="viewcode-block" id="lrelu"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.lrelu">[docs]</a><span class="k">def</span> <span class="nf">lrelu</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">leak</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Leaky rectifier.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    features : tf.Tensor</span>
+<span class="sd">        Input to apply leaky rectifier to.</span>
+<span class="sd">    leak : float, optional</span>
+<span class="sd">        Percentage of leak.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    op : tf.Tensor</span>
+<span class="sd">        Resulting output of applying leaky rectifier activation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">f1</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">leak</span><span class="p">)</span>
+    <span class="n">f2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">leak</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">f1</span> <span class="o">*</span> <span class="n">features</span> <span class="o">+</span> <span class="n">f2</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">features</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="linear"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.linear">[docs]</a><span class="k">def</span> <span class="nf">linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_output</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fully connected layer.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : tf.Tensor</span>
+<span class="sd">        Input tensor to connect</span>
+<span class="sd">    n_output : int</span>
+<span class="sd">        Number of output neurons</span>
+<span class="sd">    name : None, optional</span>
+<span class="sd">        Scope to apply</span>
+<span class="sd">    activation : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    h, W : tf.Tensor, tf.Tensor</span>
+<span class="sd">        Output of fully connected layer and the weight matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">())</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+
+    <span class="n">n_input</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">name</span> <span class="ow">or</span> <span class="s2">&quot;fc&quot;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n_input</span><span class="p">,</span> <span class="n">n_output</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer</span><span class="p">())</span>
+
+        <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n_output</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">W</span><span class="p">),</span>
+            <span class="n">bias</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">activation</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">activation</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">h</span><span class="p">,</span> <span class="n">W</span></div>
+
+
+<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.flatten">[docs]</a><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Flatten Tensor to 2-dimensions.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : tf.Tensor</span>
+<span class="sd">        Input tensor to flatten.</span>
+<span class="sd">    name : None, optional</span>
+<span class="sd">        Variable scope for flatten operations</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    flattened : tf.Tensor</span>
+<span class="sd">        Flattened tensor.</span>
+<span class="sd">    </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;flatten&#39;</span><span class="p">):</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">flattened</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span>
+                <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">dims</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">dims</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">flattened</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Expected n dimensions of 1, 2 or 4.  Found:&#39;</span><span class="p">,</span>
+                             <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">flattened</span></div>
+
+
+<div class="viewcode-block" id="to_tensor"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.to_tensor">[docs]</a><span class="k">def</span> <span class="nf">to_tensor</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert 2 dim Tensor to a 4 dim Tensor ready for convolution.</span>
+<span class="sd">    </span>
+<span class="sd">    Performs the opposite of flatten(x).  If the tensor is already 4-D, this</span>
+<span class="sd">    returns the same as the input, leaving it unchanged.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : tf.Tesnor</span>
+<span class="sd">        Input 2-D tensor.  If 4-D already, left unchanged.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    x : tf.Tensor</span>
+<span class="sd">        4-D representation of the input.</span>
+<span class="sd">    </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the tensor is not 2D or already 4D.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">())</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">n_input</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">x_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_input</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x_dim</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">x_dim</span><span class="p">):</span>
+            <span class="n">x_dim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x_dim</span><span class="p">)</span>
+            <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">x_dim</span><span class="p">,</span> <span class="n">x_dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;reshape&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_input</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_input</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)):</span>
+            <span class="n">x_dim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n_input</span> <span class="o">/</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">x_dim</span><span class="p">,</span> <span class="n">x_dim</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;reshape&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_input</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;reshape&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">())</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported input dimensions&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x_tensor</span></div>
+
+
+<div class="viewcode-block" id="sample_categorical"><a class="viewcode-back" href="../../source/cadl.html#cadl.utils.sample_categorical">[docs]</a><span class="k">def</span> <span class="nf">sample_categorical</span><span class="p">(</span><span class="n">pmf</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sample from a categorical distribution.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pmf</span>
+<span class="sd">        Probablity mass function. Output of a softmax over categories.</span>
+<span class="sd">        Array of shape [batch_size, number of categories]. Rows sum to 1.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    idxs</span>
+<span class="sd">        Array of size [batch_size, 1]. Integer of category sampled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pmf</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">pmf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">pmf</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">pmf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cdf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">pmf</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">rand_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">batch_size</span><span class="p">)</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,])</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+        <span class="n">idxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cdf</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">rand_vals</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">idxs</span></div>
+
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

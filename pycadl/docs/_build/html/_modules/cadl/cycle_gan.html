@@ -1,0 +1,991 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.cycle_gan &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.cycle_gan</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.cycle_gan</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Cycle Generative Adversarial Network for Unpaired Image to Image translation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;Agg&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">tensorflow.contrib.layers</span> <span class="k">as</span> <span class="nn">tfl</span>
+<span class="kn">from</span> <span class="nn">cadl.utils</span> <span class="k">import</span> <span class="n">imcrop_tosquare</span>
+<span class="kn">from</span> <span class="nn">scipy.misc</span> <span class="k">import</span> <span class="n">imresize</span>
+
+
+<div class="viewcode-block" id="l1loss"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.l1loss">[docs]</a><span class="k">def</span> <span class="nf">l1loss</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    y : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="l2loss"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.l2loss">[docs]</a><span class="k">def</span> <span class="nf">l2loss</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    y : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">squared_difference</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="lrelu"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.lrelu">[docs]</a><span class="k">def</span> <span class="nf">lrelu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">leak</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lrelu&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    leak : float, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">leak</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="instance_norm"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.instance_norm">[docs]</a><span class="k">def</span> <span class="nf">instance_norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Instance Normalization.</span>
+
+<span class="sd">    See Ulyanov, D., Vedaldi, A., &amp; Lempitsky, V. (2016).</span>
+<span class="sd">    Instance Normalization: The Missing Ingredient for Fast Stylization,</span>
+<span class="sd">    Retrieved from http://arxiv.org/abs/1607.08022</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    epsilon : float, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;instance_norm&#39;</span><span class="p">):</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">var</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">moments</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">keep_dims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal_initializer</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="mf">0.02</span><span class="p">))</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;offset&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">mean</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">))</span> <span class="o">+</span> <span class="n">offset</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="conv2d"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.conv2d">[docs]</a><span class="k">def</span> <span class="nf">conv2d</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span>
+           <span class="n">activation_fn</span><span class="o">=</span><span class="n">lrelu</span><span class="p">,</span>
+           <span class="n">normalizer_fn</span><span class="o">=</span><span class="n">instance_norm</span><span class="p">,</span>
+           <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;conv2d&#39;</span><span class="p">,</span>
+           <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    inputs : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    activation_fn : TYPE, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    normalizer_fn : TYPE, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    scope : str, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">scope</span> <span class="ow">or</span> <span class="s1">&#39;conv2d&#39;</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tfl</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">normalizer_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">weights_initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal_initializer</span><span class="p">(</span><span class="n">stddev</span><span class="o">=</span><span class="mf">0.02</span><span class="p">),</span>
+            <span class="n">biases_initializer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">normalizer_fn</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">normalizer_fn</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">activation_fn</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">activation_fn</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">h</span></div>
+
+
+<div class="viewcode-block" id="conv2d_transpose"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.conv2d_transpose">[docs]</a><span class="k">def</span> <span class="nf">conv2d_transpose</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span>
+                     <span class="n">activation_fn</span><span class="o">=</span><span class="n">lrelu</span><span class="p">,</span>
+                     <span class="n">normalizer_fn</span><span class="o">=</span><span class="n">instance_norm</span><span class="p">,</span>
+                     <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;conv2d_transpose&#39;</span><span class="p">,</span>
+                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    inputs : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    activation_fn : TYPE, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    normalizer_fn : TYPE, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    scope : str, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">scope</span> <span class="ow">or</span> <span class="s1">&#39;conv2d_transpose&#39;</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tfl</span><span class="o">.</span><span class="n">conv2d_transpose</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">normalizer_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">weights_initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">truncated_normal_initializer</span><span class="p">(</span><span class="n">stddev</span><span class="o">=</span><span class="mf">0.02</span><span class="p">),</span>
+            <span class="n">biases_initializer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">normalizer_fn</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">normalizer_fn</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">activation_fn</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">activation_fn</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">h</span></div>
+
+
+<div class="viewcode-block" id="residual_block"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.residual_block">[docs]</a><span class="k">def</span> <span class="nf">residual_block</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_channels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_channels : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    kernel_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    scope : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">scope</span> <span class="ow">or</span> <span class="s1">&#39;residual&#39;</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="s2">&quot;REFLECT&quot;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_channels</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;VALID&#39;</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="s2">&quot;REFLECT&quot;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_channels</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;VALID&#39;</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;2&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h</span></div>
+
+
+<div class="viewcode-block" id="encoder"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.encoder">[docs]</a><span class="k">def</span> <span class="nf">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">k_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_filters : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    k_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    scope : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">scope</span> <span class="ow">or</span> <span class="s1">&#39;encoder&#39;</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">k_size</span><span class="p">,</span> <span class="n">k_size</span><span class="p">],</span> <span class="p">[</span><span class="n">k_size</span><span class="p">,</span> <span class="n">k_size</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
+                   <span class="s2">&quot;REFLECT&quot;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_filters</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;VALID&#39;</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_filters</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">k_size</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;2&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_filters</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">k_size</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h</span></div>
+
+
+<div class="viewcode-block" id="transform"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.transform">[docs]</a><span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">img_size</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    img_size : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="k">if</span> <span class="n">img_size</span> <span class="o">&gt;=</span> <span class="mi">256</span><span class="p">:</span>
+        <span class="n">n_blocks</span> <span class="o">=</span> <span class="mi">9</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_blocks</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="k">for</span> <span class="n">block_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;block_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">block_i</span><span class="p">)):</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">residual_block</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h</span></div>
+
+
+<div class="viewcode-block" id="decoder"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.decoder">[docs]</a><span class="k">def</span> <span class="nf">decoder</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">k_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_filters : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    k_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    scope : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">scope</span> <span class="ow">or</span> <span class="s1">&#39;decoder&#39;</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d_transpose</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_filters</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">k_size</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d_transpose</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_filters</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">k_size</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;2&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">k_size</span><span class="p">,</span> <span class="n">k_size</span><span class="p">],</span> <span class="p">[</span><span class="n">k_size</span><span class="p">,</span> <span class="n">k_size</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
+                   <span class="s2">&quot;REFLECT&quot;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;VALID&#39;</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">tanh</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h</span></div>
+
+
+<div class="viewcode-block" id="generator"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.generator">[docs]</a><span class="k">def</span> <span class="nf">generator</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    scope : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">img_size</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">scope</span> <span class="ow">or</span> <span class="s1">&#39;generator&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">img_size</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">decoder</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h</span></div>
+
+
+<div class="viewcode-block" id="discriminator"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.discriminator">[docs]</a><span class="k">def</span> <span class="nf">discriminator</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_filters</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">k_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_filters : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    k_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    scope : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    reuse : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">scope</span> <span class="ow">or</span> <span class="s1">&#39;discriminator&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_filters</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">k_size</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">normalizer_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_filters</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">k_size</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;2&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_filters</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">k_size</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="n">n_filters</span> <span class="o">*</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">k_size</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;4&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+            <span class="n">num_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">k_size</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;5&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">h</span></div>
+
+
+<div class="viewcode-block" id="cycle_gan"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.cycle_gan">[docs]</a><span class="k">def</span> <span class="nf">cycle_gan</span><span class="p">(</span><span class="n">img_size</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img_size : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X_real</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">Y_real</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">X_fake_sample</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;X_fake_sample&#39;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">Y_fake_sample</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Y_fake_sample&#39;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">X_fake</span> <span class="o">=</span> <span class="n">generator</span><span class="p">(</span><span class="n">Y_real</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;G_yx&#39;</span><span class="p">)</span>
+    <span class="n">Y_fake</span> <span class="o">=</span> <span class="n">generator</span><span class="p">(</span><span class="n">X_real</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;G_xy&#39;</span><span class="p">)</span>
+    <span class="n">X_cycle</span> <span class="o">=</span> <span class="n">generator</span><span class="p">(</span><span class="n">Y_fake</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;G_yx&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">Y_cycle</span> <span class="o">=</span> <span class="n">generator</span><span class="p">(</span><span class="n">X_fake</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;G_xy&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">D_X_real</span> <span class="o">=</span> <span class="n">discriminator</span><span class="p">(</span><span class="n">X_real</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;D_X&#39;</span><span class="p">)</span>
+    <span class="n">D_Y_real</span> <span class="o">=</span> <span class="n">discriminator</span><span class="p">(</span><span class="n">Y_real</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;D_Y&#39;</span><span class="p">)</span>
+    <span class="n">D_X_fake</span> <span class="o">=</span> <span class="n">discriminator</span><span class="p">(</span><span class="n">X_fake</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;D_X&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">D_Y_fake</span> <span class="o">=</span> <span class="n">discriminator</span><span class="p">(</span><span class="n">Y_fake</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;D_Y&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">D_X_fake_sample</span> <span class="o">=</span> <span class="n">discriminator</span><span class="p">(</span><span class="n">X_fake_sample</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;D_X&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">D_Y_fake_sample</span> <span class="o">=</span> <span class="n">discriminator</span><span class="p">(</span><span class="n">Y_fake_sample</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;D_Y&#39;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Create losses for generators</span>
+    <span class="n">l1</span> <span class="o">=</span> <span class="mf">10.0</span>
+    <span class="n">loss_cycle_X</span> <span class="o">=</span> <span class="n">l1</span> <span class="o">*</span> <span class="n">l1loss</span><span class="p">(</span><span class="n">X_real</span><span class="p">,</span> <span class="n">X_cycle</span><span class="p">)</span>
+    <span class="n">loss_cycle_Y</span> <span class="o">=</span> <span class="n">l1</span> <span class="o">*</span> <span class="n">l1loss</span><span class="p">(</span><span class="n">Y_real</span><span class="p">,</span> <span class="n">Y_cycle</span><span class="p">)</span>
+    <span class="n">loss_G_xy</span> <span class="o">=</span> <span class="n">l2loss</span><span class="p">(</span><span class="n">D_Y_fake</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">loss_G_yx</span> <span class="o">=</span> <span class="n">l2loss</span><span class="p">(</span><span class="n">D_X_fake</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">loss_G</span> <span class="o">=</span> <span class="n">loss_G_xy</span> <span class="o">+</span> <span class="n">loss_G_yx</span> <span class="o">+</span> <span class="n">loss_cycle_X</span> <span class="o">+</span> <span class="n">loss_cycle_Y</span>
+
+    <span class="c1"># Create losses for discriminators</span>
+    <span class="n">loss_D_Y</span> <span class="o">=</span> <span class="n">l2loss</span><span class="p">(</span><span class="n">D_Y_real</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">l2loss</span><span class="p">(</span><span class="n">D_Y_fake_sample</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">loss_D_X</span> <span class="o">=</span> <span class="n">l2loss</span><span class="p">(</span><span class="n">D_X_real</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">l2loss</span><span class="p">(</span><span class="n">D_X_fake_sample</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="c1"># Summaries for monitoring training</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_X_real&quot;</span><span class="p">,</span> <span class="n">D_X_real</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_Y_real&quot;</span><span class="p">,</span> <span class="n">D_Y_real</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_X_fake&quot;</span><span class="p">,</span> <span class="n">D_X_fake</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_Y_fake&quot;</span><span class="p">,</span> <span class="n">D_Y_fake</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_X_fake_sample&quot;</span><span class="p">,</span> <span class="n">D_X_fake_sample</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;D_Y_fake_sample&quot;</span><span class="p">,</span> <span class="n">D_Y_fake_sample</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;X_real&quot;</span><span class="p">,</span> <span class="n">X_real</span><span class="p">,</span> <span class="n">max_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;Y_real&quot;</span><span class="p">,</span> <span class="n">Y_real</span><span class="p">,</span> <span class="n">max_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;X_fake&quot;</span><span class="p">,</span> <span class="n">X_fake</span><span class="p">,</span> <span class="n">max_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;Y_fake&quot;</span><span class="p">,</span> <span class="n">Y_fake</span><span class="p">,</span> <span class="n">max_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;X_cycle&quot;</span><span class="p">,</span> <span class="n">X_cycle</span><span class="p">,</span> <span class="n">max_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;Y_cycle&quot;</span><span class="p">,</span> <span class="n">Y_cycle</span><span class="p">,</span> <span class="n">max_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;X_real&quot;</span><span class="p">,</span> <span class="n">X_real</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;Y_real&quot;</span><span class="p">,</span> <span class="n">Y_real</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;X_fake&quot;</span><span class="p">,</span> <span class="n">X_fake</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;Y_fake&quot;</span><span class="p">,</span> <span class="n">Y_fake</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;X_cycle&quot;</span><span class="p">,</span> <span class="n">X_cycle</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s2">&quot;Y_cycle&quot;</span><span class="p">,</span> <span class="n">Y_cycle</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;loss_D_X&quot;</span><span class="p">,</span> <span class="n">loss_D_X</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;loss_D_Y&quot;</span><span class="p">,</span> <span class="n">loss_D_Y</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;loss_cycle_X&quot;</span><span class="p">,</span> <span class="n">loss_cycle_X</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;loss_cycle_Y&quot;</span><span class="p">,</span> <span class="n">loss_cycle_Y</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;loss_G&quot;</span><span class="p">,</span> <span class="n">loss_G</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;loss_G_xy&quot;</span><span class="p">,</span> <span class="n">loss_G_xy</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;loss_G_yx&quot;</span><span class="p">,</span> <span class="n">loss_G_yx</span><span class="p">)</span>
+    <span class="n">summaries</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">merge_all</span><span class="p">()</span>
+
+    <span class="n">training_vars</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">trainable_variables</span><span class="p">()</span>
+    <span class="n">D_X_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">training_vars</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;D_X&#39;</span><span class="p">)]</span>
+    <span class="n">D_Y_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">training_vars</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;D_Y&#39;</span><span class="p">)]</span>
+    <span class="n">G_xy_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">training_vars</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;G_xy&#39;</span><span class="p">)]</span>
+    <span class="n">G_yx_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">training_vars</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;G_yx&#39;</span><span class="p">)]</span>
+    <span class="n">G_vars</span> <span class="o">=</span> <span class="n">G_xy_vars</span> <span class="o">+</span> <span class="n">G_yx_vars</span>
+
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_images"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.get_images">[docs]</a><span class="k">def</span> <span class="nf">get_images</span><span class="p">(</span><span class="n">path1</span><span class="p">,</span> <span class="n">path2</span><span class="p">,</span> <span class="n">img_size</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path1 : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    path2 : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    img_size : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">files1</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path1</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path1</span><span class="p">)]</span>
+    <span class="n">files2</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path2</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path2</span><span class="p">)]</span>
+    <span class="n">imgs1</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files1</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">imresize</span><span class="p">(</span><span class="n">imcrop_tosquare</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">f</span><span class="p">)),</span> <span class="p">(</span><span class="n">img_size</span><span class="p">,</span> <span class="n">img_size</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">imgs1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="n">imgs1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">img</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">imgs1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">imgs1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">127.5</span> <span class="o">-</span> <span class="mf">1.0</span>
+    <span class="n">imgs2</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files2</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">imresize</span><span class="p">(</span><span class="n">imcrop_tosquare</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">f</span><span class="p">)),</span> <span class="p">(</span><span class="n">img_size</span><span class="p">,</span> <span class="n">img_size</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">imgs2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="n">imgs2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">img</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">imgs2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">imgs2</span><span class="p">)</span> <span class="o">/</span> <span class="mf">127.5</span> <span class="o">-</span> <span class="mf">1.0</span>
+
+    <span class="k">return</span> <span class="n">imgs1</span><span class="p">,</span> <span class="n">imgs2</span></div>
+
+
+<div class="viewcode-block" id="batch_generator_dataset"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.batch_generator_dataset">[docs]</a><span class="k">def</span> <span class="nf">batch_generator_dataset</span><span class="p">(</span><span class="n">imgs1</span><span class="p">,</span> <span class="n">imgs2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    imgs1 : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    imgs2 : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Yields</span>
+<span class="sd">    ------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_imgs</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imgs1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgs2</span><span class="p">))</span>
+    <span class="n">rand_idxs1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imgs1</span><span class="p">)))[:</span><span class="n">n_imgs</span><span class="p">]</span>
+    <span class="n">rand_idxs2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imgs2</span><span class="p">)))[:</span><span class="n">n_imgs</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rand_idxs1</span><span class="p">,</span> <span class="n">rand_idxs2</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">imgs1</span><span class="p">[[</span><span class="n">idx1</span><span class="p">]],</span> <span class="n">imgs2</span><span class="p">[[</span><span class="n">idx2</span><span class="p">]]</span></div>
+
+
+<div class="viewcode-block" id="batch_generator_random_crop"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.batch_generator_random_crop">[docs]</a><span class="k">def</span> <span class="nf">batch_generator_random_crop</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">n_images</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    Y : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    min_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    max_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_images : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Yields</span>
+<span class="sd">    ------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">Xs</span><span class="p">,</span> <span class="n">Ys</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">img_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_images</span><span class="p">):</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">)</span>
+        <span class="n">max_r</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="n">size</span>
+        <span class="n">max_c</span> <span class="o">=</span> <span class="n">c</span> <span class="o">-</span> <span class="n">size</span>
+        <span class="n">this_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_r</span><span class="p">)</span>
+        <span class="n">this_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_c</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">imresize</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">this_r</span><span class="p">:</span><span class="n">this_r</span> <span class="o">+</span> <span class="n">size</span><span class="p">,</span> <span class="n">this_c</span><span class="p">:</span><span class="n">this_c</span> <span class="o">+</span> <span class="n">size</span><span class="p">,</span> <span class="p">:],</span>
+                       <span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">min_size</span><span class="p">))</span>
+        <span class="n">Xs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">imresize</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="n">this_r</span><span class="p">:</span><span class="n">this_r</span> <span class="o">+</span> <span class="n">size</span><span class="p">,</span> <span class="n">this_c</span><span class="p">:</span><span class="n">this_c</span> <span class="o">+</span> <span class="n">size</span><span class="p">,</span> <span class="p">:],</span>
+                       <span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">min_size</span><span class="p">))</span>
+        <span class="n">Ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">imgs1</span><span class="p">,</span> <span class="n">imgs2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Xs</span><span class="p">)</span> <span class="o">/</span> <span class="mf">127.5</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Ys</span><span class="p">)</span> <span class="o">/</span> <span class="mf">127.5</span> <span class="o">-</span> <span class="mf">1.0</span>
+    <span class="n">n_imgs</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imgs1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgs2</span><span class="p">))</span>
+    <span class="n">rand_idxs1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imgs1</span><span class="p">)))[:</span><span class="n">n_imgs</span><span class="p">]</span>
+    <span class="n">rand_idxs2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imgs2</span><span class="p">)))[:</span><span class="n">n_imgs</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rand_idxs1</span><span class="p">,</span> <span class="n">rand_idxs2</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">imgs1</span><span class="p">[[</span><span class="n">idx1</span><span class="p">]],</span> <span class="n">imgs2</span><span class="p">[[</span><span class="n">idx2</span><span class="p">]]</span></div>
+
+
+<div class="viewcode-block" id="train"><a class="viewcode-back" href="../../source/cadl.html#cadl.cycle_gan.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">ds_X</span><span class="p">,</span>
+          <span class="n">ds_Y</span><span class="p">,</span>
+          <span class="n">ckpt_path</span><span class="o">=</span><span class="s1">&#39;cycle_gan&#39;</span><span class="p">,</span>
+          <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0002</span><span class="p">,</span>
+          <span class="n">n_epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+          <span class="n">img_size</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ds_X : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    ds_Y : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    ckpt_path : str, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    learning_rate : float, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_epochs : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    img_size : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ds_X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">batch_generator</span> <span class="o">=</span> <span class="n">batch_generator_random_crop</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">batch_generator</span> <span class="o">=</span> <span class="n">batch_generator_dataset</span>
+
+    <span class="c1"># How many fake generations to keep around</span>
+    <span class="n">capacity</span> <span class="o">=</span> <span class="mi">50</span>
+
+    <span class="c1"># Storage for fake generations</span>
+    <span class="n">fake_Xs</span> <span class="o">=</span> <span class="n">capacity</span> <span class="o">*</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">fake_Ys</span> <span class="o">=</span> <span class="n">capacity</span> <span class="o">*</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">it_i</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Train</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span><span class="o">.</span><span class="n">as_default</span><span class="p">(),</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="c1"># Load the network</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">cycle_gan</span><span class="p">(</span><span class="n">img_size</span><span class="o">=</span><span class="n">img_size</span><span class="p">)</span>
+
+        <span class="c1"># Build optimizers</span>
+        <span class="n">D_X</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
+            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;loss_D_X&#39;</span><span class="p">],</span> <span class="n">var_list</span><span class="o">=</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;D_X_vars&#39;</span><span class="p">])</span>
+        <span class="n">D_Y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
+            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;loss_D_Y&#39;</span><span class="p">],</span> <span class="n">var_list</span><span class="o">=</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;D_Y_vars&#39;</span><span class="p">])</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
+            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;loss_G&#39;</span><span class="p">],</span> <span class="n">var_list</span><span class="o">=</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;G_vars&#39;</span><span class="p">])</span>
+
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+        <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">FileWriter</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_epochs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="ow">in</span> <span class="n">batch_generator</span><span class="p">(</span><span class="n">ds_X</span><span class="p">,</span> <span class="n">ds_Y</span><span class="p">):</span>
+
+                <span class="c1"># First generate in both directions</span>
+                <span class="n">X_fake</span><span class="p">,</span> <span class="n">Y_fake</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;X_fake&#39;</span><span class="p">],</span> <span class="n">net</span><span class="p">[</span><span class="s1">&#39;Y_fake&#39;</span><span class="p">]],</span>
+                    <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;X_real&#39;</span><span class="p">]:</span> <span class="n">X</span><span class="p">,</span>
+                               <span class="n">net</span><span class="p">[</span><span class="s1">&#39;Y_real&#39;</span><span class="p">]:</span> <span class="n">Y</span><span class="p">})</span>
+
+                <span class="c1"># Now sample from history</span>
+                <span class="k">if</span> <span class="n">it_i</span> <span class="o">&lt;</span> <span class="n">capacity</span><span class="p">:</span>
+                    <span class="c1"># Not enough samples yet, fill up history buffer</span>
+                    <span class="n">fake_Xs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">X_fake</span>
+                    <span class="n">fake_Ys</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">Y_fake</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">capacity</span>
+                <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+                    <span class="c1"># Swap out a random idx from history</span>
+                    <span class="n">rand_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">capacity</span><span class="p">)</span>
+                    <span class="n">fake_Xs</span><span class="p">[</span><span class="n">rand_idx</span><span class="p">],</span> <span class="n">X_fake</span> <span class="o">=</span> <span class="n">X_fake</span><span class="p">,</span> <span class="n">fake_Xs</span><span class="p">[</span><span class="n">rand_idx</span><span class="p">]</span>
+                    <span class="n">fake_Ys</span><span class="p">[</span><span class="n">rand_idx</span><span class="p">],</span> <span class="n">Y_fake</span> <span class="o">=</span> <span class="n">Y_fake</span><span class="p">,</span> <span class="n">fake_Ys</span><span class="p">[</span><span class="n">rand_idx</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Use current generation</span>
+                    <span class="k">pass</span>
+
+                <span class="c1"># Optimize G Networks</span>
+                <span class="n">loss_G</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;loss_G&#39;</span><span class="p">],</span> <span class="n">G</span><span class="p">],</span>
+                    <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;X_real&#39;</span><span class="p">]:</span> <span class="n">X</span><span class="p">,</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;Y_real&#39;</span><span class="p">]:</span> <span class="n">Y</span><span class="p">,</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;Y_fake_sample&#39;</span><span class="p">]:</span> <span class="n">Y_fake</span><span class="p">,</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;X_fake_sample&#39;</span><span class="p">]:</span> <span class="n">X_fake</span>
+                    <span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># Optimize D_Y</span>
+                <span class="n">loss_D_Y</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;loss_D_Y&#39;</span><span class="p">],</span> <span class="n">D_Y</span><span class="p">],</span>
+                    <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;X_real&#39;</span><span class="p">]:</span> <span class="n">X</span><span class="p">,</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;Y_real&#39;</span><span class="p">]:</span> <span class="n">Y</span><span class="p">,</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;Y_fake_sample&#39;</span><span class="p">]:</span> <span class="n">Y_fake</span>
+                    <span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># Optimize D_X</span>
+                <span class="n">loss_D_X</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;loss_D_X&#39;</span><span class="p">],</span> <span class="n">D_X</span><span class="p">],</span>
+                    <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;X_real&#39;</span><span class="p">]:</span> <span class="n">X</span><span class="p">,</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;Y_real&#39;</span><span class="p">]:</span> <span class="n">Y</span><span class="p">,</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;X_fake_sample&#39;</span><span class="p">]:</span> <span class="n">X_fake</span>
+                    <span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="n">it_i</span><span class="p">,</span> <span class="s1">&#39;G:&#39;</span><span class="p">,</span> <span class="n">loss_G</span><span class="p">,</span> <span class="s1">&#39;D_X:&#39;</span><span class="p">,</span> <span class="n">loss_D_X</span><span class="p">,</span> <span class="s1">&#39;D_Y:&#39;</span><span class="p">,</span> <span class="n">loss_D_Y</span><span class="p">)</span>
+
+                <span class="c1"># Update summaries</span>
+                <span class="k">if</span> <span class="n">it_i</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">summary</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;summaries&#39;</span><span class="p">],</span>
+                        <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;X_real&#39;</span><span class="p">]:</span> <span class="n">X</span><span class="p">,</span>
+                            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;Y_real&#39;</span><span class="p">]:</span> <span class="n">Y</span><span class="p">,</span>
+                            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;X_fake_sample&#39;</span><span class="p">]:</span> <span class="n">X_fake</span><span class="p">,</span>
+                            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;Y_fake_sample&#39;</span><span class="p">]:</span> <span class="n">Y_fake</span>
+                        <span class="p">})</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">it_i</span><span class="p">)</span>
+                <span class="n">it_i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Save</span>
+            <span class="k">if</span> <span class="n">epoch_i</span> <span class="o">%</span> <span class="mi">50</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+                    <span class="n">sess</span><span class="p">,</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">,</span> <span class="s1">&#39;model.ckpt&#39;</span><span class="p">),</span>
+                    <span class="n">global_step</span><span class="o">=</span><span class="n">epoch_i</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,660 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.pixelcnn &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.pixelcnn</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.pixelcnn</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Conditional Gated Pixel CNN.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Thanks to many reference implementations</span>
+<span class="sd">----------------------------------------</span>
+<span class="sd">https://github.com/anantzoid/Conditional-PixelCNN-decoder</span>
+<span class="sd">https://github.com/openai/pixel-cnn</span>
+<span class="sd">https://github.com/PrajitR/fast-pixel-cnn</span>
+
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">cadl</span> <span class="k">import</span> <span class="n">dataset_utils</span> <span class="k">as</span> <span class="n">dsu</span>
+
+
+<div class="viewcode-block" id="gated_conv2d"><a class="viewcode-back" href="../../source/cadl.html#cadl.pixelcnn.gated_conv2d">[docs]</a><span class="k">def</span> <span class="nf">gated_conv2d</span><span class="p">(</span><span class="n">X</span><span class="p">,</span>
+                 <span class="n">K_h</span><span class="p">,</span>
+                 <span class="n">K_w</span><span class="p">,</span>
+                 <span class="n">K_c</span><span class="p">,</span>
+                 <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                 <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span>
+                 <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">cond_h</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">vertical_h</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    K_h : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    K_w : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    K_c : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    strides : list, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    padding : str, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    mask : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    cond_h : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    vertical_h : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;masked_cnn&#39;</span><span class="p">):</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">K_h</span><span class="p">,</span> <span class="n">K_w</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">K_c</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer_conv2d</span><span class="p">())</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">K_c</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span> <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_initializer</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span>
+        <span class="c1"># Initial convolution with masked kernel</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">),</span> <span class="n">b</span><span class="p">)</span>
+
+    <span class="c1"># Combine the horizontal stack&#39;s pre-activations to our hidden embedding before</span>
+    <span class="c1"># applying the split nonlinearities.  Check Figure 2 for details.</span>
+    <span class="k">if</span> <span class="n">vertical_h</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;vtoh&#39;</span><span class="p">):</span>
+            <span class="n">W_vtoh</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">,</span>
+                <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">K_c</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">K_c</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span>
+                <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer_conv2d</span><span class="p">())</span>
+            <span class="n">b_vtob</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">K_c</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span> <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_initializer</span><span class="p">())</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">h</span><span class="p">,</span>
+                       <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span>
+                               <span class="n">vertical_h</span><span class="p">,</span>
+                               <span class="n">W_vtoh</span><span class="p">,</span>
+                               <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+                               <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">),</span> <span class="n">b_vtob</span><span class="p">))</span>
+
+    <span class="c1"># Condition on some given data</span>
+    <span class="k">if</span> <span class="n">cond_h</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;conditioning&#39;</span><span class="p">):</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">cond_h</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">K_c</span><span class="p">],</span>
+                <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer_conv2d</span><span class="p">())</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">K_c</span><span class="p">],</span> <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_initializer</span><span class="p">())</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">h</span><span class="p">,</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">cond_h</span><span class="p">,</span> <span class="n">V</span><span class="p">),</span> <span class="n">b</span><span class="p">),</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">X</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">K_c</span><span class="p">]),</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;gated_cnn&#39;</span><span class="p">):</span>
+        <span class="c1"># Finally slice and apply gated multiplier</span>
+        <span class="n">h_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">K_c</span><span class="p">])</span>
+        <span class="n">h_g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">K_c</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">K_c</span><span class="p">])</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">h_f</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">h_g</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">h</span></div>
+
+
+<div class="viewcode-block" id="build_conditional_pixel_cnn_model"><a class="viewcode-back" href="../../source/cadl.html#cadl.pixelcnn.build_conditional_pixel_cnn_model">[docs]</a><span class="k">def</span> <span class="nf">build_conditional_pixel_cnn_model</span><span class="p">(</span><span class="n">B</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                      <span class="n">H</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                                      <span class="n">W</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                                      <span class="n">C</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                      <span class="n">n_conditionals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Conditional Gated Pixel CNN Model.</span>
+
+<span class="sd">    From the paper</span>
+<span class="sd">    --------------</span>
+<span class="sd">        van den Oord, A., Kalchbrenner, N., Vinyals, O.,</span>
+<span class="sd">        Espeholt, L., Graves, A., &amp; Kavukcuoglu, K. (2016).</span>
+<span class="sd">        Conditional Image Generation with PixelCNN Decoders.</span>
+
+<span class="sd">    Implements most of the paper, except for the autoencoder,</span>
+<span class="sd">    triplet loss of face embeddings, and pad/crop/shift ops for</span>
+<span class="sd">    convolution (as it is not as clear IMO from a pedagogical</span>
+<span class="sd">    point of view).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    B : None, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    H : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    W : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    C : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_conditionals : None, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_conditionals</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">C</span><span class="p">])</span>
+
+    <span class="n">X_</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-</span> <span class="mf">127.5</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+    <span class="n">n_layers</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="mi">256</span>
+    <span class="n">fmaps</span> <span class="o">=</span> <span class="mi">64</span>
+
+    <span class="n">K_hs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_layers</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">K_ws</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span> <span class="o">*</span> <span class="n">C</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">3</span> <span class="o">*</span> <span class="n">C</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_layers</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">K_cs</span> <span class="o">=</span> <span class="p">[</span><span class="n">fmaps</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_layers</span>
+
+    <span class="k">if</span> <span class="n">n_conditionals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cond_h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cond_h&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_conditionals</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cond_h</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">vertical_X</span> <span class="o">=</span> <span class="n">X_</span>
+    <span class="n">horizontal_X</span> <span class="o">=</span> <span class="n">X_</span>
+    <span class="k">for</span> <span class="n">K_h</span><span class="p">,</span> <span class="n">K_w</span><span class="p">,</span> <span class="n">K_c</span><span class="p">,</span> <span class="n">layer_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">K_hs</span><span class="p">,</span> <span class="n">K_ws</span><span class="p">,</span> <span class="n">K_cs</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_layers</span><span class="p">)):</span>
+
+        <span class="c1"># Create two masks: one for the first layer (a) and another for all</span>
+        <span class="c1"># other layers (b). Really dumb names but am just following the paper.</span>
+        <span class="c1"># See Figure 2 of Pixel Recurrent Neural Networks for more info.</span>
+        <span class="k">if</span> <span class="n">layer_i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">K_h</span><span class="p">,</span> <span class="n">K_w</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">mask</span><span class="p">[(</span><span class="n">K_h</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">mask</span><span class="p">[</span><span class="n">K_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">K_w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">K_h</span><span class="p">,</span> <span class="n">K_w</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">mask</span><span class="p">[(</span><span class="n">K_h</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">mask</span><span class="p">[</span><span class="n">K_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">K_w</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;layer_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">layer_i</span><span class="p">)):</span>
+            <span class="c1"># Vertical layer</span>
+            <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;vertical&#39;</span><span class="p">):</span>
+                <span class="n">vertical_Y</span><span class="p">,</span> <span class="n">vertical_h</span> <span class="o">=</span> <span class="n">gated_conv2d</span><span class="p">(</span>
+                    <span class="n">vertical_X</span><span class="p">,</span> <span class="n">K_h</span><span class="p">,</span> <span class="n">K_w</span><span class="p">,</span> <span class="n">K_c</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">cond_h</span><span class="o">=</span><span class="n">cond_h</span><span class="p">)</span>
+
+            <span class="c1"># Horizontal layer</span>
+            <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;horizontal&#39;</span><span class="p">):</span>
+
+                <span class="c1"># Gated convolution adding in vertical stack information</span>
+                <span class="n">horizontal_Y</span><span class="p">,</span> <span class="n">horizontal_h</span> <span class="o">=</span> <span class="n">gated_conv2d</span><span class="p">(</span>
+                    <span class="n">horizontal_X</span><span class="p">,</span>
+                    <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">K_w</span><span class="p">,</span>
+                    <span class="n">K_c</span><span class="p">,</span>
+                    <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">[</span><span class="n">K_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:],</span>
+                    <span class="n">vertical_h</span><span class="o">=</span><span class="n">vertical_h</span><span class="p">,</span>
+                    <span class="n">cond_h</span><span class="o">=</span><span class="n">cond_h</span><span class="p">)</span>
+
+                <span class="c1"># 1x1 to reduce channels</span>
+                <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;1x1&#39;</span><span class="p">):</span>
+                    <span class="n">W_1x1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">,</span>
+                        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">K_c</span><span class="p">,</span> <span class="n">D</span><span class="p">],</span>
+                        <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer_conv2d</span><span class="p">())</span>
+                    <span class="n">b_1x1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">D</span><span class="p">],</span> <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">ones_initializer</span><span class="p">())</span>
+                    <span class="n">horizontal_Y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+                        <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span>
+                            <span class="n">horizontal_Y</span><span class="p">,</span>
+                            <span class="n">W_1x1</span><span class="p">,</span>
+                            <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                            <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">),</span> <span class="n">b_1x1</span><span class="p">)</span>
+
+                <span class="c1"># Add Residual</span>
+                <span class="k">if</span> <span class="n">layer_i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;residual&#39;</span><span class="p">):</span>
+                        <span class="n">horizontal_Y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">horizontal_X</span><span class="p">,</span> <span class="n">horizontal_Y</span><span class="p">)</span>
+
+            <span class="n">vertical_X</span> <span class="o">=</span> <span class="n">vertical_Y</span>
+            <span class="n">horizontal_X</span> <span class="o">=</span> <span class="n">horizontal_Y</span>
+
+    <span class="c1"># ReLu followed by 1x1 conv for 2 layers:</span>
+    <span class="c1"># 1x1 to reduce channels</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">horizontal_X</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;output/1x1_1&#39;</span><span class="p">):</span>
+        <span class="n">W_1x1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="p">],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer_conv2d</span><span class="p">())</span>
+        <span class="n">b_1x1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">D</span><span class="p">],</span> <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">ones_initializer</span><span class="p">())</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">W_1x1</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">),</span>
+                <span class="n">b_1x1</span><span class="p">))</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;output/1x1_2&#39;</span><span class="p">):</span>
+        <span class="n">W_1x1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">D</span> <span class="o">*</span> <span class="n">C</span><span class="p">],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">xavier_initializer_conv2d</span><span class="p">())</span>
+        <span class="n">b_1x1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">D</span> <span class="o">*</span> <span class="n">C</span><span class="p">],</span> <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">ones_initializer</span><span class="p">())</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">W_1x1</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">),</span> <span class="n">b_1x1</span><span class="p">)</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">])</span>
+
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sparse_softmax_cross_entropy_with_logits</span><span class="p">(</span>
+        <span class="n">logits</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+    <span class="n">preds</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+    <span class="n">sampled_preds</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">multinomial</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s1">&#39;actual&#39;</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s1">&#39;preds&#39;</span><span class="p">,</span>
+                     <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                         <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span>
+                                                                   <span class="n">C</span><span class="p">)))</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">loss</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
+    <span class="n">summaries</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">merge_all</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;cost&#39;</span><span class="p">:</span> <span class="n">cost</span><span class="p">,</span>
+        <span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span>
+        <span class="s1">&#39;preds&#39;</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
+        <span class="s1">&#39;sampled_preds&#39;</span><span class="p">:</span> <span class="n">sampled_preds</span><span class="p">,</span>
+        <span class="s1">&#39;summaries&#39;</span><span class="p">:</span> <span class="n">summaries</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="train_tiny_imagenet"><a class="viewcode-back" href="../../source/cadl.html#cadl.pixelcnn.train_tiny_imagenet">[docs]</a><span class="k">def</span> <span class="nf">train_tiny_imagenet</span><span class="p">(</span><span class="n">ckpt_path</span><span class="o">=</span><span class="s1">&#39;pixelcnn&#39;</span><span class="p">,</span>
+                        <span class="n">n_epochs</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                        <span class="n">save_step</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                        <span class="n">write_step</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+                        <span class="n">B</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                        <span class="n">H</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+                        <span class="n">W</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+                        <span class="n">C</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ckpt_path : str, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_epochs : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    save_step : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    write_step : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    B : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    H : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    W : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    C : int, optional</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ckpt_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">,</span> <span class="s1">&#39;pixelcnn.ckpt&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span><span class="o">.</span><span class="n">as_default</span><span class="p">(),</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="c1"># Not actually conditioning on anything here just using the gated cnn model</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">build_conditional_pixel_cnn_model</span><span class="p">(</span><span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="o">=</span><span class="n">W</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="n">C</span><span class="p">)</span>
+
+        <span class="c1"># build the optimizer (this will take a while!)</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Load a list of files for tiny imagenet, downloading if necessary</span>
+        <span class="n">imagenet_files</span> <span class="o">=</span> <span class="n">dsu</span><span class="o">.</span><span class="n">tiny_imagenet_load</span><span class="p">()</span>
+
+        <span class="c1"># Create a threaded image pipeline which will load/shuffle/crop/resize</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="n">dsu</span><span class="o">.</span><span class="n">create_input_pipeline</span><span class="p">(</span>
+            <span class="n">imagenet_files</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">B</span><span class="p">,</span>
+            <span class="n">n_epochs</span><span class="o">=</span><span class="n">n_epochs</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+            <span class="n">crop_shape</span><span class="o">=</span><span class="p">[</span><span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">C</span><span class="p">],</span>
+            <span class="n">crop_factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">n_threads</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+        <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">FileWriter</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">)</span>
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+
+        <span class="c1"># This will handle our threaded image pipeline</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Coordinator</span><span class="p">()</span>
+
+        <span class="c1"># Ensure no more changes to graph</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">get_default_graph</span><span class="p">()</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
+
+        <span class="c1"># Start up the queues for handling the image pipeline</span>
+        <span class="n">threads</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">start_queue_runners</span><span class="p">(</span><span class="n">sess</span><span class="o">=</span><span class="n">sess</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="n">coord</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ckpt_name</span> <span class="o">+</span> <span class="s1">&#39;.index&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ckpt_name</span><span class="p">):</span>
+            <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">ckpt_name</span><span class="p">)</span>
+            <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">))</span>
+
+        <span class="n">epoch_i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">batch_i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">coord</span><span class="o">.</span><span class="n">should_stop</span><span class="p">()</span> <span class="ow">and</span> <span class="n">epoch_i</span> <span class="o">&lt;</span> <span class="n">n_epochs</span><span class="p">:</span>
+                <span class="n">batch_i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">batch_xs</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+                <span class="n">train_cost</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">],</span> <span class="n">optimizer</span><span class="p">],</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]:</span> <span class="n">batch_xs</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="n">batch_i</span><span class="p">,</span> <span class="n">train_cost</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">batch_i</span> <span class="o">%</span> <span class="n">write_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">summary</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;summaries&#39;</span><span class="p">],</span> <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]:</span> <span class="n">batch_xs</span><span class="p">})</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">batch_i</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">batch_i</span> <span class="o">%</span> <span class="n">save_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Save the variables to disk.  Don&#39;t write the meta graph</span>
+                    <span class="c1"># since we can use the code to create it, and it takes a long</span>
+                    <span class="c1"># time to create the graph since it is so deep</span>
+                    <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+                        <span class="n">sess</span><span class="p">,</span>
+                        <span class="n">ckpt_name</span><span class="p">,</span>
+                        <span class="n">global_step</span><span class="o">=</span><span class="n">batch_i</span><span class="p">,</span>
+                        <span class="n">write_meta_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">tf</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">OutOfRangeError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done.&#39;</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># One of the threads has issued an exception.  So let&#39;s tell all the</span>
+            <span class="c1"># threads to shutdown.</span>
+            <span class="n">coord</span><span class="o">.</span><span class="n">request_stop</span><span class="p">()</span>
+
+        <span class="c1"># Wait until all threads have finished.</span>
+        <span class="n">coord</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">threads</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate"><a class="viewcode-back" href="../../source/cadl.html#cadl.pixelcnn.generate">[docs]</a><span class="k">def</span> <span class="nf">generate</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Parameters for generation</span>
+    <span class="n">ckpt_path</span> <span class="o">=</span> <span class="s1">&#39;pixelcnn&#39;</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="mi">64</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="mi">64</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="mi">3</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span><span class="o">.</span><span class="n">as_default</span><span class="p">(),</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="c1"># Not actually conditioning on anything here just using the gated cnn model</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">build_conditional_pixel_cnn_model</span><span class="p">(</span><span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="o">=</span><span class="n">W</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="n">C</span><span class="p">)</span>
+
+        <span class="c1"># Load a list of files for tiny imagenet, downloading if necessary</span>
+        <span class="n">imagenet_files</span> <span class="o">=</span> <span class="n">dsu</span><span class="o">.</span><span class="n">tiny_imagenet_load</span><span class="p">()</span>
+
+        <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+        <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+        <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">))</span>
+
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">imagenet_files</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1000</span><span class="p">])</span>
+        <span class="kn">from</span> <span class="nn">scipy.misc</span> <span class="k">import</span> <span class="n">imresize</span>
+        <span class="n">og_img</span> <span class="o">=</span> <span class="n">imresize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">))</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">og_img</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># Zero out bottom half of image and let&#39;s try to synthesize it</span>
+        <span class="n">img</span><span class="p">[</span><span class="n">H</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">h_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">H</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">H</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">w_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">W</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">c_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">C</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">h_i</span><span class="p">,</span> <span class="n">w_i</span><span class="p">,</span> <span class="n">c_i</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">X</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="n">preds</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                        <span class="n">net</span><span class="p">[</span><span class="s1">&#39;sampled_preds&#39;</span><span class="p">],</span>
+                        <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]:</span> <span class="n">X</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]})</span>
+                    <span class="n">X</span> <span class="o">=</span> <span class="n">preds</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+                    <span class="n">img</span><span class="p">[</span><span class="n">h_i</span><span class="p">,</span> <span class="n">w_i</span><span class="p">,</span> <span class="n">c_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">h_i</span><span class="p">,</span> <span class="n">w_i</span><span class="p">,</span> <span class="n">c_i</span><span class="p">]</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">og_img</span><span class="p">)</span>
+        <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">train_tiny_imagenet</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

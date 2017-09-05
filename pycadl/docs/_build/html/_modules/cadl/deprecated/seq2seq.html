@@ -1,0 +1,696 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.deprecated.seq2seq &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.deprecated.seq2seq</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.deprecated.seq2seq</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Sequence to Sequence models w/ Attention and BiDirectional Dynamic RNNs.</span>
+
+<span class="sd">Parag K. Mital</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">cadl</span> <span class="k">import</span> <span class="n">cornell</span>
+
+<span class="c1"># Special vocabulary symbols:</span>
+<span class="c1"># PAD is used to pad a sequence to a fixed size</span>
+<span class="c1"># GO is for the end of the encoding</span>
+<span class="c1"># EOS is for the end of decoding</span>
+<span class="c1"># UNK is for out of vocabulary words</span>
+<span class="n">_PAD</span><span class="p">,</span> <span class="n">_GO</span><span class="p">,</span> <span class="n">_EOS</span><span class="p">,</span> <span class="n">_UNK</span> <span class="o">=</span> <span class="s2">&quot;_PAD&quot;</span><span class="p">,</span> <span class="s2">&quot;_GO&quot;</span><span class="p">,</span> <span class="s2">&quot;_EOS&quot;</span><span class="p">,</span> <span class="s2">&quot;_UNK&quot;</span>
+<span class="n">_START_VOCAB</span> <span class="o">=</span> <span class="p">[</span><span class="n">_PAD</span><span class="p">,</span> <span class="n">_GO</span><span class="p">,</span> <span class="n">_EOS</span><span class="p">,</span> <span class="n">_UNK</span><span class="p">]</span>
+<span class="n">PAD_ID</span><span class="p">,</span> <span class="n">GO_ID</span><span class="p">,</span> <span class="n">EOS_ID</span><span class="p">,</span> <span class="n">UNK_ID</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_create_embedding</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_size</span><span class="p">,</span> <span class="n">embed_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Creating an embedding matrix if one isn&#39;t given</span>
+    <span class="k">if</span> <span class="n">embed_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># This is a big matrix</span>
+        <span class="n">embed_matrix</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;embedding_matrix&quot;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">embed_size</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">random_uniform_initializer</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+
+    <span class="c1"># Perform the lookup of ids in x and perform the embedding to embed_size</span>
+    <span class="c1"># [batch_size, max_time, embed_size]</span>
+    <span class="n">embed</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="n">embed_matrix</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">embed</span><span class="p">,</span> <span class="n">embed_matrix</span>
+
+
+<span class="k">def</span> <span class="nf">_create_encoder</span><span class="p">(</span><span class="n">embed</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">n_enc_neurons</span><span class="p">,</span> <span class="n">n_layers</span><span class="p">,</span>
+                    <span class="n">use_lstm</span><span class="p">):</span>
+    <span class="c1"># Create the RNN Cells for encoder</span>
+    <span class="k">if</span> <span class="n">use_lstm</span><span class="p">:</span>
+        <span class="n">cell_fw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">BasicLSTMCell</span><span class="p">(</span><span class="n">n_enc_neurons</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cell_fw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">n_enc_neurons</span><span class="p">)</span>
+
+    <span class="c1"># Build deeper recurrent net if using more than 1 layer</span>
+    <span class="k">if</span> <span class="n">n_layers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">cell_fw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">([</span><span class="n">cell_fw</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_layers</span><span class="p">)</span>
+
+    <span class="c1"># Create the internal multi-layer cell for the backward RNN.</span>
+    <span class="k">if</span> <span class="n">use_lstm</span><span class="p">:</span>
+        <span class="n">cell_bw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">BasicLSTMCell</span><span class="p">(</span><span class="n">n_enc_neurons</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cell_bw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">n_enc_neurons</span><span class="p">)</span>
+
+    <span class="c1"># Build deeper recurrent net if using more than 1 layer</span>
+    <span class="k">if</span> <span class="n">n_layers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">cell_bw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">([</span><span class="n">cell_bw</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_layers</span><span class="p">)</span>
+
+    <span class="c1"># Now hookup the cells to the input</span>
+    <span class="c1"># [batch_size, max_time, embed_size]</span>
+    <span class="c1"># We only use the forward cell&#39;s final state since the decoder is</span>
+    <span class="c1"># not a bidirectional rnn</span>
+    <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">final_state</span><span class="p">)</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bidirectional_dynamic_rnn</span><span class="p">(</span>
+        <span class="n">cell_fw</span><span class="o">=</span><span class="n">cell_fw</span><span class="p">,</span>
+        <span class="n">cell_bw</span><span class="o">=</span><span class="n">cell_bw</span><span class="p">,</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">embed</span><span class="p">,</span>
+        <span class="n">sequence_length</span><span class="o">=</span><span class="n">lengths</span><span class="p">,</span>
+        <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">final_state</span>
+
+
+<span class="k">def</span> <span class="nf">_create_train_decoder</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">encoder_state</span><span class="p">,</span> <span class="n">encoding_lengths</span><span class="p">,</span> <span class="n">decoding</span><span class="p">,</span>
+                          <span class="n">decoding_lengths</span><span class="p">,</span> <span class="n">embed_matrix</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span>
+                          <span class="n">target_vocab_size</span><span class="p">,</span> <span class="n">use_attention</span><span class="p">,</span> <span class="n">n_dec_neurons</span><span class="p">,</span>
+                          <span class="n">scope</span><span class="p">,</span> <span class="n">output_fn</span><span class="p">,</span> <span class="n">max_sequence_size</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">use_attention</span><span class="p">:</span>
+        <span class="n">attention_states</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cells</span><span class="o">.</span><span class="n">output_size</span><span class="p">])</span>
+        <span class="c1"># Pass in the final hidden states of the encoder&#39;s RNN which it will</span>
+        <span class="c1"># attend over... thus determining which ones are useful for the</span>
+        <span class="c1"># decoding.</span>
+        <span class="p">(</span><span class="n">attn_keys</span><span class="p">,</span> <span class="n">attn_vals</span><span class="p">,</span> <span class="n">attn_score_fn</span><span class="p">,</span> <span class="n">attn_construct_fn</span><span class="p">)</span> <span class="o">=</span> \
+            <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">prepare_attention</span><span class="p">(</span>
+                <span class="n">attention_states</span><span class="o">=</span><span class="n">attention_states</span><span class="p">,</span>
+                <span class="n">attention_option</span><span class="o">=</span><span class="s1">&#39;bahdanau&#39;</span><span class="p">,</span>
+                <span class="n">num_units</span><span class="o">=</span><span class="n">n_dec_neurons</span><span class="p">)</span>
+
+        <span class="c1"># Use the final state of the encoder as input and build a decoder also</span>
+        <span class="c1"># taking information from the attention module acting on the encoder_state.</span>
+        <span class="n">decoder_fn</span> <span class="o">=</span> \
+            <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">attention_decoder_fn_train</span><span class="p">(</span>
+                <span class="n">encoder_state</span><span class="o">=</span><span class="n">encoder_state</span><span class="p">,</span>
+                <span class="n">attention_keys</span><span class="o">=</span><span class="n">attn_keys</span><span class="p">,</span>
+                <span class="n">attention_values</span><span class="o">=</span><span class="n">attn_vals</span><span class="p">,</span>
+                <span class="n">attention_score_fn</span><span class="o">=</span><span class="n">attn_score_fn</span><span class="p">,</span>
+                <span class="n">attention_construct_fn</span><span class="o">=</span><span class="n">attn_construct_fn</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Build training decoder function</span>
+        <span class="n">decoder_fn</span> <span class="o">=</span> \
+            <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">simple_decoder_fn_train</span><span class="p">(</span>
+                <span class="n">encoder_state</span><span class="o">=</span><span class="n">encoder_state</span><span class="p">)</span>
+
+    <span class="c1"># Build training rnn decoder</span>
+    <span class="n">outputs</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">dynamic_rnn_decoder</span><span class="p">(</span>
+        <span class="n">cell</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span>
+        <span class="n">decoder_fn</span><span class="o">=</span><span class="n">decoder_fn</span><span class="p">,</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">decoding</span><span class="p">,</span>
+        <span class="n">sequence_length</span><span class="o">=</span><span class="n">decoding_lengths</span><span class="p">,</span>
+        <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">)</span>
+
+    <span class="c1"># Convert to vocab size</span>
+    <span class="n">train_logits</span> <span class="o">=</span> <span class="n">output_fn</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">train_logits</span>
+
+
+<span class="k">def</span> <span class="nf">_create_inference_decoder</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">encoder_state</span><span class="p">,</span> <span class="n">encoding_lengths</span><span class="p">,</span> <span class="n">decoding</span><span class="p">,</span>
+                              <span class="n">decoding_lengths</span><span class="p">,</span> <span class="n">embed_matrix</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span>
+                              <span class="n">n_dec_neurons</span><span class="p">,</span> <span class="n">target_vocab_size</span><span class="p">,</span> <span class="n">use_attention</span><span class="p">,</span>
+                              <span class="n">scope</span><span class="p">,</span> <span class="n">output_fn</span><span class="p">,</span> <span class="n">max_sequence_size</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">use_attention</span><span class="p">:</span>
+        <span class="n">attention_states</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cells</span><span class="o">.</span><span class="n">output_size</span><span class="p">])</span>
+        <span class="c1"># Pass in the final hidden states of the encoder&#39;s RNN which it will</span>
+        <span class="c1"># attend over... thus determining which ones are useful for the</span>
+        <span class="c1"># decoding.</span>
+        <span class="p">(</span><span class="n">attn_keys</span><span class="p">,</span> <span class="n">attn_vals</span><span class="p">,</span> <span class="n">attn_score_fn</span><span class="p">,</span> <span class="n">attn_construct_fn</span><span class="p">)</span> <span class="o">=</span> \
+            <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">prepare_attention</span><span class="p">(</span>
+                <span class="n">attention_states</span><span class="o">=</span><span class="n">attention_states</span><span class="p">,</span>
+                <span class="n">attention_option</span><span class="o">=</span><span class="s1">&#39;bahdanau&#39;</span><span class="p">,</span>
+                <span class="n">num_units</span><span class="o">=</span><span class="n">n_dec_neurons</span><span class="p">)</span>
+
+        <span class="c1"># Build a separate inference network to use during generation.</span>
+        <span class="n">decoder_fn_inference</span> <span class="o">=</span> \
+            <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">attention_decoder_fn_inference</span><span class="p">(</span>
+                <span class="n">output_fn</span><span class="o">=</span><span class="n">output_fn</span><span class="p">,</span>
+                <span class="n">encoder_state</span><span class="o">=</span><span class="n">encoder_state</span><span class="p">,</span>
+                <span class="n">attention_keys</span><span class="o">=</span><span class="n">attn_keys</span><span class="p">,</span>
+                <span class="n">attention_values</span><span class="o">=</span><span class="n">attn_vals</span><span class="p">,</span>
+                <span class="n">attention_score_fn</span><span class="o">=</span><span class="n">attn_score_fn</span><span class="p">,</span>
+                <span class="n">attention_construct_fn</span><span class="o">=</span><span class="n">attn_construct_fn</span><span class="p">,</span>
+                <span class="n">embeddings</span><span class="o">=</span><span class="n">embed_matrix</span><span class="p">,</span>
+                <span class="n">start_of_sequence_id</span><span class="o">=</span><span class="n">GO_ID</span><span class="p">,</span>
+                <span class="n">end_of_sequence_id</span><span class="o">=</span><span class="n">EOS_ID</span><span class="p">,</span>
+                <span class="n">maximum_length</span><span class="o">=</span><span class="n">max_sequence_size</span><span class="p">,</span>
+                <span class="n">num_decoder_symbols</span><span class="o">=</span><span class="n">target_vocab_size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Build inference decoder function</span>
+        <span class="n">decoder_fn_inference</span> <span class="o">=</span> \
+            <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">simple_decoder_fn_inference</span><span class="p">(</span>
+                <span class="n">output_fn</span><span class="o">=</span><span class="n">output_fn</span><span class="p">,</span>
+                <span class="n">encoder_state</span><span class="o">=</span><span class="n">encoder_state</span><span class="p">,</span>
+                <span class="n">embeddings</span><span class="o">=</span><span class="n">embed_matrix</span><span class="p">,</span>
+                <span class="n">start_of_sequence_id</span><span class="o">=</span><span class="n">GO_ID</span><span class="p">,</span>
+                <span class="n">end_of_sequence_id</span><span class="o">=</span><span class="n">EOS_ID</span><span class="p">,</span>
+                <span class="n">maximum_length</span><span class="o">=</span><span class="n">max_sequence_size</span><span class="p">,</span>
+                <span class="n">num_decoder_symbols</span><span class="o">=</span><span class="n">target_vocab_size</span><span class="p">)</span>
+
+    <span class="c1"># Build inference rnn decoder (handles output to vocab size, so we</span>
+    <span class="c1"># do not have to apply the output function).</span>
+    <span class="p">(</span><span class="n">infer_logits</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">dynamic_rnn_decoder</span><span class="p">(</span>
+        <span class="n">cell</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span>
+        <span class="n">decoder_fn</span><span class="o">=</span><span class="n">decoder_fn_inference</span><span class="p">,</span>
+        <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">infer_logits</span>
+
+
+<div class="viewcode-block" id="create_model"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq.create_model">[docs]</a><span class="k">def</span> <span class="nf">create_model</span><span class="p">(</span><span class="n">source_vocab_size</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span>
+                 <span class="n">target_vocab_size</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span>
+                 <span class="n">input_embed_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+                 <span class="n">target_embed_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+                 <span class="n">share_input_and_target_embedding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">n_neurons</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                 <span class="n">n_layers</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                 <span class="n">use_lstm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">use_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">max_sequence_size</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+
+    <span class="n">n_enc_neurons</span> <span class="o">=</span> <span class="n">n_neurons</span>
+    <span class="n">n_dec_neurons</span> <span class="o">=</span> <span class="n">n_neurons</span>
+
+    <span class="c1"># First sentence (i.e. input, original language sentence before translation)</span>
+    <span class="c1"># [batch_size, max_time]</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
+
+    <span class="c1"># User should also pass in the sequence lengths</span>
+    <span class="n">source_lengths</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;source_lengths&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Second sentence (i.e. reply, translation, etc...)</span>
+    <span class="c1"># [batch_size, max_time]</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">)</span>
+
+    <span class="c1"># User should also pass in the sequence lengths</span>
+    <span class="n">target_lengths</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;target_lengths&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Get symbolic shapes</span>
+    <span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;target/slicing&#39;</span><span class="p">):</span>
+        <span class="nb">slice</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">decoder_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">fill</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">GO_ID</span><span class="p">),</span> <span class="nb">slice</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;source/embedding&#39;</span><span class="p">):</span>
+        <span class="n">source_embed</span><span class="p">,</span> <span class="n">source_embed_matrix</span> <span class="o">=</span> <span class="n">_create_embedding</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">vocab_size</span><span class="o">=</span><span class="n">source_vocab_size</span><span class="p">,</span> <span class="n">embed_size</span><span class="o">=</span><span class="n">input_embed_size</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;target/embedding&#39;</span><span class="p">):</span>
+        <span class="c1"># Check if we need a new embedding matrix or not.  If we are for</span>
+        <span class="c1"># instance translating to another language, then we&#39;d need different</span>
+        <span class="c1"># vocabularies for the input and outputs, and so new embeddings.</span>
+        <span class="c1"># However if we are for instance building a chatbot with the same</span>
+        <span class="c1"># language, then it doesn&#39;t make sense to have different embeddings and</span>
+        <span class="c1"># we should share them.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">share_input_and_target_embedding</span> <span class="ow">and</span>
+                <span class="n">source_vocab_size</span> <span class="o">==</span> <span class="n">target_vocab_size</span><span class="p">):</span>
+            <span class="n">target_embed</span><span class="p">,</span> <span class="n">target_embed_matrix</span> <span class="o">=</span> <span class="n">_create_embedding</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">decoder_input</span><span class="p">,</span>
+                <span class="n">vocab_size</span><span class="o">=</span><span class="n">target_vocab_size</span><span class="p">,</span>
+                <span class="n">embed_size</span><span class="o">=</span><span class="n">target_embed_size</span><span class="p">,</span>
+                <span class="n">embed_matrix</span><span class="o">=</span><span class="n">source_embed_matrix</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">source_vocab_size</span> <span class="o">!=</span> <span class="n">target_vocab_size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;source_vocab_size must equal target_vocab_size if &#39;</span> <span class="o">+</span>
+                <span class="s1">&#39;sharing input and target embeddings&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_embed</span><span class="p">,</span> <span class="n">target_embed_matrix</span> <span class="o">=</span> <span class="n">_create_embedding</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+                <span class="n">vocab_size</span><span class="o">=</span><span class="n">target_vocab_size</span><span class="p">,</span>
+                <span class="n">embed_size</span><span class="o">=</span><span class="n">target_embed_size</span><span class="p">)</span>
+
+    <span class="c1"># Build the encoder</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;encoder&#39;</span><span class="p">):</span>
+        <span class="n">encoder_state</span> <span class="o">=</span> <span class="n">_create_encoder</span><span class="p">(</span>
+            <span class="n">embed</span><span class="o">=</span><span class="n">source_embed</span><span class="p">,</span>
+            <span class="n">lengths</span><span class="o">=</span><span class="n">source_lengths</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">n_enc_neurons</span><span class="o">=</span><span class="n">n_enc_neurons</span><span class="p">,</span>
+            <span class="n">n_layers</span><span class="o">=</span><span class="n">n_layers</span><span class="p">,</span>
+            <span class="n">use_lstm</span><span class="o">=</span><span class="n">use_lstm</span><span class="p">)</span>
+
+    <span class="c1"># Build the decoder</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;decoder&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">scope</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">output_fn</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">fully_connected</span><span class="p">(</span>
+                <span class="n">inputs</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                <span class="n">num_outputs</span><span class="o">=</span><span class="n">target_vocab_size</span><span class="p">,</span>
+                <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">)</span>
+
+        <span class="c1"># Create the RNN Cells for decoder</span>
+        <span class="k">if</span> <span class="n">use_lstm</span><span class="p">:</span>
+            <span class="n">cells</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">BasicLSTMCell</span><span class="p">(</span><span class="n">n_dec_neurons</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cells</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">n_dec_neurons</span><span class="p">)</span>
+
+        <span class="c1"># Build deeper recurrent net if using more than 1 layer</span>
+        <span class="k">if</span> <span class="n">n_layers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">cells</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">([</span><span class="n">cells</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_layers</span><span class="p">)</span>
+
+        <span class="n">decoding_train</span> <span class="o">=</span> <span class="n">_create_train_decoder</span><span class="p">(</span>
+            <span class="n">cells</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span>
+            <span class="n">encoder_state</span><span class="o">=</span><span class="n">encoder_state</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">encoding_lengths</span><span class="o">=</span><span class="n">source_lengths</span><span class="p">,</span>
+            <span class="n">decoding</span><span class="o">=</span><span class="n">target_embed</span><span class="p">,</span>
+            <span class="n">decoding_lengths</span><span class="o">=</span><span class="n">target_lengths</span><span class="p">,</span>
+            <span class="n">embed_matrix</span><span class="o">=</span><span class="n">target_embed_matrix</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">target_vocab_size</span><span class="o">=</span><span class="n">target_vocab_size</span><span class="p">,</span>
+            <span class="n">use_attention</span><span class="o">=</span><span class="n">use_attention</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span>
+            <span class="n">max_sequence_size</span><span class="o">=</span><span class="n">max_sequence_size</span><span class="p">,</span>
+            <span class="n">n_dec_neurons</span><span class="o">=</span><span class="n">n_dec_neurons</span><span class="p">,</span>
+            <span class="n">output_fn</span><span class="o">=</span><span class="n">output_fn</span><span class="p">)</span>
+
+        <span class="c1"># Inference model:</span>
+        <span class="n">scope</span><span class="o">.</span><span class="n">reuse_variables</span><span class="p">()</span>
+        <span class="n">decoding_inference</span> <span class="o">=</span> <span class="n">_create_inference_decoder</span><span class="p">(</span>
+            <span class="n">cells</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span>
+            <span class="n">encoder_state</span><span class="o">=</span><span class="n">encoder_state</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">encoding_lengths</span><span class="o">=</span><span class="n">source_lengths</span><span class="p">,</span>
+            <span class="n">decoding</span><span class="o">=</span><span class="n">target_embed</span><span class="p">,</span>
+            <span class="n">decoding_lengths</span><span class="o">=</span><span class="n">target_lengths</span><span class="p">,</span>
+            <span class="n">embed_matrix</span><span class="o">=</span><span class="n">target_embed_matrix</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">target_vocab_size</span><span class="o">=</span><span class="n">target_vocab_size</span><span class="p">,</span>
+            <span class="n">use_attention</span><span class="o">=</span><span class="n">use_attention</span><span class="p">,</span>
+            <span class="n">scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span>
+            <span class="n">max_sequence_size</span><span class="o">=</span><span class="n">max_sequence_size</span><span class="p">,</span>
+            <span class="n">n_dec_neurons</span><span class="o">=</span><span class="n">n_dec_neurons</span><span class="p">,</span>
+            <span class="n">output_fn</span><span class="o">=</span><span class="n">output_fn</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s1">&#39;loss&#39;</span><span class="p">):</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">target_lengths</span><span class="p">)],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weights&quot;</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">sequence_loss</span><span class="p">(</span>
+            <span class="n">logits</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">decoding_train</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">batch_size</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">target_lengths</span><span class="p">),</span> <span class="n">target_vocab_size</span>
+            <span class="p">]),</span>
+            <span class="n">targets</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+            <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span>
+        <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">source</span><span class="p">,</span>
+        <span class="s1">&#39;source_lengths&#39;</span><span class="p">:</span> <span class="n">source_lengths</span><span class="p">,</span>
+        <span class="s1">&#39;target&#39;</span><span class="p">:</span> <span class="n">target</span><span class="p">,</span>
+        <span class="s1">&#39;target_lengths&#39;</span><span class="p">:</span> <span class="n">target_lengths</span><span class="p">,</span>
+        <span class="s1">&#39;thought_vector&#39;</span><span class="p">:</span> <span class="n">encoder_state</span><span class="p">,</span>
+        <span class="s1">&#39;decoder&#39;</span><span class="p">:</span> <span class="n">decoding_inference</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="batch_generator"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq.batch_generator">[docs]</a><span class="k">def</span> <span class="nf">batch_generator</span><span class="p">(</span><span class="n">Xs</span><span class="p">,</span> <span class="n">Ys</span><span class="p">,</span> <span class="n">source_lengths</span><span class="p">,</span> <span class="n">target_lengths</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Xs</span><span class="p">)))</span>
+    <span class="n">n_batches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
+    <span class="k">for</span> <span class="n">batch_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_batches</span><span class="p">):</span>
+        <span class="n">this_idxs</span> <span class="o">=</span> <span class="n">idxs</span><span class="p">[</span><span class="n">batch_i</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">:(</span><span class="n">batch_i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">]</span>
+        <span class="n">this_Xs</span><span class="p">,</span> <span class="n">this_Ys</span> <span class="o">=</span> <span class="n">Xs</span><span class="p">[</span><span class="n">this_idxs</span><span class="p">,</span> <span class="p">:],</span> <span class="n">Ys</span><span class="p">[</span><span class="n">this_idxs</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">this_source_lengths</span><span class="p">,</span> <span class="n">this_target_lengths</span> <span class="o">=</span> <span class="n">source_lengths</span><span class="p">[</span>
+            <span class="n">this_idxs</span><span class="p">],</span> <span class="n">target_lengths</span><span class="p">[</span><span class="n">this_idxs</span><span class="p">]</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">this_Xs</span><span class="p">[:,</span> <span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">this_source_lengths</span><span class="p">)],</span>
+               <span class="n">this_Ys</span><span class="p">[:,</span> <span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">this_target_lengths</span><span class="p">)],</span> <span class="n">this_source_lengths</span><span class="p">,</span>
+               <span class="n">this_target_lengths</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="preprocess"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq.preprocess">[docs]</a><span class="k">def</span> <span class="nf">preprocess</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="n">sentences</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">nltk</span><span class="o">.</span><span class="n">sent_tokenize</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span>
+
+    <span class="c1"># We&#39;ll first tokenize each sentence into words to get a sense of</span>
+    <span class="c1"># how long each sentence is:</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">[[</span><span class="n">word</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">nltk</span><span class="o">.</span><span class="n">word_tokenize</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span>
+             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sentences</span><span class="p">]</span>
+
+    <span class="c1"># Then see how long each sentence is:</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">words</span><span class="p">])</span>
+
+    <span class="n">good_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">lengths</span> <span class="o">&lt;=</span> <span class="n">max_length</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="p">[</span><span class="n">words</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">good_idxs</span><span class="p">]</span>
+    <span class="n">fdist</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">FreqDist</span><span class="p">([</span><span class="n">word</span> <span class="k">for</span> <span class="n">sentence</span> <span class="ow">in</span> <span class="n">dataset</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">sentence</span><span class="p">])</span>
+
+    <span class="n">vocab_counts</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">fdist</span><span class="o">.</span><span class="n">most_common</span><span class="p">()</span> <span class="k">if</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">min_count</span><span class="p">]</span>
+
+    <span class="c1"># First sort the vocabulary</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vocab_counts</span><span class="p">]</span>
+    <span class="n">vocab</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+    <span class="c1"># Now add the special symbols:</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="n">_START_VOCAB</span> <span class="o">+</span> <span class="n">vocab</span>
+
+    <span class="c1"># Then create the word to id mapping</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vocab</span><span class="p">)}</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;vocab.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span>
+
+    <span class="n">unked</span> <span class="o">=</span> <span class="n">word2id</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">vocab</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unked</span><span class="p">,</span> <span class="n">vocab</span></div>
+
+
+<div class="viewcode-block" id="word2id"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq.word2id">[docs]</a><span class="k">def</span> <span class="nf">word2id</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">vocab</span><span class="p">):</span>
+    <span class="n">unked</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+        <span class="n">this_sentence</span> <span class="o">=</span> <span class="p">[</span><span class="n">vocab</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">UNK_ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]</span>
+        <span class="n">unked</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">this_sentence</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unked</span></div>
+
+
+<div class="viewcode-block" id="id2word"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq.id2word">[docs]</a><span class="k">def</span> <span class="nf">id2word</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">vocab</span><span class="p">):</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">id2words</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vocab</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+        <span class="n">this_sentence</span> <span class="o">=</span> <span class="p">[</span><span class="n">id2words</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]</span>
+        <span class="n">words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">this_sentence</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">words</span></div>
+
+
+<div class="viewcode-block" id="test_cornell"><a class="viewcode-back" href="../../../source/cadl.deprecated.html#cadl.deprecated.seq2seq.test_cornell">[docs]</a><span class="k">def</span> <span class="nf">test_cornell</span><span class="p">():</span>
+
+    <span class="c1"># Get the cornell dataset text</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">cornell</span><span class="o">.</span><span class="n">get_scripts</span><span class="p">()</span>
+
+    <span class="c1"># Preprocess it to word IDs including UNKs for out of vocabulary words</span>
+    <span class="n">max_sequence_size</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">unked</span><span class="p">,</span> <span class="n">vocab</span> <span class="o">=</span> <span class="n">preprocess</span><span class="p">(</span>
+        <span class="n">text</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="n">max_sequence_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Get the vocabulary size</span>
+    <span class="n">vocab_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
+
+    <span class="c1"># Create input output pairs formed by neighboring sentences of dialog</span>
+    <span class="n">Xs_list</span><span class="p">,</span> <span class="n">Ys_list</span> <span class="o">=</span> <span class="n">unked</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">unked</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="c1"># Store the final lengths</span>
+    <span class="n">source_lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">Xs_list</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">target_lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">Ys_list</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">Xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">Xs_list</span><span class="p">),</span> <span class="n">max_sequence_size</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">*</span> <span class="n">PAD_ID</span>
+    <span class="n">Ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">Ys_list</span><span class="p">),</span> <span class="n">max_sequence_size</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">*</span> <span class="n">PAD_ID</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">source_i</span><span class="p">,</span> <span class="n">target_i</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Xs_list</span><span class="p">,</span> <span class="n">Ys_list</span><span class="p">)):</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="n">source_i</span>
+        <span class="n">source_lengths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="n">Xs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">el</span><span class="p">)]</span> <span class="o">=</span> <span class="n">el</span>
+
+        <span class="n">el</span> <span class="o">=</span> <span class="n">target_i</span> <span class="o">+</span> <span class="p">[</span><span class="n">EOS_ID</span><span class="p">]</span>
+        <span class="n">target_lengths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="n">Ys</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">el</span><span class="p">)]</span> <span class="o">=</span> <span class="n">el</span>
+
+    <span class="n">sess</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+
+    <span class="n">net</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span>
+        <span class="n">use_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">source_vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+        <span class="n">target_vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">)</span>
+    <span class="n">learning_rate</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">)</span>
+    <span class="n">current_learning_rate</span> <span class="o">=</span> <span class="mf">0.01</span>
+    <span class="n">opt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span>
+        <span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">])</span>
+    <span class="n">init_op</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">global_variables_initializer</span><span class="p">(),</span>
+                       <span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">())</span>
+    <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">init_op</span><span class="p">)</span>
+    <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="n">sentence</span><span class="p">):</span>
+        <span class="n">preprocessed</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">word</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">nltk</span><span class="o">.</span><span class="n">sent_tokenize</span><span class="p">(</span><span class="n">sentence</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">nltk</span><span class="o">.</span><span class="n">word_tokenize</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">cornell</span><span class="o">.</span><span class="n">word2id</span><span class="p">([</span><span class="n">preprocessed</span> <span class="o">+</span> <span class="p">[</span><span class="n">_GO</span><span class="p">]],</span> <span class="n">vocab</span><span class="p">)</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">net</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">],</span>
+            <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                <span class="n">net</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]:</span> <span class="n">tokens</span><span class="p">,</span>
+                <span class="n">net</span><span class="p">[</span><span class="s1">&#39;source_lengths&#39;</span><span class="p">]:</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">x_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">x_i</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
+            <span class="p">})</span>
+        <span class="n">decoding</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;input:&#39;</span><span class="p">,</span> <span class="n">sentence</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;output:&#39;</span><span class="p">,</span>
+              <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cornell</span><span class="o">.</span><span class="n">id2word</span><span class="p">(</span><span class="n">decoding</span><span class="p">,</span> <span class="n">vocab</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="n">n_epochs</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="k">for</span> <span class="n">epoch_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_epochs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">it_i</span><span class="p">,</span> <span class="p">(</span><span class="n">this_Xs</span><span class="p">,</span> <span class="n">this_Ys</span><span class="p">,</span> <span class="n">this_source_lengths</span><span class="p">,</span> <span class="n">this_target_lengths</span><span class="p">)</span> \
+                    <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch_generator</span><span class="p">(</span>
+                        <span class="n">Xs</span><span class="p">,</span> <span class="n">Ys</span><span class="p">,</span> <span class="n">source_lengths</span><span class="p">,</span> <span class="n">target_lengths</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">it_i</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">current_learning_rate</span> <span class="o">=</span> <span class="n">current_learning_rate</span> <span class="o">*</span> <span class="mf">0.9</span>
+                <span class="n">rand_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">it_i</span><span class="p">)</span>
+                <span class="n">decode</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">rand_idx</span><span class="p">])</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">net</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">],</span> <span class="n">opt</span><span class="p">],</span>
+                <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span>
+                    <span class="n">learning_rate</span><span class="p">:</span> <span class="n">current_learning_rate</span><span class="p">,</span>
+                    <span class="n">net</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]:</span> <span class="n">this_Xs</span><span class="p">,</span>
+                    <span class="n">net</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">]:</span> <span class="n">this_Ys</span><span class="p">,</span>
+                    <span class="n">net</span><span class="p">[</span><span class="s1">&#39;source_lengths&#39;</span><span class="p">]:</span> <span class="n">this_source_lengths</span><span class="p">,</span>
+                    <span class="n">net</span><span class="p">[</span><span class="s1">&#39;target_lengths&#39;</span><span class="p">]:</span> <span class="n">this_target_lengths</span>
+                <span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">it_i</span><span class="p">,</span> <span class="n">l</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="c1"># End of epoch, save</span>
+        <span class="n">saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="s1">&#39;./dynamic-seq2seq.ckpt&#39;</span><span class="p">,</span> <span class="n">global_step</span><span class="o">=</span><span class="n">it_i</span><span class="p">)</span>
+
+    <span class="n">sess</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

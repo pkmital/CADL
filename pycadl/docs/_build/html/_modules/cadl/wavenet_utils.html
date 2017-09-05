@@ -1,0 +1,685 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cadl.wavenet_utils &mdash; CADL 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="CADL 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> CADL
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CADL</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cadl.wavenet_utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cadl.wavenet_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Various utilities for training WaveNet.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">WaveNet Training code and utilities are licensed under APL from the</span>
+
+<span class="sd">Google Magenta project</span>
+<span class="sd">----------------------</span>
+<span class="sd">https://github.com/tensorflow/magenta/blob/master/magenta/models/nsynth/wavenet</span>
+
+<span class="sd">Copyright 2017 Parag K. Mital.  See also NOTICE.md.</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="shift_right"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.shift_right">[docs]</a><span class="k">def</span> <span class="nf">shift_right</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Shift the input over by one and a zero to the front.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        The [mb, time, channels] tensor input.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    x_sliced</span>
+<span class="sd">        The [mb, time, channels] tensor output.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+    <span class="n">x_padded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+    <span class="n">x_sliced</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">x_padded</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">x_sliced</span><span class="o">.</span><span class="n">set_shape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x_sliced</span></div>
+
+
+<div class="viewcode-block" id="mul_or_none"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.mul_or_none">[docs]</a><span class="k">def</span> <span class="nf">mul_or_none</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the element wise multiplicative of the inputs.</span>
+<span class="sd">    If either input is None, we return None.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a</span>
+<span class="sd">        A tensor input.</span>
+<span class="sd">    b</span>
+<span class="sd">        Another tensor input with the same type as a.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None if either input is None. Otherwise returns a * b.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span></div>
+
+
+<div class="viewcode-block" id="time_to_batch"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.time_to_batch">[docs]</a><span class="k">def</span> <span class="nf">time_to_batch</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Splits time dimension (i.e. dimension 1) of `X` into batches.</span>
+<span class="sd">    Within each batch element, the `k*block_size` time steps are transposed,</span>
+<span class="sd">    so that the `k` time steps in each output batch element are offset by</span>
+<span class="sd">    `block_size` from each other.</span>
+<span class="sd">    The number of input time steps must be a multiple of `block_size`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        Tensor of shape [nb, k*block_size, n] for some natural number k.</span>
+<span class="sd">    block_size</span>
+<span class="sd">        number of time steps (i.e. size of dimension 1) in the output</span>
+<span class="sd">        tensor.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Tensor of shape [nb*block_size, k, n]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">[</span>
+        <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">[</span>
+        <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="p">])</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span>
+        <span class="n">mul_or_none</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">block_size</span><span class="p">),</span> <span class="n">mul_or_none</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">block_size</span><span class="p">),</span>
+        <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="batch_to_time"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.batch_to_time">[docs]</a><span class="k">def</span> <span class="nf">batch_to_time</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Inverse of `time_to_batch(X, block_size)`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        Tensor of shape [nb*block_size, k, n] for some natural number k.</span>
+<span class="sd">    block_size</span>
+<span class="sd">        number of time steps (i.e. size of dimension 1) in the output</span>
+<span class="sd">        tensor.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Tensor of shape [nb, k*block_size, n].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">[</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">[</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="n">mul_or_none</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">block_size</span><span class="p">),</span>
+                 <span class="n">mul_or_none</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">block_size</span><span class="p">),</span>
+                 <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="conv1d"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.conv1d">[docs]</a><span class="k">def</span> <span class="nf">conv1d</span><span class="p">(</span><span class="n">X</span><span class="p">,</span>
+           <span class="n">num_filters</span><span class="p">,</span>
+           <span class="n">filter_length</span><span class="p">,</span>
+           <span class="n">name</span><span class="p">,</span>
+           <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+           <span class="n">causal</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+           <span class="n">kernel_initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">uniform_unit_scaling_initializer</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+           <span class="n">biases_initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Fast 1D convolution that supports causal padding and dilation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        The [mb, time, channels] float tensor that we convolve.</span>
+<span class="sd">    num_filters</span>
+<span class="sd">        The number of filter maps in the convolution.</span>
+<span class="sd">    filter_length</span>
+<span class="sd">        The integer length of the filter.</span>
+<span class="sd">    name</span>
+<span class="sd">        The name of the scope for the variables.</span>
+<span class="sd">    dilation</span>
+<span class="sd">        The amount of dilation.</span>
+<span class="sd">    causal</span>
+<span class="sd">        Whether or not this is a causal convolution.</span>
+<span class="sd">    kernel_initializer</span>
+<span class="sd">        The kernel initialization function.</span>
+<span class="sd">    biases_initializer</span>
+<span class="sd">        The biases initialization function.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    y</span>
+<span class="sd">        The output of the 1D convolution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">batch_size</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">num_input_channels</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">length</span> <span class="o">%</span> <span class="n">dilation</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="n">kernel_shape</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">filter_length</span><span class="p">,</span> <span class="n">num_input_channels</span><span class="p">,</span> <span class="n">num_filters</span><span class="p">]</span>
+    <span class="n">strides</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">biases_shape</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_filters</span><span class="p">]</span>
+    <span class="n">padding</span> <span class="o">=</span> <span class="s1">&#39;VALID&#39;</span> <span class="k">if</span> <span class="n">causal</span> <span class="k">else</span> <span class="s1">&#39;SAME&#39;</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="s1">&#39;W&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">kernel_shape</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="n">kernel_initializer</span><span class="p">)</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="s1">&#39;biases&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">biases_shape</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="n">biases_initializer</span><span class="p">)</span>
+
+    <span class="n">x_ttb</span> <span class="o">=</span> <span class="n">time_to_batch</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dilation</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">filter_length</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">causal</span><span class="p">:</span>
+        <span class="n">x_ttb</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x_ttb</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">filter_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+
+    <span class="n">x_ttb_shape</span> <span class="o">=</span> <span class="n">x_ttb</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+    <span class="n">x_4d</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_ttb</span><span class="p">,</span> <span class="p">[</span><span class="n">x_ttb_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span>
+                              <span class="n">x_ttb_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num_input_channels</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">x_4d</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">biases</span><span class="p">)</span>
+    <span class="n">y_shape</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">[</span><span class="n">y_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">num_filters</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">batch_to_time</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dilation</span><span class="p">)</span>
+    <span class="n">y</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">num_filters</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="pool1d"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.pool1d">[docs]</a><span class="k">def</span> <span class="nf">pool1d</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">window_length</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;avg&#39;</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;1D pooling function that supports multiple different modes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        The [mb, time, channels] float tensor that we are going to pool over.</span>
+<span class="sd">    window_length</span>
+<span class="sd">        The amount of samples we pool over.</span>
+<span class="sd">    name</span>
+<span class="sd">        The name of the scope for the variables.</span>
+<span class="sd">    mode</span>
+<span class="sd">        The type of pooling, either avg or max.</span>
+<span class="sd">    stride</span>
+<span class="sd">        The stride length.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pooled</span>
+<span class="sd">        The [mb, time // stride, channels] float tensor result of pooling.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;avg&#39;</span><span class="p">:</span>
+        <span class="n">pool_fn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">avg_pool</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+        <span class="n">pool_fn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">max_pool</span>
+
+    <span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span> <span class="ow">or</span> <span class="n">window_length</span>
+    <span class="n">batch_size</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">num_channels</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">length</span> <span class="o">%</span> <span class="n">window_length</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">length</span> <span class="o">%</span> <span class="n">stride</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="n">window_shape</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">window_length</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">strides</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">x_4d</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">num_channels</span><span class="p">])</span>
+    <span class="n">pooled</span> <span class="o">=</span> <span class="n">pool_fn</span><span class="p">(</span><span class="n">x_4d</span><span class="p">,</span> <span class="n">window_shape</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">pooled</span><span class="p">,</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">length</span> <span class="o">//</span> <span class="n">stride</span><span class="p">,</span> <span class="n">num_channels</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="mu_law"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.mu_law">[docs]</a><span class="k">def</span> <span class="nf">mu_law</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">int8</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A TF implementation of Mu-Law encoding.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        The audio samples to encode.</span>
+<span class="sd">    mu</span>
+<span class="sd">        The Mu to use in our Mu-Law.</span>
+<span class="sd">    int8</span>
+<span class="sd">        Use int8 encoding.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out</span>
+<span class="sd">        The Mu-Law encoded int8 data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">mu</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">X</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">mu</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">out</span> <span class="o">*</span> <span class="mi">128</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">int8</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="mu_law_numpy"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.mu_law_numpy">[docs]</a><span class="k">def</span> <span class="nf">mu_law_numpy</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">int8</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A TF implementation of Mu-Law encoding.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        The audio samples to encode.</span>
+<span class="sd">    mu</span>
+<span class="sd">        The Mu to use in our Mu-Law.</span>
+<span class="sd">    int8</span>
+<span class="sd">        Use int8 encoding.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out</span>
+<span class="sd">        The Mu-Law encoded int8 data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">mu</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">X</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">mu</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">out</span> <span class="o">*</span> <span class="mi">128</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">int8</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="inv_mu_law"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.inv_mu_law">[docs]</a><span class="k">def</span> <span class="nf">inv_mu_law</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">255</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A TF implementation of inverse Mu-Law.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        The Mu-Law samples to decode.</span>
+<span class="sd">    mu</span>
+<span class="sd">        The Mu we used to encode these samples.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out</span>
+<span class="sd">        The decoded data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mf">2.</span> <span class="o">/</span> <span class="p">(</span><span class="n">mu</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">/</span> <span class="n">mu</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="n">mu</span><span class="p">)</span><span class="o">**</span><span class="n">tf</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">X</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="inv_mu_law_numpy"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.inv_mu_law_numpy">[docs]</a><span class="k">def</span> <span class="nf">inv_mu_law_numpy</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">255.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A numpy implementation of inverse Mu-Law.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        The Mu-Law samples to decode.</span>
+<span class="sd">    mu</span>
+<span class="sd">        The Mu we used to encode these samples.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out</span>
+<span class="sd">        The decoded data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mf">2.</span> <span class="o">/</span> <span class="p">(</span><span class="n">mu</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">/</span> <span class="n">mu</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="n">mu</span><span class="p">)</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">X</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="causal_linear"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.causal_linear">[docs]</a><span class="k">def</span> <span class="nf">causal_linear</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">filter_length</span><span class="p">,</span> <span class="n">rate</span><span class="p">,</span>
+                  <span class="n">batch_size</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Applies dilated convolution using queues.</span>
+<span class="sd">    Assumes a filter_length of 2 or 3.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X</span>
+<span class="sd">        The [mb, time, channels] tensor input.</span>
+<span class="sd">    n_inputs</span>
+<span class="sd">        The input number of channels.</span>
+<span class="sd">    n_outputs</span>
+<span class="sd">        The output number of channels.</span>
+<span class="sd">    name</span>
+<span class="sd">        The variable scope to provide to W and biases.</span>
+<span class="sd">    filter_length</span>
+<span class="sd">        The length of the convolution, assumed to be 3.</span>
+<span class="sd">    rate</span>
+<span class="sd">        The rate or dilation</span>
+<span class="sd">    batch_size</span>
+<span class="sd">        Non-symbolic value for batch_size.</span>
+<span class="sd">    depth : int, optional</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    y</span>
+<span class="sd">        The output of the operation</span>
+<span class="sd">    (init_1, init_2)</span>
+<span class="sd">        Initialization operations for the queues</span>
+<span class="sd">    (push_1, push_2)</span>
+<span class="sd">        Push operations for the queues</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">filter_length</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">filter_length</span> <span class="o">==</span> <span class="mi">3</span>
+
+    <span class="c1"># TODO: Make generic... started something like this:</span>
+    <span class="c1">#    # create queue</span>
+    <span class="c1">#    qs = []</span>
+    <span class="c1">#    inits = []</span>
+    <span class="c1">#    states = []</span>
+    <span class="c1">#    pushs = []</span>
+    <span class="c1">#    zeros = tf.zeros((rate, batch_size, depth, n_inputs))</span>
+    <span class="c1">#    for f_i in range(1, filter_length):</span>
+    <span class="c1">#        q = tf.FIFOQueue(</span>
+    <span class="c1">#            rate,</span>
+    <span class="c1">#            dtypes=tf.float32,</span>
+    <span class="c1">#            shapes=(batch_size, depth, n_inputs))</span>
+    <span class="c1">#        qs.append(q)</span>
+    <span class="c1">#        inits.append(q.enqueue_many(zeros))</span>
+    <span class="c1">#        states.append(q.dequeue())</span>
+    <span class="c1">#</span>
+    <span class="c1">#    pushs.append(qs[0].enqueue(X))</span>
+    <span class="c1">#    for f_i in range(2, filter_length):</span>
+    <span class="c1">#        pushs.append(qs[f_i].enqueue(states[f_i - 1]))</span>
+
+    <span class="k">if</span> <span class="n">filter_length</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="c1"># create queue</span>
+        <span class="n">q_1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">FIFOQueue</span><span class="p">(</span><span class="n">rate</span><span class="p">,</span> <span class="n">dtypes</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shapes</span><span class="o">=</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">))</span>
+        <span class="n">q_2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">FIFOQueue</span><span class="p">(</span><span class="n">rate</span><span class="p">,</span> <span class="n">dtypes</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shapes</span><span class="o">=</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">))</span>
+        <span class="n">init_1</span> <span class="o">=</span> <span class="n">q_1</span><span class="o">.</span><span class="n">enqueue_many</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rate</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">)))</span>
+        <span class="n">init_2</span> <span class="o">=</span> <span class="n">q_2</span><span class="o">.</span><span class="n">enqueue_many</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rate</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">)))</span>
+        <span class="n">state_1</span> <span class="o">=</span> <span class="n">q_1</span><span class="o">.</span><span class="n">dequeue</span><span class="p">()</span>
+        <span class="n">push_1</span> <span class="o">=</span> <span class="n">q_1</span><span class="o">.</span><span class="n">enqueue</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">state_2</span> <span class="o">=</span> <span class="n">q_2</span><span class="o">.</span><span class="n">dequeue</span><span class="p">()</span>
+        <span class="n">push_2</span> <span class="o">=</span> <span class="n">q_2</span><span class="o">.</span><span class="n">enqueue</span><span class="p">(</span><span class="n">state_1</span><span class="p">)</span>
+
+        <span class="c1"># get pretrained weights</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;/W&quot;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">filter_length</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;/biases&quot;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n_outputs</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">w_q_2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">w_q_1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">w_x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># perform op w/ cached states</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">state_2</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">w_q_2</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span>
+                <span class="n">state_1</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">w_q_1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">w_x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">b</span><span class="p">)</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="p">[</span><span class="n">init_1</span><span class="p">,</span> <span class="n">init_2</span><span class="p">],</span> <span class="p">[</span><span class="n">push_1</span><span class="p">,</span> <span class="n">push_2</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># create queue</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">FIFOQueue</span><span class="p">(</span>
+            <span class="n">rate</span><span class="p">,</span>
+            <span class="n">dtypes</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+            <span class="n">shapes</span><span class="o">=</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">))</span>
+        <span class="n">init</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">enqueue_many</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rate</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">)))</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">dequeue</span><span class="p">()</span>
+        <span class="n">push</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">enqueue</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="c1"># get pretrained weights</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/W&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">filter_length</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/biases&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n_outputs</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">W_q</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">W_x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># perform op w/ cached states</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">state</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">W_q</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">W_x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">b</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">[</span><span class="n">init</span><span class="p">],</span> <span class="p">[</span><span class="n">push</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="linear"><a class="viewcode-back" href="../../source/cadl.html#cadl.wavenet_utils.linear">[docs]</a><span class="k">def</span> <span class="nf">linear</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_inputs : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    n_outputs : TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        Description</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    TYPE</span>
+<span class="sd">        Description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/W&#39;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/biases&#39;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n_outputs</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="c1"># ipdb.set_trace()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">W</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Parag K. Mital.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
