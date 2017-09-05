@@ -13,7 +13,7 @@ Session 5: Generative Models
 
 **COURSE 2: Creative Applications of Deep Learning with TensorFlow II**  
 Session 1: Cloud Computing, GPUs, Deploying  
-Session 2: Mixture Density Networks, Handwriting Synthesis  
+Session 2: Mixture Density Networks
 Session 3: Modeling Attention with RNNs, DRAW  
 Session 4: Image-to-Image Translation with GANs  
 
@@ -27,7 +27,7 @@ Session 4: Modeling Audio w/ Wavenet and NSynth
 
 | | Session | Description | Transcript | Homework |
 | --- | --- | --- | --- | --- |
-| Python Package | **[pycadl](pycadl)** | Python package required for courses 2 and 3 | N/A | N/A |
+| Python Package | **[pycadl](https://github.com/pkmital/pycadl)** | Python package required for courses 2 and 3 | N/A | N/A |
 |Installation| **[Installation](#installation-preliminaries)** | Setting up Python/Notebook and necessary libraries. | N/A | N/A |
 |Preliminaries| **[Preliminaries with Python](session-0)** | Basics of working with Python and images. | N/A | N/A |
 |1| **[Computing with Tensorflow](session-1)** | Working with a small dataset of images.  Dataset preprocessing.  Tensorflow basics.  Sorting/organizing a dataset. | [lecture-1.ipynb](session-1/lecture-1.ipynb) | [session-1.ipynb](session-1/session-1.ipynb) |
@@ -102,7 +102,7 @@ If you want a controlled environment w/ all dependencies installed for you, and 
 
 ```bash
 $ cd
-$ git clone https://github.com/pkmital/CADL.git
+$ git clone --recursive https://github.com/pkmital/CADL.git
 $ cd CADL
 $ docker build -t cadl .
 $ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf cadl /bin/bash
@@ -196,7 +196,7 @@ This next command will move to your "home" directory.  We'll then "clone" the gi
 
 ```shell
 $ cd
-$ git clone https://github.com/pkmital/CADL.git
+$ git clone --recursive https://github.com/pkmital/CADL.git
 ```
 
 We'll now print out what the full path to that directory is.  PLEASE NOTE DOWN THIS DIRECTORY.  This is where everything will happen, and I'll explain that in a minute.
