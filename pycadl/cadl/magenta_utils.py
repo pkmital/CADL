@@ -1,9 +1,6 @@
 """Various utilities for working with Google's Magenta Library.
-
-Note: Magenta is currently Python 2.7 only, meaning this will not
-be pacakged in the pip package, as the rest of the code base is Python 3
-only.
-
+"""
+"""
 Copyright 2017 Parag K. Mital.  See also NOTICE.md.
 
 Licensed under the Apache License, Version 2.0 (the "License");

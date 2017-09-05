@@ -1,5 +1,6 @@
 """Style Net w/ tests for Video Style Net.
-
+"""
+"""
 Video Style Net requires OpenCV 3.0.0+ w/ Contrib for Python to be installed.
 
 Copyright 2017 Parag K. Mital.  See also NOTICE.md.

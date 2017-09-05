@@ -1,5 +1,6 @@
 """Conditional Gated Pixel CNN.
-
+"""
+"""
 Thanks to many reference implementations
 ----------------------------------------
 https://github.com/anantzoid/Conditional-PixelCNN-decoder
