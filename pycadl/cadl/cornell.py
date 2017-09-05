@@ -12,7 +12,17 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-limitations under the License."""
+limitations under the License.
+
+Attributes
+----------
+conversations : str
+    Description
+lines : str
+    Description
+titles : str
+    Description
+"""
 import os
 import ast
 import nltk
@@ -29,6 +39,13 @@ lines = 'movie_lines.txt'
 
 
 def download_cornell(dst='cornell movie-dialogs corpus'):
+    """Summary
+
+    Parameters
+    ----------
+    dst : str, optional
+        Description
+    """
     utils.download_and_extract_zip(
         'https://s3.amazonaws.com/cadl/models/cornell_movie_dialogs_corpus.zip',
         dst)
@@ -314,7 +331,8 @@ def id2word(ids, vocab):
 
 
 def test_train():
-    """Test training of cornell dataset with deprecated bucketed seq2seq model."""
+    """Test training of cornell dataset with deprecated bucketed seq2seq model.
+    """
     from cadl.deprecated import seq2seq_model as seq
     text = get_scripts()
     unked, vocab = preprocess(text)
@@ -373,7 +391,13 @@ def test_train():
 
 
 def test_decode(sentence):
-    """Test decoding of cornell dataset with deprecated seq2seq model."""
+    """Test decoding of cornell dataset with deprecated seq2seq model.
+
+    Parameters
+    ----------
+    sentence : TYPE
+        Description
+    """
     from cadl.deprecated import seq2seq_model as seq
     text = get_scripts()
     pairs, vocab, buckets = preprocess(text)

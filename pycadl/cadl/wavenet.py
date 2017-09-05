@@ -1,7 +1,9 @@
 """WaveNet Autoencoder and conditional WaveNet.
 
 WaveNet Training code and utilities are licensed under APL from the
-Google Magenta project:
+
+Google Magenta project
+----------------------
 https://github.com/tensorflow/magenta/blob/master/magenta/models/nsynth/wavenet
 
 Copyright 2017 Parag K. Mital.  See also NOTICE.md.
@@ -28,11 +30,39 @@ from scipy.io import wavfile
 
 
 def get_sequence_length(n_stages, n_layers_per_stage):
+    """Summary
+
+    Parameters
+    ----------
+    n_stages : TYPE
+        Description
+    n_layers_per_stage : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     sequence_length = 2**n_layers_per_stage * 2 * n_stages
     return sequence_length
 
 
 def condition(x, encoding):
+    """Summary
+
+    Parameters
+    ----------
+    x : TYPE
+        Description
+    encoding : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     batch_size, length, channels = x.get_shape().as_list()
     enc_batch_size, enc_length, enc_channels = encoding.get_shape().as_list()
     assert enc_batch_size == batch_size
@@ -49,7 +79,36 @@ def create_wavenet_autoencoder(n_stages, n_layers_per_stage, n_hidden,
                                batch_size, n_skip, filter_length,
                                bottleneck_width, hop_length, n_quantization,
                                sample_rate):
+    """Summary
 
+    Parameters
+    ----------
+    n_stages : TYPE
+        Description
+    n_layers_per_stage : TYPE
+        Description
+    n_hidden : TYPE
+        Description
+    batch_size : TYPE
+        Description
+    n_skip : TYPE
+        Description
+    filter_length : TYPE
+        Description
+    bottleneck_width : TYPE
+        Description
+    hop_length : TYPE
+        Description
+    n_quantization : TYPE
+        Description
+    sample_rate : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     offset = n_quantization / 2.0
     sequence_length = 2**n_layers_per_stage * 2 * n_stages
 
@@ -181,7 +240,34 @@ def create_wavenet(n_stages=10,
                    shift=True,
                    n_quantization=256,
                    sample_rate=16000):
+    """Summary
 
+    Parameters
+    ----------
+    n_stages : int, optional
+        Description
+    n_layers_per_stage : int, optional
+        Description
+    n_hidden : int, optional
+        Description
+    batch_size : int, optional
+        Description
+    n_skip : int, optional
+        Description
+    filter_length : int, optional
+        Description
+    shift : bool, optional
+        Description
+    n_quantization : int, optional
+        Description
+    sample_rate : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     offset = n_quantization / 2.0
     sequence_length = 2**n_layers_per_stage * 2 * n_stages
 
@@ -273,6 +359,13 @@ def create_wavenet(n_stages=10,
 
 
 def train_vctk():
+    """Summary
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     batch_size = 24
     filter_length = 2
     n_stages = 7
@@ -330,6 +423,8 @@ def train_vctk():
 
 
 def test_librispeech():
+    """Summary
+    """
     batch_size = 24
     filter_length = 2
     n_stages = 7

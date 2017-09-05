@@ -23,6 +23,13 @@ from .utils import download
 
 
 def get_vgg_face_model():
+    """Summary
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     download('https://s3.amazonaws.com/cadl/models/vgg_face.tfmodel')
     with open("vgg_face.tfmodel", mode='rb') as f:
         graph_def = tf.GraphDef()
@@ -47,6 +54,13 @@ def get_vgg_face_model():
 
 
 def get_vgg_model():
+    """Summary
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     download('https://s3.amazonaws.com/cadl/models/vgg16.tfmodel')
     with open("vgg16.tfmodel", mode='rb') as f:
         graph_def = tf.GraphDef()
@@ -72,6 +86,24 @@ def get_vgg_model():
 
 
 def preprocess(img, crop=True, resize=True, dsize=(224, 224)):
+    """Summary
+
+    Parameters
+    ----------
+    img : TYPE
+        Description
+    crop : bool, optional
+        Description
+    resize : bool, optional
+        Description
+    dsize : tuple, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     if img.dtype == np.uint8:
         img = img / 255.0
 
@@ -92,6 +124,18 @@ def preprocess(img, crop=True, resize=True, dsize=(224, 224)):
 
 
 def deprocess(img):
+    """Summary
+
+    Parameters
+    ----------
+    img : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     return np.clip(img * 255, 0, 255).astype(np.uint8)
     # return ((img / np.max(np.abs(img))) * 127.5 +
     #         127.5).astype(np.uint8)
@@ -242,6 +286,7 @@ def test_vgg_face():
             img = imresize(img[0], (224, 224))[np.newaxis]
             img += grad
         plt.imshow(deprocess(img[0]))
+
 
 if __name__ == '__main__':
     test_vgg_face()

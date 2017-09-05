@@ -1,7 +1,9 @@
 """Various utilities for training WaveNet.
 
 WaveNet Training code and utilities are licensed under APL from the
-Google Magenta project:
+
+Google Magenta project
+----------------------
 https://github.com/tensorflow/magenta/blob/master/magenta/models/nsynth/wavenet
 
 Copyright 2017 Parag K. Mital.  See also NOTICE.md.
@@ -24,10 +26,16 @@ import numpy as np
 
 def shift_right(X):
     """Shift the input over by one and a zero to the front.
-    Args:
-        X: The [mb, time, channels] tensor input.
-    Returns:
-        x_sliced: The [mb, time, channels] tensor output.
+
+    Parameters
+    ----------
+    X
+        The [mb, time, channels] tensor input.
+
+    Returns
+    -------
+    x_sliced
+        The [mb, time, channels] tensor output.
     """
     shape = X.get_shape().as_list()
     x_padded = tf.pad(X, [[0, 0], [1, 0], [0, 0]])
@@ -39,14 +47,20 @@ def shift_right(X):
 def mul_or_none(a, b):
     """Return the element wise multiplicative of the inputs.
     If either input is None, we return None.
-    Args:
-        a: A tensor input.
-        b: Another tensor input with the same type as a.
-    Returns:
-        None if either input is None. Otherwise returns a * b.
+
+    Parameters
+    ----------
+    a
+        A tensor input.
+    b
+        Another tensor input with the same type as a.
+
+    Returns
+    -------
+    None if either input is None. Otherwise returns a * b.
     """
     if a is None or b is None:
-      return None
+        return None
     return a * b
 
 
@@ -56,12 +70,18 @@ def time_to_batch(X, block_size):
     so that the `k` time steps in each output batch element are offset by
     `block_size` from each other.
     The number of input time steps must be a multiple of `block_size`.
-    Args:
-        X: Tensor of shape [nb, k*block_size, n] for some natural number k.
-        block_size: number of time steps (i.e. size of dimension 1) in the output
-          tensor.
-    Returns:
-        Tensor of shape [nb*block_size, k, n]
+
+    Parameters
+    ----------
+    X
+        Tensor of shape [nb, k*block_size, n] for some natural number k.
+    block_size
+        number of time steps (i.e. size of dimension 1) in the output
+        tensor.
+
+    Returns
+    -------
+    Tensor of shape [nb*block_size, k, n]
     """
     shape = X.get_shape().as_list()
     y = tf.reshape(X, [
@@ -80,12 +100,18 @@ def time_to_batch(X, block_size):
 
 def batch_to_time(X, block_size):
     """Inverse of `time_to_batch(X, block_size)`.
-    Args:
-        X: Tensor of shape [nb*block_size, k, n] for some natural number k.
-        block_size: number of time steps (i.e. size of dimension 1) in the output
-          tensor.
-    Returns:
-        Tensor of shape [nb, k*block_size, n].
+
+    Parameters
+    ----------
+    X
+        Tensor of shape [nb*block_size, k, n] for some natural number k.
+    block_size
+        number of time steps (i.e. size of dimension 1) in the output
+        tensor.
+
+    Returns
+    -------
+    Tensor of shape [nb, k*block_size, n].
     """
     shape = X.get_shape().as_list()
     y = tf.reshape(X, [shape[0] // block_size, block_size, shape[1], shape[2]])
@@ -106,17 +132,30 @@ def conv1d(X,
            kernel_initializer=tf.uniform_unit_scaling_initializer(1.0),
            biases_initializer=tf.constant_initializer(0.0)):
     """Fast 1D convolution that supports causal padding and dilation.
-    Args:
-        X: The [mb, time, channels] float tensor that we convolve.
-        num_filters: The number of filter maps in the convolution.
-        filter_length: The integer length of the filter.
-        name: The name of the scope for the variables.
-        dilation: The amount of dilation.
-        causal: Whether or not this is a causal convolution.
-        kernel_initializer: The kernel initialization function.
-        biases_initializer: The biases initialization function.
-    Returns:
-        y: The output of the 1D convolution.
+
+    Parameters
+    ----------
+    X
+        The [mb, time, channels] float tensor that we convolve.
+    num_filters
+        The number of filter maps in the convolution.
+    filter_length
+        The integer length of the filter.
+    name
+        The name of the scope for the variables.
+    dilation
+        The amount of dilation.
+    causal
+        Whether or not this is a causal convolution.
+    kernel_initializer
+        The kernel initialization function.
+    biases_initializer
+        The biases initialization function.
+
+    Returns
+    -------
+    y
+        The output of the 1D convolution.
     """
     batch_size, length, num_input_channels = X.get_shape().as_list()
     assert length % dilation == 0
@@ -150,14 +189,24 @@ def conv1d(X,
 
 def pool1d(X, window_length, name, mode='avg', stride=None):
     """1D pooling function that supports multiple different modes.
-    Args:
-        X: The [mb, time, channels] float tensor that we are going to pool over.
-        window_length: The amount of samples we pool over.
-        name: The name of the scope for the variables.
-        mode: The type of pooling, either avg or max.
-        stride: The stride length.
-    Returns:
-        pooled: The [mb, time // stride, channels] float tensor result of pooling.
+
+    Parameters
+    ----------
+    X
+        The [mb, time, channels] float tensor that we are going to pool over.
+    window_length
+        The amount of samples we pool over.
+    name
+        The name of the scope for the variables.
+    mode
+        The type of pooling, either avg or max.
+    stride
+        The stride length.
+
+    Returns
+    -------
+    pooled
+        The [mb, time // stride, channels] float tensor result of pooling.
     """
     if mode == 'avg':
         pool_fn = tf.nn.avg_pool
@@ -178,12 +227,20 @@ def pool1d(X, window_length, name, mode='avg', stride=None):
 
 def mu_law(X, mu=255, int8=False):
     """A TF implementation of Mu-Law encoding.
-    Args:
-        X: The audio samples to encode.
-        mu: The Mu to use in our Mu-Law.
-        int8: Use int8 encoding.
-    Returns:
-        out: The Mu-Law encoded int8 data.
+
+    Parameters
+    ----------
+    X
+        The audio samples to encode.
+    mu
+        The Mu to use in our Mu-Law.
+    int8
+        Use int8 encoding.
+
+    Returns
+    -------
+    out
+        The Mu-Law encoded int8 data.
     """
     out = tf.sign(X) * tf.log(1 + mu * tf.abs(X)) / np.log(1 + mu)
     out = tf.floor(out * 128)
@@ -194,12 +251,20 @@ def mu_law(X, mu=255, int8=False):
 
 def mu_law_numpy(X, mu=255, int8=False):
     """A TF implementation of Mu-Law encoding.
-    Args:
-        X: The audio samples to encode.
-        mu: The Mu to use in our Mu-Law.
-        int8: Use int8 encoding.
-    Returns:
-        out: The Mu-Law encoded int8 data.
+
+    Parameters
+    ----------
+    X
+        The audio samples to encode.
+    mu
+        The Mu to use in our Mu-Law.
+    int8
+        Use int8 encoding.
+
+    Returns
+    -------
+    out
+        The Mu-Law encoded int8 data.
     """
     out = np.sign(X) * np.log(1 + mu * np.abs(X)) / np.log(1 + mu)
     out = np.floor(out * 128)
@@ -210,11 +275,18 @@ def mu_law_numpy(X, mu=255, int8=False):
 
 def inv_mu_law(X, mu=255):
     """A TF implementation of inverse Mu-Law.
-    Args:
-        X: The Mu-Law samples to decode.
-        mu: The Mu we used to encode these samples.
-    Returns:
-        out: The decoded data.
+
+    Parameters
+    ----------
+    X
+        The Mu-Law samples to decode.
+    mu
+        The Mu we used to encode these samples.
+
+    Returns
+    -------
+    out
+        The decoded data.
     """
     X = tf.cast(X, tf.float32)
     out = (X + 0.5) * 2. / (mu + 1)
@@ -225,11 +297,18 @@ def inv_mu_law(X, mu=255):
 
 def inv_mu_law_numpy(X, mu=255.0):
     """A numpy implementation of inverse Mu-Law.
-    Args:
-        X: The Mu-Law samples to decode.
-        mu: The Mu we used to encode these samples.
-    Returns:
-        out: The decoded data.
+
+    Parameters
+    ----------
+    X
+        The Mu-Law samples to decode.
+    mu
+        The Mu we used to encode these samples.
+
+    Returns
+    -------
+    out
+        The decoded data.
     """
     X = np.array(X).astype(np.float32)
     out = (X + 0.5) * 2. / (mu + 1)
@@ -242,18 +321,34 @@ def causal_linear(X, n_inputs, n_outputs, name, filter_length, rate,
                   batch_size, depth=1):
     """Applies dilated convolution using queues.
     Assumes a filter_length of 2 or 3.
-    Args:
-        X: The [mb, time, channels] tensor input.
-        n_inputs: The input number of channels.
-        n_outputs: The output number of channels.
-        name: The variable scope to provide to W and biases.
-        filter_length: The length of the convolution, assumed to be 3.
-        rate: The rate or dilation
-        batch_size: Non-symbolic value for batch_size.
-    Returns:
-        y: The output of the operation
-        (init_1, init_2): Initialization operations for the queues
-        (push_1, push_2): Push operations for the queues
+
+    Parameters
+    ----------
+    X
+        The [mb, time, channels] tensor input.
+    n_inputs
+        The input number of channels.
+    n_outputs
+        The output number of channels.
+    name
+        The variable scope to provide to W and biases.
+    filter_length
+        The length of the convolution, assumed to be 3.
+    rate
+        The rate or dilation
+    batch_size
+        Non-symbolic value for batch_size.
+    depth : int, optional
+        Description
+
+    Returns
+    -------
+    y
+        The output of the operation
+    (init_1, init_2)
+        Initialization operations for the queues
+    (push_1, push_2)
+        Push operations for the queues
     """
     assert filter_length == 2 or filter_length == 3
 
@@ -309,23 +404,23 @@ def causal_linear(X, n_inputs, n_outputs, name, filter_length, rate,
     else:
         # create queue
         q = tf.FIFOQueue(
-                rate,
-                dtypes=tf.float32,
-                shapes=(batch_size, depth, n_inputs))
+            rate,
+            dtypes=tf.float32,
+            shapes=(batch_size, depth, n_inputs))
         init = q.enqueue_many(
-                tf.zeros((rate, batch_size, depth, n_inputs)))
+            tf.zeros((rate, batch_size, depth, n_inputs)))
         state = q.dequeue()
         push = q.enqueue(X)
 
         # get pretrained weights
         W = tf.get_variable(
-                name=name + '/W',
-                shape=[1, filter_length, n_inputs, n_outputs],
-                dtype=tf.float32)
+            name=name + '/W',
+            shape=[1, filter_length, n_inputs, n_outputs],
+            dtype=tf.float32)
         b = tf.get_variable(
-                name=name + '/biases',
-                shape=[n_outputs],
-                dtype=tf.float32)
+            name=name + '/biases',
+            shape=[n_outputs],
+            dtype=tf.float32)
         W_q = tf.slice(W, [0, 0, 0, 0], [-1, 1, -1, -1])
         W_x = tf.slice(W, [0, 1, 0, 0], [-1, 1, -1, -1])
 
@@ -333,21 +428,37 @@ def causal_linear(X, n_inputs, n_outputs, name, filter_length, rate,
         y = tf.nn.bias_add(
             tf.matmul(state[:, 0, :], W_q[0][0]) +
             tf.matmul(X[:, 0, :], W_x[0][0]),
-                b)
+            b)
         return tf.expand_dims(y, 1), [init], [push]
 
 
 def linear(X, n_inputs, n_outputs, name):
+    """Summary
+
+    Parameters
+    ----------
+    X : TYPE
+        Description
+    n_inputs : TYPE
+        Description
+    n_outputs : TYPE
+        Description
+    name : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     W = tf.get_variable(
-            name=name + '/W',
-            shape=[1, 1, n_inputs, n_outputs],
-            dtype=tf.float32)
+        name=name + '/W',
+        shape=[1, 1, n_inputs, n_outputs],
+        dtype=tf.float32)
     b = tf.get_variable(
-            name=name + '/biases',
-            shape=[n_outputs],
-            dtype=tf.float32)
+        name=name + '/biases',
+        shape=[n_outputs],
+        dtype=tf.float32)
     # ipdb.set_trace()
     y = tf.nn.bias_add(tf.matmul(X[:, 0, :], W[0][0]), b)
     return tf.expand_dims(y, 1)
-
-

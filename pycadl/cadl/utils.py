@@ -28,6 +28,18 @@ import contextlib
 
 @contextlib.contextmanager
 def stdout_redirect(where):
+    """Summary
+    
+    Parameters
+    ----------
+    where : TYPE
+        Description
+    
+    Yields
+    ------
+    TYPE
+        Description
+    """
     sys.stdout = where
     try:
         yield where
@@ -36,18 +48,30 @@ def stdout_redirect(where):
 
 
 def exists(site):
+    """Summary
+    
+    Parameters
+    ----------
+    site : TYPE
+        Description
+    
+    Returns
+    -------
+    TYPE
+        Description
+    """
     res = requests.head(site)
     return res.ok
 
 
 def download(path):
     """Use urllib to download a file.
-
+    
     Parameters
     ----------
     path : str
         Url to download
-
+    
     Returns
     -------
     path : str
@@ -81,7 +105,7 @@ def download(path):
 
 def download_and_extract_tar(path, dst):
     """Download and extract a tar file.
-
+    
     Parameters
     ----------
     path : str
@@ -98,7 +122,7 @@ def download_and_extract_tar(path, dst):
 
 def download_and_extract_zip(path, dst):
     """Download and extract a zip file.
-
+    
     Parameters
     ----------
     path : str
@@ -116,15 +140,20 @@ def download_and_extract_zip(path, dst):
 
 def load_audio(filename, b_normalize=True):
     """Load the audiofile at the provided filename using scipy.io.wavfile.
-
+    
     Optionally normalizes the audio to the maximum value.
-
+    
     Parameters
     ----------
     filename : str
         File to load.
     b_normalize : bool, optional
         Normalize to the maximum value.
+    
+    Returns
+    -------
+    TYPE
+        Description
     """
     sr, s = wavfile.read(filename)
     if b_normalize:
@@ -136,11 +165,12 @@ def load_audio(filename, b_normalize=True):
 
 def corrupt(x):
     """Take an input tensor and add uniform masking.
-
+    
     Parameters
     ----------
     x : Tensor/Placeholder
         Input to corrupt.
+    
     Returns
     -------
     x_corrupted : Tensor
@@ -154,7 +184,7 @@ def corrupt(x):
 
 def interp(l, r, n_samples):
     """Intepolate between the arrays l and r, n_samples times.
-
+    
     Parameters
     ----------
     l : np.ndarray
@@ -163,7 +193,7 @@ def interp(l, r, n_samples):
         Right edge
     n_samples : int
         Number of samples
-
+    
     Returns
     -------
     arr : np.ndarray
@@ -176,14 +206,14 @@ def interp(l, r, n_samples):
 
 def make_latent_manifold(corners, n_samples):
     """Create a 2d manifold out of the provided corners: n_samples * n_samples.
-
+    
     Parameters
     ----------
     corners : list of np.ndarray
         The four corners to intepolate.
     n_samples : int
         Number of samples to use in interpolation.
-
+    
     Returns
     -------
     arr : np.ndarray
@@ -200,12 +230,12 @@ def make_latent_manifold(corners, n_samples):
 
 def imcrop_tosquare(img):
     """Make any image a square image.
-
+    
     Parameters
     ----------
     img : np.ndarray
         Input image to crop, assumed at least 2d.
-
+    
     Returns
     -------
     crop : np.ndarray
@@ -221,10 +251,10 @@ def imcrop_tosquare(img):
 
 def slice_montage(montage, img_h, img_w, n_imgs):
     """Slice a montage image into n_img h x w images.
-
+    
     Performs the opposite of the montage function.  Takes a montage image and
     slices it back into a N x H x W x C image.
-
+    
     Parameters
     ----------
     montage : np.ndarray
@@ -235,7 +265,7 @@ def slice_montage(montage, img_h, img_w, n_imgs):
         Width of sliced image
     n_imgs : int
         Number of images to slice
-
+    
     Returns
     -------
     sliced : np.ndarray
@@ -252,9 +282,9 @@ def slice_montage(montage, img_h, img_w, n_imgs):
 
 def montage(images, saveto='montage.png'):
     """Draw all images as a montage separated by 1 pixel borders.
-
+    
     Also saves the file to the destination specified by `saveto`.
-
+    
     Parameters
     ----------
     images : numpy.ndarray
@@ -262,7 +292,7 @@ def montage(images, saveto='montage.png'):
         batch x height x width x channels.
     saveto : str
         Location to save the resulting montage image.
-
+    
     Returns
     -------
     m : numpy.ndarray
@@ -295,12 +325,12 @@ def montage(images, saveto='montage.png'):
 def montage_filters(W):
     """Draws all filters (n_input * n_output filters) as a
     montage image separated by 1 pixel borders.
-
+    
     Parameters
     ----------
     W : Tensor
         Input tensor to create montage of.
-
+    
     Returns
     -------
     m : numpy.ndarray
@@ -323,14 +353,21 @@ def montage_filters(W):
 
 def get_celeb_files(dst='img_align_celeba', max_images=100):
     """Download the first 100 images of the celeb dataset.
-
+    
     Files will be placed in a directory 'img_align_celeba' if one
     doesn't exist.
-
+    
     Returns
     -------
     files : list of strings
         Locations to the first 100 images of the celeb net dataset.
+    
+    Parameters
+    ----------
+    dst : str, optional
+        Description
+    max_images : int, optional
+        Description
     """
     # Create a directory
     if not os.path.exists(dst):
@@ -361,18 +398,23 @@ def get_celeb_files(dst='img_align_celeba', max_images=100):
 
 def get_celeb_imgs(max_images=100):
     """Load the first `max_images` images of the celeb dataset.
-
+    
     Returns
     -------
     imgs : list of np.ndarray
         List of the first 100 images from the celeb dataset
+    
+    Parameters
+    ----------
+    max_images : int, optional
+        Description
     """
     return [plt.imread(f_i) for f_i in get_celeb_files(max_images=max_images)]
 
 
 def gauss(mean, stddev, ksize):
     """Use Tensorflow to compute a Gaussian Kernel.
-
+    
     Parameters
     ----------
     mean : float
@@ -381,7 +423,7 @@ def gauss(mean, stddev, ksize):
         Standard Deviation of the Gaussian (e.g. 1.0).
     ksize : int
         Size of kernel (e.g. 16).
-
+    
     Returns
     -------
     kernel : np.ndarray
@@ -398,7 +440,7 @@ def gauss(mean, stddev, ksize):
 
 def gauss2d(mean, stddev, ksize):
     """Use Tensorflow to compute a 2D Gaussian Kernel.
-
+    
     Parameters
     ----------
     mean : float
@@ -407,7 +449,7 @@ def gauss2d(mean, stddev, ksize):
         Standard Deviation of the Gaussian (e.g. 1.0).
     ksize : int
         Size of kernel (e.g. 16).
-
+    
     Returns
     -------
     kernel : np.ndarray
@@ -422,7 +464,7 @@ def gauss2d(mean, stddev, ksize):
 
 def convolve(img, kernel):
     """Use Tensorflow to convolve a 4D image with a 4D kernel.
-
+    
     Parameters
     ----------
     img : np.ndarray
@@ -431,7 +473,7 @@ def convolve(img, kernel):
         4-dimensional image shape K_H, K_W, C_I, C_O corresponding to the
         kernel's height and width, the number of input channels, and the
         number of output channels.  Note that C_I should = C.
-
+    
     Returns
     -------
     result : np.ndarray
@@ -446,12 +488,12 @@ def convolve(img, kernel):
 
 def gabor(ksize=32):
     """Use Tensorflow to compute a 2D Gabor Kernel.
-
+    
     Parameters
     ----------
     ksize : int, optional
         Size of kernel.
-
+    
     Returns
     -------
     gabor : np.ndarray
@@ -470,13 +512,15 @@ def gabor(ksize=32):
 
 def build_submission(filename, file_list, optional_file_list=()):
     """Helper utility to check homework assignment submissions and package them.
-
+    
     Parameters
     ----------
     filename : str
         Output zip file name
     file_list : tuple
         Tuple of files to include
+    optional_file_list : tuple, optional
+        Description
     """
     # check each file exists
     for part_i, file_i in enumerate(file_list):
@@ -486,6 +530,15 @@ def build_submission(filename, file_list, optional_file_list=()):
                 part_i + 1))
 
     def zipdir(path, zf):
+        """Summary
+        
+        Parameters
+        ----------
+        path : TYPE
+            Description
+        zf : TYPE
+            Description
+        """
         for root, dirs, files in os.walk(path):
             for file in files:
                 # make sure the files are part of the necessary file list
@@ -502,7 +555,20 @@ def build_submission(filename, file_list, optional_file_list=()):
 
 
 def normalize(a, s=0.1):
-    '''Normalize the image range for visualization'''
+    '''Normalize the image range for visualization
+    
+    Parameters
+    ----------
+    a : TYPE
+        Description
+    s : float, optional
+        Description
+    
+    Returns
+    -------
+    TYPE
+        Description
+    '''
     return np.uint8(np.clip(
         (a - a.mean()) / max(a.std(), 1e-4) * s + 0.5,
         0, 1) * 255)
@@ -512,10 +578,18 @@ def normalize(a, s=0.1):
 def weight_variable(shape, **kwargs):
     '''Helper function to create a weight variable initialized with
     a normal distribution
+    
     Parameters
     ----------
     shape : list
         Size of weight variable
+    **kwargs
+        Description
+    
+    Returns
+    -------
+    TYPE
+        Description
     '''
     if isinstance(shape, list):
         initial = tf.random_normal(tf.stack(shape), mean=0.0, stddev=0.01)
@@ -529,10 +603,18 @@ def weight_variable(shape, **kwargs):
 def bias_variable(shape, **kwargs):
     '''Helper function to create a bias variable initialized with
     a constant value.
+    
     Parameters
     ----------
     shape : list
         Size of weight variable
+    **kwargs
+        Description
+    
+    Returns
+    -------
+    TYPE
+        Description
     '''
     if isinstance(shape, list):
         initial = tf.random_normal(tf.stack(shape), mean=0.0, stddev=0.01)
@@ -544,15 +626,22 @@ def bias_variable(shape, **kwargs):
 
 def binary_cross_entropy(z, x, name=None):
     """Binary Cross Entropy measures cross entropy of a binary variable.
-
+    
     loss(x, z) = - sum_i (x[i] * log(z[i]) + (1 - x[i]) * log(1 - z[i]))
-
+    
     Parameters
     ----------
     z : tf.Tensor
         A `Tensor` of the same type and shape as `x`.
     x : tf.Tensor
         A `Tensor` of type `float32` or `float64`.
+    name : None, optional
+        Description
+    
+    Returns
+    -------
+    TYPE
+        Description
     """
     with tf.variable_scope(name or 'bce'):
         eps = 1e-12
@@ -564,7 +653,7 @@ def conv2d(x, n_output,
            k_h=5, k_w=5, d_h=2, d_w=2,
            padding='SAME', name='conv2d', reuse=None):
     """Helper for creating a 2d convolution operation.
-
+    
     Parameters
     ----------
     x : tf.Tensor
@@ -583,7 +672,9 @@ def conv2d(x, n_output,
         Padding type: "SAME" or "VALID"
     name : str, optional
         Variable scope
-
+    reuse : None, optional
+        Description
+    
     Returns
     -------
     op : tf.Tensor
@@ -619,7 +710,7 @@ def deconv2d(x, n_output_h, n_output_w, n_output_ch, n_input_ch=None,
              k_h=5, k_w=5, d_h=2, d_w=2,
              padding='SAME', name='deconv2d', reuse=None):
     """Deconvolution helper.
-
+    
     Parameters
     ----------
     x : tf.Tensor
@@ -630,6 +721,8 @@ def deconv2d(x, n_output_h, n_output_w, n_output_ch, n_input_ch=None,
         Width of output
     n_output_ch : int
         Number of filters.
+    n_input_ch : None, optional
+        Description
     k_h : int, optional
         Kernel height
     k_w : int, optional
@@ -642,7 +735,9 @@ def deconv2d(x, n_output_h, n_output_w, n_output_ch, n_input_ch=None,
         Padding type: "SAME" or "VALID"
     name : str, optional
         Variable scope
-
+    reuse : None, optional
+        Description
+    
     Returns
     -------
     op : tf.Tensor
@@ -677,14 +772,14 @@ def deconv2d(x, n_output_h, n_output_w, n_output_ch, n_input_ch=None,
 
 def lrelu(features, leak=0.2):
     """Leaky rectifier.
-
+    
     Parameters
     ----------
     features : tf.Tensor
         Input to apply leaky rectifier to.
     leak : float, optional
         Percentage of leak.
-
+    
     Returns
     -------
     op : tf.Tensor
@@ -697,7 +792,7 @@ def lrelu(features, leak=0.2):
 
 def linear(x, n_output, name=None, activation=None, reuse=None):
     """Fully connected layer.
-
+    
     Parameters
     ----------
     x : tf.Tensor
@@ -706,7 +801,11 @@ def linear(x, n_output, name=None, activation=None, reuse=None):
         Number of output neurons
     name : None, optional
         Scope to apply
-
+    activation : None, optional
+        Description
+    reuse : None, optional
+        Description
+    
     Returns
     -------
     h, W : tf.Tensor, tf.Tensor
@@ -743,18 +842,25 @@ def linear(x, n_output, name=None, activation=None, reuse=None):
 
 def flatten(x, name=None, reuse=None):
     """Flatten Tensor to 2-dimensions.
-
+    
     Parameters
     ----------
     x : tf.Tensor
         Input tensor to flatten.
     name : None, optional
         Variable scope for flatten operations
-
+    reuse : None, optional
+        Description
+    
     Returns
     -------
     flattened : tf.Tensor
         Flattened tensor.
+    
+    Raises
+    ------
+    ValueError
+        Description
     """
     with tf.variable_scope('flatten'):
         dims = x.get_shape().as_list()
@@ -773,20 +879,20 @@ def flatten(x, name=None, reuse=None):
 
 def to_tensor(x):
     """Convert 2 dim Tensor to a 4 dim Tensor ready for convolution.
-
+    
     Performs the opposite of flatten(x).  If the tensor is already 4-D, this
     returns the same as the input, leaving it unchanged.
-
+    
     Parameters
     ----------
     x : tf.Tesnor
         Input 2-D tensor.  If 4-D already, left unchanged.
-
+    
     Returns
     -------
     x : tf.Tensor
         4-D representation of the input.
-
+    
     Raises
     ------
     ValueError
@@ -815,11 +921,17 @@ def to_tensor(x):
 
 def sample_categorical(pmf):
     """Sample from a categorical distribution.
-    Args:
-        pmf: Probablity mass function. Output of a softmax over categories.
-          Array of shape [batch_size, number of categories]. Rows sum to 1.
-    Returns:
-        idxs: Array of size [batch_size, 1]. Integer of category sampled.
+    
+    Parameters
+    ----------
+    pmf
+        Probablity mass function. Output of a softmax over categories.
+        Array of shape [batch_size, number of categories]. Rows sum to 1.
+    
+    Returns
+    -------
+    idxs
+        Array of size [batch_size, 1]. Integer of category sampled.
     """
     if pmf.ndim == 1:
         pmf = np.expand_dims(pmf, 0)

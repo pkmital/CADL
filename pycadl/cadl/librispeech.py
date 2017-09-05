@@ -35,6 +35,15 @@ def get_dataset(saveto='librispeech', convert_to_wav=False, kind='dev'):
     ----------
     saveto : str
         Directory to save the resulting dataset ['librispeech']
+    convert_to_wav : bool, optional
+        Description
+    kind : str, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
     """
     if not os.path.exists(saveto):
         if kind == 'dev':
@@ -75,9 +84,9 @@ def get_dataset(saveto='librispeech', convert_to_wav=False, kind='dev'):
         })
     if len(wavs) == 0:
         print('LibriSpeech is a FLAC dataset.  Consider rerunning this '
-                'command with convert_to_wav=True, to use ffmpeg to '
-                'convert the flac files to wave files first. This requires '
-                'the use of ffmpeg and so this should be installed first.')
+              'command with convert_to_wav=True, to use ffmpeg to '
+              'convert the flac files to wave files first. This requires '
+              'the use of ffmpeg and so this should be installed first.')
     return dataset
 
 
@@ -87,6 +96,28 @@ def batch_generator(dataset,
                     maxval=32768.0,
                     threshold=0.2,
                     normalize=True):
+    """Summary
+
+    Parameters
+    ----------
+    dataset : TYPE
+        Description
+    batch_size : int, optional
+        Description
+    max_sequence_length : int, optional
+        Description
+    maxval : float, optional
+        Description
+    threshold : float, optional
+        Description
+    normalize : bool, optional
+        Description
+
+    Yields
+    ------
+    TYPE
+        Description
+    """
     n_batches = len(dataset) // batch_size
     for batch_i in range(n_batches):
         cropped_wavs, ids = [], []

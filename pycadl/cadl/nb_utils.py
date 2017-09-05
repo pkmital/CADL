@@ -1,4 +1,6 @@
-"""Utility for displaying Tensorflow graphs from:
+"""
+Utility for displaying Tensorflow graphs from
+---------------------------------------------
 https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/tutorials/deepdream/deepdream.ipynb
 
 Copyright 2017 Parag K. Mital.  See also NOTICE.md.
@@ -21,9 +23,29 @@ from IPython.display import display, HTML
 
 
 def show_graph(graph_def):
+    """Summary
+
+    Parameters
+    ----------
+    graph_def : TYPE
+        Description
+    """
     # Helper functions for TF Graph visualization
     def _strip_consts(graph_def, max_const_size=32):
-        """Strip large constant values from graph_def."""
+        """Strip large constant values from graph_def.
+
+        Parameters
+        ----------
+        graph_def : TYPE
+            Description
+        max_const_size : int, optional
+            Description
+
+        Returns
+        -------
+        TYPE
+            Description
+        """
         strip_def = tf.GraphDef()
         for n0 in graph_def.node:
             n = strip_def.node.add()
@@ -36,6 +58,20 @@ def show_graph(graph_def):
         return strip_def
 
     def _rename_nodes(graph_def, rename_func):
+        """Summary
+
+        Parameters
+        ----------
+        graph_def : TYPE
+            Description
+        rename_func : TYPE
+            Description
+
+        Returns
+        -------
+        TYPE
+            Description
+        """
         res_def = tf.GraphDef()
         for n0 in graph_def.node:
             n = res_def.node.add()
@@ -46,7 +82,15 @@ def show_graph(graph_def):
         return res_def
 
     def _show_entire_graph(graph_def, max_const_size=32):
-        """Visualize TensorFlow graph."""
+        """Visualize TensorFlow graph.
+
+        Parameters
+        ----------
+        graph_def : TYPE
+            Description
+        max_const_size : int, optional
+            Description
+        """
         if hasattr(graph_def, 'as_graph_def'):
             graph_def = graph_def.as_graph_def()
         strip_def = _strip_consts(graph_def, max_const_size=max_const_size)

@@ -24,6 +24,17 @@ from tensorflow.python.framework import ops
 
 
 def print_stat(prefix, statistic_type, value):
+    """Summary
+
+    Parameters
+    ----------
+    prefix : TYPE
+        Description
+    statistic_type : TYPE
+        Description
+    value : TYPE
+        Description
+    """
     if value is None:
         friendly_value = "None"
     else:
@@ -33,7 +44,31 @@ def print_stat(prefix, statistic_type, value):
 
 def calculate_graph_metrics(graph_def, statistic_types, input_layer,
                             input_shape_override, batch_size):
-    """Looks at the performance statistics of all nodes in the graph."""
+    """Looks at the performance statistics of all nodes in the graph.
+
+    Parameters
+    ----------
+    graph_def : TYPE
+        Description
+    statistic_types : TYPE
+        Description
+    input_layer : TYPE
+        Description
+    input_shape_override : TYPE
+        Description
+    batch_size : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+
+    Raises
+    ------
+    ValueError
+        Description
+    """
     tf.import_graph_def(graph_def, name="")
     total_stats = {}
     node_stats = {}
@@ -72,6 +107,17 @@ def calculate_graph_metrics(graph_def, statistic_types, input_layer,
 
 
 def stats(graph_def, input_layer, batch_size):
+    """Summary
+
+    Parameters
+    ----------
+    graph_def : TYPE
+        Description
+    input_layer : TYPE
+        Description
+    batch_size : TYPE
+        Description
+    """
     statistic_types = ['flops']
     input_shape_override = False
     total_stats, node_stats = calculate_graph_metrics(

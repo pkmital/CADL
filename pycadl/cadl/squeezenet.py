@@ -67,6 +67,26 @@ def fire_module(
     :param e1: Number of filters for expand 1x1 layer
     :param e3: Number of filters for expand 3x3 layer
     :return: Tensorflow tensor
+
+    Parameters
+    ----------
+    input : TYPE
+        Description
+    fire_id : TYPE
+        Description
+    channel : TYPE
+        Description
+    s1 : TYPE
+        Description
+    e1 : TYPE
+        Description
+    e3 : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
     """
 
     fire_weights = {
@@ -117,6 +137,18 @@ def squeeze_net(input, classes):
     :param input: Input tensor (4D)
     :param classes: number of classes for classification
     :return: Tensorflow tensor
+
+    Parameters
+    ----------
+    input : TYPE
+        Description
+    classes : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
     """
 
     weights = {

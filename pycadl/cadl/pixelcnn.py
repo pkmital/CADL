@@ -1,7 +1,7 @@
 """Conditional Gated Pixel CNN.
 
-Thanks to many reference implementations:
-
+Thanks to many reference implementations
+----------------------------------------
 https://github.com/anantzoid/Conditional-PixelCNN-decoder
 https://github.com/openai/pixel-cnn
 https://github.com/PrajitR/fast-pixel-cnn
@@ -35,7 +35,34 @@ def gated_conv2d(X,
                  mask=None,
                  cond_h=None,
                  vertical_h=None):
+    """Summary
 
+    Parameters
+    ----------
+    X : TYPE
+        Description
+    K_h : TYPE
+        Description
+    K_w : TYPE
+        Description
+    K_c : TYPE
+        Description
+    strides : list, optional
+        Description
+    padding : str, optional
+        Description
+    mask : None, optional
+        Description
+    cond_h : None, optional
+        Description
+    vertical_h : None, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     with tf.variable_scope('masked_cnn'):
         W = tf.get_variable(
             name='W',
@@ -99,7 +126,8 @@ def build_conditional_pixel_cnn_model(B=None,
                                       n_conditionals=None):
     """Conditional Gated Pixel CNN Model.
 
-    From the paper:
+    From the paper
+    --------------
         van den Oord, A., Kalchbrenner, N., Vinyals, O.,
         Espeholt, L., Graves, A., & Kavukcuoglu, K. (2016).
         Conditional Image Generation with PixelCNN Decoders.
@@ -108,6 +136,24 @@ def build_conditional_pixel_cnn_model(B=None,
     triplet loss of face embeddings, and pad/crop/shift ops for
     convolution (as it is not as clear IMO from a pedagogical
     point of view).
+
+    Parameters
+    ----------
+    B : None, optional
+        Description
+    H : int, optional
+        Description
+    W : int, optional
+        Description
+    C : int, optional
+        Description
+    n_conditionals : None, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
     """
     n_conditionals = None
     X = tf.placeholder(name='X', dtype=tf.uint8, shape=[None, H, W, C])
@@ -168,8 +214,7 @@ def build_conditional_pixel_cnn_model(B=None,
                     W_1x1 = tf.get_variable(
                         name='W',
                         shape=[1, 1, K_c, D],
-                        initializer=
-                        tf.contrib.layers.xavier_initializer_conv2d())
+                        initializer=tf.contrib.layers.xavier_initializer_conv2d())
                     b_1x1 = tf.get_variable(
                         name='b', shape=[D], initializer=tf.ones_initializer())
                     horizontal_Y = tf.nn.bias_add(
@@ -245,7 +290,27 @@ def train_tiny_imagenet(ckpt_path='pixelcnn',
                         H=64,
                         W=64,
                         C=3):
+    """Summary
 
+    Parameters
+    ----------
+    ckpt_path : str, optional
+        Description
+    n_epochs : int, optional
+        Description
+    save_step : int, optional
+        Description
+    write_step : int, optional
+        Description
+    B : int, optional
+        Description
+    H : int, optional
+        Description
+    W : int, optional
+        Description
+    C : int, optional
+        Description
+    """
     ckpt_name = os.path.join(ckpt_path, 'pixelcnn.ckpt')
 
     with tf.Graph().as_default(), tf.Session() as sess:
@@ -324,7 +389,8 @@ def train_tiny_imagenet(ckpt_path='pixelcnn',
 
 
 def generate():
-
+    """Summary
+    """
     # Parameters for generation
     ckpt_path = 'pixelcnn'
     B = None

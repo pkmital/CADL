@@ -364,8 +364,33 @@ def train_input_pipeline(files,
                          crop_factor=0.8):
     """Summary
 
-    Returns
-    -------
+    Parameters
+    ----------
+    files : TYPE
+        Description
+    init_lr_g : float, optional
+        Description
+    init_lr_d : float, optional
+        Description
+    n_features : int, optional
+        Description
+    n_latent : int, optional
+        Description
+    n_epochs : int, optional
+        Description
+    batch_size : int, optional
+        Description
+    n_samples : int, optional
+        Description
+    input_shape : list, optional
+        Description
+    crop_shape : list, optional
+        Description
+    crop_factor : float, optional
+        Description
+
+    No Longer Returned
+    ------------------
     name : TYPE
         Description
     """

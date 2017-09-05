@@ -1,7 +1,9 @@
 """NSynth: WaveNet Autoencoder.
 
 NSynth model code and utilities are licensed under APL from the
-Google Magenta project:
+
+Google Magenta project
+----------------------
 https://github.com/tensorflow/magenta/blob/master/magenta/models/nsynth
 
 Copyright 2017 Parag K. Mital.  See also NOTICE.md.
@@ -29,23 +31,49 @@ from skimage.transform import resize
 
 
 def get_model():
+    """Summary
+    """
     pass
 
 
 def causal_linear(x, n_inputs, n_outputs, name, filter_length, rate, batch_size):
+    """Summary
+
+    Parameters
+    ----------
+    x : TYPE
+        Description
+    n_inputs : TYPE
+        Description
+    n_outputs : TYPE
+        Description
+    name : TYPE
+        Description
+    filter_length : TYPE
+        Description
+    rate : TYPE
+        Description
+    batch_size : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     # create queue
     q_1 = tf.FIFOQueue(
-            rate,
-            dtypes=tf.float32,
-            shapes=(batch_size, n_inputs))
+        rate,
+        dtypes=tf.float32,
+        shapes=(batch_size, n_inputs))
     q_2 = tf.FIFOQueue(
-            rate,
-            dtypes=tf.float32,
-            shapes=(batch_size, n_inputs))
+        rate,
+        dtypes=tf.float32,
+        shapes=(batch_size, n_inputs))
     init_1 = q_1.enqueue_many(
-            tf.zeros((rate, batch_size, n_inputs)))
+        tf.zeros((rate, batch_size, n_inputs)))
     init_2 = q_2.enqueue_many(
-            tf.zeros((rate, batch_size, n_inputs)))
+        tf.zeros((rate, batch_size, n_inputs)))
     state_1 = q_1.dequeue()
     push_1 = q_1.enqueue(x)
     state_2 = q_2.dequeue()
@@ -53,55 +81,81 @@ def causal_linear(x, n_inputs, n_outputs, name, filter_length, rate, batch_size)
 
     # get pretrained weights
     W = tf.get_variable(
-            name=name + '/W',
-            shape=[1, filter_length, n_inputs, n_outputs],
-            dtype=tf.float32)
+        name=name + '/W',
+        shape=[1, filter_length, n_inputs, n_outputs],
+        dtype=tf.float32)
     b = tf.get_variable(
-            name=name + '/biases',
-            shape=[n_outputs],
-            dtype=tf.float32)
+        name=name + '/biases',
+        shape=[n_outputs],
+        dtype=tf.float32)
     W_q_2 = tf.slice(W, [0, 0, 0, 0], [-1, 1, -1, -1])
     W_q_1 = tf.slice(W, [0, 1, 0, 0], [-1, 1, -1, -1])
     W_x = tf.slice(W, [0, 2, 0, 0], [-1, 1, -1, -1])
 
     # perform op w/ cached states
     y = tf.expand_dims(tf.nn.bias_add(
-            tf.matmul(state_2, W_q_2[0][0]) +
-            tf.matmul(state_1, W_q_1[0][0]) +
-            tf.matmul(x, W_x[0][0]),
-            b), 0)
+        tf.matmul(state_2, W_q_2[0][0]) +
+        tf.matmul(state_1, W_q_1[0][0]) +
+        tf.matmul(x, W_x[0][0]),
+        b), 0)
     return y, (init_1, init_2), (push_1, push_2)
 
 
 def linear(x, n_inputs, n_outputs, name):
+    """Summary
+
+    Parameters
+    ----------
+    x : TYPE
+        Description
+    n_inputs : TYPE
+        Description
+    n_outputs : TYPE
+        Description
+    name : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     W = tf.get_variable(
-            name=name + '/W',
-            shape=[1, 1, n_inputs, n_outputs],
-            dtype=tf.float32)
+        name=name + '/W',
+        shape=[1, 1, n_inputs, n_outputs],
+        dtype=tf.float32)
     b = tf.get_variable(
-            name=name + '/biases',
-            shape=[n_outputs],
-            dtype=tf.float32)
+        name=name + '/biases',
+        shape=[n_outputs],
+        dtype=tf.float32)
     return tf.expand_dims(tf.nn.bias_add(tf.matmul(x[0], W[0][0]), b), 0)
 
 
 class FastGenerationConfig(object):
-    """Configuration object that helps manage the graph."""
+    """Configuration object that helps manage the graph.
+    """
 
     def __init__(self):
-        """."""
-
+        """.
+        """
 
     def build(self, inputs):
         """Build the graph for this configuration.
 
-        Args:
-          inputs: A dict of inputs. For training, should contain 'wav'.
-          is_training: Whether we are training or not. Not used in this config.
+        Parameters
+        ----------
+        inputs
+            A dict of inputs. For training, should contain 'wav'.
 
-        Returns:
-          A dict of outputs that includes the 'predictions', 'loss', the 'encoding',
-          the 'quantized_input', and whatever metrics we want to track for eval.
+        Returns
+        -------
+        A dict of outputs that includes the 'predictions', 'loss', the 'encoding',
+        the 'quantized_input', and whatever metrics we want to track for eval.
+
+        Deleted Parameters
+        ------------------
+        is_training
+            Whether we are training or not. Not used in this config.
         """
         num_stages = 10
         num_layers = 30
@@ -118,9 +172,9 @@ class FastGenerationConfig(object):
         x_scaled = tf.expand_dims(x_scaled, 2)
 
         encoding = tf.placeholder(
-                name='encoding',
-                shape=[num_z],
-                dtype=tf.float32)
+            name='encoding',
+            shape=[num_z],
+            dtype=tf.float32)
         en = tf.expand_dims(tf.expand_dims(encoding, 0), 0)
 
         init_ops, push_ops = [], []
@@ -130,13 +184,13 @@ class FastGenerationConfig(object):
         ###
         l = x_scaled
         l, inits, pushs = causal_linear(
-                x=l[0],
-                n_inputs=1,
-                n_outputs=width,
-                name='startconv',
-                rate=1,
-                batch_size=batch_size,
-                filter_length=filter_length)
+            x=l[0],
+            n_inputs=1,
+            n_outputs=width,
+            name='startconv',
+            rate=1,
+            batch_size=batch_size,
+            filter_length=filter_length)
         [init_ops.append(init) for init in inits]
         [push_ops.append(push) for push in pushs]
 
@@ -149,13 +203,13 @@ class FastGenerationConfig(object):
 
             # dilated masked cnn
             d, inits, pushs = causal_linear(
-                    x=l[0],
-                    n_inputs=width,
-                    n_outputs=width * 2,
-                    name='dilatedconv_%d' % (i + 1),
-                    rate=dilation,
-                    batch_size=batch_size,
-                    filter_length=filter_length)
+                x=l[0],
+                n_inputs=width,
+                n_outputs=width * 2,
+                name='dilatedconv_%d' % (i + 1),
+                rate=dilation,
+                batch_size=batch_size,
+                filter_length=filter_length)
             [init_ops.append(init) for init in inits]
             [push_ops.append(push) for push in pushs]
 
@@ -175,7 +229,7 @@ class FastGenerationConfig(object):
 
         s = tf.nn.relu(s)
         s = linear(s, skip_width, skip_width, name='out1') + \
-                linear(en, num_z, skip_width, name='cond_map_out1')
+            linear(en, num_z, skip_width, name='cond_map_out1')
         s = tf.nn.relu(s)
 
         ###
@@ -195,9 +249,34 @@ class FastGenerationConfig(object):
 
 
 class Config(object):
-    """Configuration object that helps manage the graph."""
+    """Configuration object that helps manage the graph.
+
+    Attributes
+    ----------
+    ae_bottleneck_width : int
+        Description
+    ae_hop_length : int
+        Description
+    encoding : TYPE
+        Description
+    learning_rate_schedule : TYPE
+        Description
+    num_iters : int
+        Description
+    train_path : TYPE
+        Description
+    """
 
     def __init__(self, encoding, train_path=None):
+        """Summary
+
+        Parameters
+        ----------
+        encoding : TYPE
+            Description
+        train_path : None, optional
+            Description
+        """
         self.num_iters = 200000
         self.learning_rate_schedule = {
             0: 2e-4,
@@ -214,6 +293,18 @@ class Config(object):
         self.encoding = encoding
 
     def get_batch(self, batch_size):
+        """Summary
+
+        Parameters
+        ----------
+        batch_size : TYPE
+            Description
+
+        Returns
+        -------
+        TYPE
+            Description
+        """
         assert self.train_path is not None
         data_train = reader.NSynthDataset(self.train_path, is_training=True)
         return data_train.get_wavenet_batch(batch_size, length=6144)
@@ -222,13 +313,17 @@ class Config(object):
     def _condition(x, encoding):
         """Condition the input on the encoding.
 
-    Args:
-      x: The [mb, length, channels] float tensor input.
-      encoding: The [mb, encoding_length, channels] float tensor encoding.
+        Parameters
+        ----------
+        x
+            The [mb, length, channels] float tensor input.
+        encoding
+            The [mb, encoding_length, channels] float tensor encoding.
 
-    Returns:
-      The output after broadcasting the encoding to x's shape and adding them.
-    """
+        Returns
+        -------
+        The output after broadcasting the encoding to x's shape and adding them.
+        """
         mb, length, channels = x.get_shape().as_list()
         enc_mb, enc_length, enc_channels = encoding.get_shape().as_list()
         assert enc_mb == mb
@@ -244,14 +339,18 @@ class Config(object):
     def build(self, inputs, is_training):
         """Build the graph for this configuration.
 
-    Args:
-      inputs: A dict of inputs. For training, should contain 'wav'.
-      is_training: Whether we are training or not. Not used in this config.
+        Parameters
+        ----------
+        inputs
+            A dict of inputs. For training, should contain 'wav'.
+        is_training
+            Whether we are training or not. Not used in this config.
 
-    Returns:
-      A dict of outputs that includes the 'predictions', 'loss', the 'encoding',
-      the 'quantized_input', and whatever metrics we want to track for eval.
-    """
+        Returns
+        -------
+        A dict of outputs that includes the 'predictions', 'loss', the 'encoding',
+        the 'quantized_input', and whatever metrics we want to track for eval.
+        """
         del is_training
         num_stages = 10
         num_layers = 30
@@ -306,9 +405,9 @@ class Config(object):
             encoding = en
         else:
             encoding = en = tf.placeholder(
-                    name='ae_pool',
-                    shape=[1, 125, 16],
-                    dtype=tf.float32)
+                name='ae_pool',
+                shape=[1, 125, 16],
+                dtype=tf.float32)
 
         ###
         # The WaveNet Decoder.
@@ -383,13 +482,21 @@ class Config(object):
             'encoding': encoding,
         }
 
+
 def inv_mu_law(x, mu=255.0):
     """A TF implementation of inverse Mu-Law.
-    Args:
-        x: The Mu-Law samples to decode.
-        mu: The Mu we used to encode these samples.
-    Returns:
-        out: The decoded data.
+
+    Parameters
+    ----------
+    x
+        The Mu-Law samples to decode.
+    mu
+        The Mu we used to encode these samples.
+
+    Returns
+    -------
+    out
+        The decoded data.
     """
     x = np.array(x).astype(np.float32)
     out = (x + 0.5) * 2. / (mu + 1)
@@ -399,6 +506,20 @@ def inv_mu_law(x, mu=255.0):
 
 
 def load_audio(wav_file, sample_length=64000):
+    """Summary
+
+    Parameters
+    ----------
+    wav_file : TYPE
+        Description
+    sample_length : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     wav_data = np.array([utils.load_audio(wav_file)[:sample_length]])
     wav_data_padded = np.zeros((1, sample_length))
     wav_data_padded[0, :wav_data.shape[1]] = wav_data
@@ -407,6 +528,22 @@ def load_audio(wav_file, sample_length=64000):
 
 
 def load_nsynth(encoding=True, batch_size=1, sample_length=64000):
+    """Summary
+
+    Parameters
+    ----------
+    encoding : bool, optional
+        Description
+    batch_size : int, optional
+        Description
+    sample_length : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     config = Config(encoding=encoding)
     with tf.device('/gpu:0'):
         X = tf.placeholder(
@@ -417,6 +554,20 @@ def load_nsynth(encoding=True, batch_size=1, sample_length=64000):
 
 
 def load_fastgen_nsynth(batch_size=1, sample_length=64000):
+    """Summary
+
+    Parameters
+    ----------
+    batch_size : int, optional
+        Description
+    sample_length : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     config = FastGenerationConfig()
     X = tf.placeholder(
         tf.float32, shape=[batch_size, 1])
@@ -426,11 +577,32 @@ def load_fastgen_nsynth(batch_size=1, sample_length=64000):
 
 
 def synthesize(wav_file, out_file='synthesis.wav',
-               sample_length = 64000,
-               synth_length = 16000,
+               sample_length=64000,
+               synth_length=16000,
                ckpt_path='./model.ckpt-200000',
                resample_encoding=False):
+    """Summary
 
+    Parameters
+    ----------
+    wav_file : TYPE
+        Description
+    out_file : str, optional
+        Description
+    sample_length : int, optional
+        Description
+    synth_length : int, optional
+        Description
+    ckpt_path : str, optional
+        Description
+    resample_encoding : bool, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     # Audio to resynthesize
     wav_data = load_audio(wav_file, sample_length)
 
@@ -459,7 +631,7 @@ def synthesize(wav_file, out_file='synthesis.wav',
 
         # Regenerate the audio file sample by sample
         wav_synth = np.zeros((sample_length,),
-                dtype=np.float32)
+                             dtype=np.float32)
         audio = np.float32(0)
 
         for sample_i in range(synth_length):
@@ -468,13 +640,13 @@ def synthesize(wav_file, out_file='synthesis.wav',
                 enc_i = sample_i
             else:
                 enc_i = int(sample_i /
-                    float(sample_length) *
-                    float(encoding_length))
+                            float(sample_length) *
+                            float(encoding_length))
             res = sess.run(
-                    [net['predictions'], net['push_ops']],
-                    feed_dict={
-                        net['X']: np.atleast_2d(audio),
-                        net['encoding']: encoding[enc_i]})[0]
+                [net['predictions'], net['push_ops']],
+                feed_dict={
+                    net['X']: np.atleast_2d(audio),
+                    net['encoding']: encoding[enc_i]})[0]
             cdf = np.cumsum(res)
             idx = np.random.rand()
             i = 0

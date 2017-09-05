@@ -32,6 +32,11 @@ def inception_download(data_dir='inception', version='v5'):
         Location of the pretrained inception network download.
     version : str, optional
         Version of the model: ['v3'] or 'v5'.
+
+    Returns
+    -------
+    TYPE
+        Description
     """
     if version == 'v3':
         download_and_extract_tar(
@@ -90,6 +95,24 @@ def get_inception_model(data_dir='inception', version='v5'):
 
 
 def preprocess(img, crop=True, resize=True, dsize=(299, 299)):
+    """Summary
+
+    Parameters
+    ----------
+    img : TYPE
+        Description
+    crop : bool, optional
+        Description
+    resize : bool, optional
+        Description
+    dsize : tuple, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     if img.dtype != np.uint8:
         img *= 255.0
 
@@ -115,6 +138,18 @@ def preprocess(img, crop=True, resize=True, dsize=(299, 299)):
 
 
 def deprocess(img):
+    """Summary
+
+    Parameters
+    ----------
+    img : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     return np.clip(img + 117, 0, 255).astype(np.uint8)
 
 

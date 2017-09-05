@@ -13,6 +13,23 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+Attributes
+----------
+B : int
+    Description
+C : int
+    Description
+ckpt_name : str
+    Description
+H : int
+    Description
+n_epochs : int
+    Description
+n_units : int
+    Description
+W : int
+    Description
 """
 import os
 import numpy as np
@@ -32,6 +49,28 @@ C = 3
 
 def build_pixel_rnn_basic_model(B=50, H=32, W=32, C=32, n_units=100,
                                 n_layers=2):
+    """Summary
+
+    Parameters
+    ----------
+    B : int, optional
+        Description
+    H : int, optional
+        Description
+    W : int, optional
+        Description
+    C : int, optional
+        Description
+    n_units : int, optional
+        Description
+    n_layers : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     # Input to the network, a batch of images
     X = tf.placeholder(tf.float32, shape=[B, H, W, C], name='X')
     keep_prob = tf.placeholder(tf.float32, shape=1, name='keep_prob')
@@ -93,6 +132,30 @@ def build_pixel_rnn_basic_model(B=50, H=32, W=32, C=32, n_units=100,
 
 
 def infer(sess, net, H, W, C, pixel_value=128, state=None):
+    """Summary
+
+    Parameters
+    ----------
+    sess : TYPE
+        Description
+    net : TYPE
+        Description
+    H : TYPE
+        Description
+    W : TYPE
+        Description
+    C : TYPE
+        Description
+    pixel_value : int, optional
+        Description
+    state : None, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     X = np.reshape(pixel_value, [1, 1, 1, 1])
     synthesis = [pixel_value]
     if state is None:
@@ -107,6 +170,8 @@ def infer(sess, net, H, W, C, pixel_value=128, state=None):
 
 
 def train_tiny_imagenet():
+    """Summary
+    """
     net = build_pixel_rnn_basic_model()
 
     # build the optimizer (this will take a while!)

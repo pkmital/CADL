@@ -29,6 +29,13 @@ def MNIST(one_hot=True, split=[1.0, 0.0, 0.0]):
     mnist : DataSet
         DataSet object w/ convenienve props for accessing
         train/validation/test sets and batches.
+
+    Parameters
+    ----------
+    one_hot : bool, optional
+        Description
+    split : list, optional
+        Description
     """
     ds = input_data.read_data_sets('MNIST_data/', one_hot=one_hot)
     return Dataset(
@@ -44,6 +51,8 @@ def CIFAR10(flatten=True, split=[1.0, 0.0, 0.0]):
     ----------
     flatten : bool, optional
         Convert the 3 x 32 x 32 pixels to a single vector
+    split : list, optional
+        Description
 
     Returns
     -------
@@ -128,12 +137,17 @@ def GTZAN(path='./gtzan_music_speech'):
 
     Parameters
     ----------
-    dst : str, optional
-        Location of GTZAN Music and Speech dataset.
+    path : str, optional
+        Description
 
     Returns
     -------
     ds : Dataset
         Dataset object with array of data in X and array of labels in Y
+
+    Deleted Parameters
+    ------------------
+    dst : str, optional
+        Location of GTZAN Music and Speech dataset.
     """
     return Dataset(*gtzan_music_speech_load())

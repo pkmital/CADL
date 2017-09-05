@@ -32,6 +32,24 @@ PAD_ID, GO_ID, EOS_ID, UNK_ID = range(4)
 
 
 def _create_embedding(x, vocab_size, embed_size, embed_matrix=None):
+    """Summary
+
+    Parameters
+    ----------
+    x : TYPE
+        Description
+    vocab_size : TYPE
+        Description
+    embed_size : TYPE
+        Description
+    embed_matrix : None, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     # Creating an embedding matrix if one isn't given
     if embed_matrix is None:
         # This is a big matrix
@@ -49,6 +67,22 @@ def _create_embedding(x, vocab_size, embed_size, embed_matrix=None):
 
 
 def _create_rnn_cell(n_neurons, n_layers, keep_prob):
+    """Summary
+
+    Parameters
+    ----------
+    n_neurons : TYPE
+        Description
+    n_layers : TYPE
+        Description
+    keep_prob : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     import tensorflow.contrib.rnn as rnn
 
     cell_fw = rnn.LayerNormBasicLSTMCell(
@@ -67,7 +101,28 @@ def _create_rnn_cell(n_neurons, n_layers, keep_prob):
 
 def _create_encoder(embed, lengths, batch_size, n_enc_neurons, n_layers,
                     keep_prob):
+    """Summary
 
+    Parameters
+    ----------
+    embed : TYPE
+        Description
+    lengths : TYPE
+        Description
+    batch_size : TYPE
+        Description
+    n_enc_neurons : TYPE
+        Description
+    n_layers : TYPE
+        Description
+    keep_prob : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     # Create the RNN Cells for encoder
     with tf.variable_scope('forward'):
         cell_fw = _create_rnn_cell(n_enc_neurons, n_layers, keep_prob)
@@ -101,6 +156,40 @@ def _create_decoder(cells,
                     scope,
                     max_sequence_size,
                     use_attention=True):
+    """Summary
+
+    Parameters
+    ----------
+    cells : TYPE
+        Description
+    batch_size : TYPE
+        Description
+    encoder_outputs : TYPE
+        Description
+    encoder_state : TYPE
+        Description
+    encoder_lengths : TYPE
+        Description
+    decoding_inputs : TYPE
+        Description
+    decoding_lengths : TYPE
+        Description
+    embed_matrix : TYPE
+        Description
+    target_vocab_size : TYPE
+        Description
+    scope : TYPE
+        Description
+    max_sequence_size : TYPE
+        Description
+    use_attention : bool, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     from tensorflow.python.layers.core import Dense
 
     # Output projection
@@ -165,6 +254,39 @@ def create_model(source_vocab_size=10000,
                  n_layers=4,
                  use_attention=True,
                  max_sequence_size=30):
+    """Summary
+
+    Parameters
+    ----------
+    source_vocab_size : int, optional
+        Description
+    target_vocab_size : int, optional
+        Description
+    input_embed_size : int, optional
+        Description
+    target_embed_size : int, optional
+        Description
+    share_input_and_target_embedding : bool, optional
+        Description
+    n_neurons : int, optional
+        Description
+    n_layers : int, optional
+        Description
+    use_attention : bool, optional
+        Description
+    max_sequence_size : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+
+    Raises
+    ------
+    ValueError
+        Description
+    """
     n_enc_neurons = n_neurons
     n_dec_neurons = n_neurons
 
@@ -278,6 +400,26 @@ def batch_generator(sources,
                     source_lengths,
                     target_lengths,
                     batch_size=50):
+    """Summary
+
+    Parameters
+    ----------
+    sources : TYPE
+        Description
+    targets : TYPE
+        Description
+    source_lengths : TYPE
+        Description
+    target_lengths : TYPE
+        Description
+    batch_size : int, optional
+        Description
+
+    Yields
+    ------
+    TYPE
+        Description
+    """
     idxs = np.random.permutation(np.arange(len(sources)))
     n_batches = len(idxs) // batch_size
     for batch_i in range(n_batches):
@@ -292,6 +434,24 @@ def batch_generator(sources,
 
 
 def preprocess(text, min_count=5, min_length=3, max_length=30):
+    """Summary
+
+    Parameters
+    ----------
+    text : TYPE
+        Description
+    min_count : int, optional
+        Description
+    min_length : int, optional
+        Description
+    max_length : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     sentences = [el for s in text for el in nltk.sent_tokenize(s)]
 
     # We'll first tokenize each sentence into words to get a sense of
@@ -326,6 +486,20 @@ def preprocess(text, min_count=5, min_length=3, max_length=30):
 
 
 def word2id(words, vocab):
+    """Summary
+
+    Parameters
+    ----------
+    words : TYPE
+        Description
+    vocab : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     unked = []
     for s in words:
         this_sentence = [vocab.get(w, UNK_ID) for w in s]
@@ -334,6 +508,20 @@ def word2id(words, vocab):
 
 
 def id2word(ids, vocab):
+    """Summary
+
+    Parameters
+    ----------
+    ids : TYPE
+        Description
+    vocab : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     words = []
     id2words = {v: k for k, v in vocab.items()}
     for s in ids:
@@ -349,7 +537,25 @@ def train(text,
           min_length=5,
           n_epochs=1000,
           batch_size=100):
+    """Summary
 
+    Parameters
+    ----------
+    text : TYPE
+        Description
+    max_sequence_size : int, optional
+        Description
+    use_attention : bool, optional
+        Description
+    min_count : int, optional
+        Description
+    min_length : int, optional
+        Description
+    n_epochs : int, optional
+        Description
+    batch_size : int, optional
+        Description
+    """
     # Preprocess it to word IDs including UNKs for out of vocabulary words
     unked, vocab = preprocess(
         text,
@@ -397,6 +603,15 @@ def train(text,
     saver = tf.train.Saver()
 
     def decode(tokens, lengths):
+        """Summary
+
+        Parameters
+        ----------
+        tokens : TYPE
+            Description
+        lengths : TYPE
+            Description
+        """
         decoding = sess.run(
             net['decoder'],
             feed_dict={
@@ -411,8 +626,8 @@ def train(text,
     for epoch_i in range(n_epochs):
         total = 0
         for it_i, (this_sources, this_targets, this_source_lengths, this_target_lengths) \
-                    in enumerate(batch_generator(
-                        sources, targets, source_lengths, target_lengths, batch_size=batch_size)):
+            in enumerate(batch_generator(
+                sources, targets, source_lengths, target_lengths, batch_size=batch_size)):
             if it_i % 1000 == 0:
                 current_learning_rate = max(0.0001,
                                             current_learning_rate * 0.99)
@@ -438,6 +653,18 @@ def train(text,
 
 
 def train_cornell(**kwargs):
+    """Summary
+
+    Parameters
+    ----------
+    **kwargs
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     # Get the cornell dataset text
     text = cornell.get_scripts()
     return train(text, **kwargs)

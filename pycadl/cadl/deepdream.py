@@ -38,6 +38,11 @@ def get_labels(model='inception'):
     ValueError
         Unknown model.  Must be one of: ['inception'], 'i2v_tag', 'i2v',
         'vgg16', or 'vgg_face'.
+
+    Returns
+    -------
+    TYPE
+        Description
     """
     if model == 'inception':
         net = inception.get_inception_model()
@@ -177,8 +182,8 @@ def _apply(img,
     pth : int, optional
         Percentile to mask out.
 
-    Returns
-    -------
+    No Longer Returned
+    ------------------
     img : np.ndarray
         Ascended image.
     """

@@ -215,56 +215,7 @@ def warp_img(img, dx, dy):
 
 
 def test_video(style_img='arles.jpg', videodir='kurosawa'):
-    """Test for artistic stylization using video.
 
-    This requires the python installation of OpenCV for the Deep Flow algorithm.
-    If cv2 is not found, then there will be reduced "temporal coherence".
-
-    Unfortunately, installing opencv for python3 is not the easiest thing to do.
-    OSX users can install this using:
-
-    $ brew install opencv --with-python3 --with-contrib
-
-    then will have to symlink the libraries.  I think you can do this w/:
-
-    $ brew link --force opencv3
-
-    But the problems start to arise depending on which python you have
-    installed, and it is always a mess w/ homebrew.  Sorry!
-
-    Your best bet is installing from source.  Something along
-    these lines should get you there:
-
-    $ cd ~
-    $ git clone https://github.com/Itseez/opencv.git
-    $ cd opencv
-    $ git checkout 3.1.0
-    $ cd ~
-    $ git clone https://github.com/Itseez/opencv_contrib.git
-    $ cd opencv_contrib
-    $ git checkout 3.1.0
-    $ cd ~/opencv
-    $ mkdir build
-    $ cd build
-    $ cmake -D CMAKE_BUILD_TYPE=RELEASE \
-        -D CMAKE_INSTALL_PREFIX=/usr/local \
-        -D INSTALL_C_EXAMPLES=OFF \
-        -D INSTALL_PYTHON_EXAMPLES=OFF \
-        -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
-        -D BUILD_EXAMPLES=OFF ..
-
-    Parameters
-    ----------
-    style_img : str, optional
-        Location to style image
-    videodir : str, optional
-        Location to directory containing images of each frame to stylize.
-
-    Returns
-    -------
-    imgs : list of np.ndarray
-        Stylized images for each frame.
-    """
     has_cv2 = True
     try:
         import cv2
@@ -327,7 +278,8 @@ def test_video(style_img='arles.jpg', videodir='kurosawa'):
 
 
 def test():
-    """Test for artistic stylization."""
+    """Test for artistic stylization.
+    """
     from six.moves import urllib
     f = ('https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/' +
          'Claude_Monet%2C_Impression%2C_soleil_levant.jpg/617px-Claude_Monet' +

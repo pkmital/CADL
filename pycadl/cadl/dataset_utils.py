@@ -52,6 +52,11 @@ def create_input_pipeline(files,
         Percentage of image to take starting from center.
     n_threads : int, optional
         Number of threads to use for batch shuffling
+
+    Returns
+    -------
+    TYPE
+        Description
     """
 
     # We first create a "producer" queue.  It creates a production line which
@@ -352,8 +357,8 @@ class DatasetSplit(object):
         batch_size : int, optional
             Size of each minibatch.
 
-        Returns
-        -------
+        Yields
+        ------
         Xs, ys : np.ndarray, np.ndarray
             Next batch of inputs and labels (if no labels, then None).
         """
@@ -446,7 +451,7 @@ class Dataset(object):
                                len(self.train_idxs) + round(split[1] * n_idxs)]
         self.test_idxs = idxs[(len(self.valid_idxs) + len(self.train_idxs)):
                               (len(self.valid_idxs) + len(self.train_idxs)
-                              ) + round(split[2] * n_idxs)]
+                               ) + round(split[2] * n_idxs)]
 
     @property
     def X(self):

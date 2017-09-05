@@ -380,6 +380,11 @@ def test_alice(max_iter=5):
     ----------
     max_iter : int, optional
         Description
+
+    Returns
+    -------
+    TYPE
+        Description
     """
     utils.download('https://s3.amazonaws.com/cadl/models/alice.txt.gz')
     with gzip.open('alice.txt.gz', 'rb') as fp:

@@ -12,7 +12,8 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-limitations under the License."""
+limitations under the License.
+"""
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from cadl.datasets import MNIST, CIFAR10
@@ -22,6 +23,20 @@ import numpy as np
 
 
 def linear(x, n_output):
+    """Summary
+
+    Parameters
+    ----------
+    x : TYPE
+        Description
+    n_output : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     w = tf.get_variable(
         "w", [x.get_shape()[1], n_output],
         initializer=tf.contrib.layers.xavier_initializer())
@@ -37,9 +52,15 @@ def encoder(x, rnn, batch_size, state=None, n_enc=64, reuse=None):
     ----------
     x : TYPE
         Description
+    rnn : TYPE
+        Description
+    batch_size : TYPE
+        Description
     state : None, optional
         Description
     n_enc : int, optional
+        Description
+    reuse : None, optional
         Description
 
     Returns
@@ -62,7 +83,11 @@ def variational_layer(h_enc, noise, n_z=2, reuse=None):
     ----------
     h_enc : TYPE
         Description
+    noise : TYPE
+        Description
     n_z : int, optional
+        Description
+    reuse : None, optional
         Description
 
     Returns
@@ -94,9 +119,15 @@ def decoder(z, rnn, batch_size, state=None, n_dec=64, reuse=None):
     ----------
     z : TYPE
         Description
+    rnn : TYPE
+        Description
+    batch_size : TYPE
+        Description
     state : None, optional
         Description
     n_dec : int, optional
+        Description
+    reuse : None, optional
         Description
 
     Returns
@@ -118,6 +149,8 @@ def create_attention_map(h_dec, reuse=None):
     Parameters
     ----------
     h_dec : TYPE
+        Description
+    reuse : None, optional
         Description
 
     Returns
@@ -142,15 +175,28 @@ def create_filterbank(g_x, g_y, log_sigma_sq, log_delta, A=28, B=28, C=1, N=12):
         Description
     g_y : TYPE
         Description
-    log_sigma : type
-        description
+    log_sigma_sq : TYPE
+        Description
     log_delta : TYPE
+        Description
+    A : int, optional
+        Description
+    B : int, optional
+        Description
+    C : int, optional
+        Description
+    N : int, optional
         Description
 
     Returns
     -------
     name : TYPE
         Description
+
+    Deleted Parameters
+    ------------------
+    log_sigma : type
+        description
     """
     with tf.name_scope("filterbank"):
         # Equation 22 and 23
@@ -227,7 +273,13 @@ def filter_image(x, F_x, F_y, log_gamma, A, B, C, N, inverted=False):
         Description
     F_y : TYPE
         Description
-    gamma : TYPE
+    log_gamma : TYPE
+        Description
+    A : TYPE
+        Description
+    B : TYPE
+        Description
+    C : TYPE
         Description
     N : TYPE
         Description
@@ -237,6 +289,11 @@ def filter_image(x, F_x, F_y, log_gamma, A, B, C, N, inverted=False):
     Returns
     -------
     name : TYPE
+        Description
+
+    Deleted Parameters
+    ------------------
+    gamma : TYPE
         Description
     """
     with tf.name_scope("filter"):
@@ -308,7 +365,20 @@ def read(x_t,
         authors suggest to use the decoder instead, see end of section 2.1)
     read_n : int, optional
         Description
+    A : int, optional
+        Description
+    B : int, optional
+        Description
+    C : int, optional
+        Description
     use_attention : bool, optional
+        Description
+    reuse : None, optional
+        Description
+
+    Returns
+    -------
+    TYPE
         Description
     """
     with tf.variable_scope('read', reuse=reuse):
@@ -353,7 +423,15 @@ def write(h_dec_t, write_n=5, A=28, B=28, C=1, use_attention=True, reuse=None):
         Description
     write_n : int, optional
         Description
+    A : int, optional
+        Description
+    B : int, optional
+        Description
+    C : int, optional
+        Description
     use_attention : bool, optional
+        Description
+    reuse : None, optional
         Description
 
     Returns
@@ -409,6 +487,22 @@ def write(h_dec_t, write_n=5, A=28, B=28, C=1, use_attention=True, reuse=None):
 
 
 def binary_cross_entropy(t, o, eps=1e-10):
+    """Summary
+
+    Parameters
+    ----------
+    t : TYPE
+        Description
+    o : TYPE
+        Description
+    eps : float, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     return -(t * tf.log(o + eps) + (1.0 - t) * tf.log(1.0 - o + eps))
 
 
@@ -423,7 +517,7 @@ def create_model(
         n_dec=128,
         read_n=12,
         write_n=12):
-
+    """<FRESHLY_INSERTED>"""
     x = tf.placeholder(tf.float32, shape=[None, A * B * C], name='x')
     noise = tf.placeholder(tf.float32, shape=[None, n_z], name='noise')
     rnn_enc = tf.contrib.rnn.GRUCell(n_enc)

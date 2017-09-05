@@ -152,15 +152,15 @@ def decoder(z, shapes, n_hidden=None,
             if convolutional:
                 shape = shapes[layer_i + 1]
                 h, W = utils.deconv2d(x=current_input,
-                                n_output_h=shape[1],
-                                n_output_w=shape[2],
-                                n_output_ch=shape[3],
-                                n_input_ch=shapes[layer_i][3],
-                                k_h=filter_sizes[layer_i],
-                                k_w=filter_sizes[layer_i])
+                                      n_output_h=shape[1],
+                                      n_output_w=shape[2],
+                                      n_output_ch=shape[3],
+                                      n_input_ch=shapes[layer_i][3],
+                                      k_h=filter_sizes[layer_i],
+                                      k_w=filter_sizes[layer_i])
             else:
                 h, W = utils.linear(x=current_input,
-                              n_output=n_output)
+                                    n_output=n_output)
             if (layer_i + 1) < len(dimensions):
                 h = activation(h)
             else:
@@ -218,6 +218,8 @@ def discriminator(x, convolutional=True,
     convolutional : bool, optional
         Description
     filter_sizes : list, optional
+        Description
+    activation : TYPE, optional
         Description
     n_filters : list, optional
         Description
@@ -497,8 +499,8 @@ def train_vaegan(files,
     ckpt_name : str, optional
         Description
 
-    Returns
-    -------
+    No Longer Returned
+    ------------------
     name : TYPE
         Description
     """
@@ -617,7 +619,7 @@ def train_vaegan(files,
                 print('recon:', recon.min(), recon.max())
                 recon = np.clip(recon / recon.max(), 0, 1)
                 utils.montage(recon.reshape([-1] + crop_shape),
-                        'imgs/manifold_%08d.png' % t_i)
+                              'imgs/manifold_%08d.png' % t_i)
 
                 # Plot example reconstructions
                 recon = sess.run(
@@ -626,7 +628,7 @@ def train_vaegan(files,
                 print('recon:', recon.min(), recon.max())
                 recon = np.clip(recon / recon.max(), 0, 1)
                 utils.montage(recon.reshape([-1] + crop_shape),
-                        'imgs/reconstruction_%08d.png' % t_i)
+                              'imgs/reconstruction_%08d.png' % t_i)
                 t_i += 1
 
             if batch_i % 100 == 0:
@@ -652,8 +654,13 @@ def train_vaegan(files,
 def test_celeb(n_epochs=100):
     """Summary
 
-    Returns
-    -------
+    Parameters
+    ----------
+    n_epochs : int, optional
+        Description
+
+    No Longer Returned
+    ------------------
     name : TYPE
         Description
     """
@@ -678,8 +685,13 @@ def test_celeb(n_epochs=100):
 def test_sita(n_epochs=100):
     """Summary
 
-    Returns
-    -------
+    Parameters
+    ----------
+    n_epochs : int, optional
+        Description
+
+    No Longer Returned
+    ------------------
     name : TYPE
         Description
     """

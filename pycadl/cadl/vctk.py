@@ -37,19 +37,26 @@ def get_dataset(saveto='vctk', convert_to_16khz=False):
     ----------
     saveto : str
         Directory to save the resulting dataset ['vctk']
+    convert_to_16khz : bool, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
     """
     if not os.path.exists(saveto):
         download_and_extract_tar(
-                'http://homepages.inf.ed.ac.uk/jyamagis/' +
-                'release/VCTK-Corpus.tar.gz',
-                saveto)
+            'http://homepages.inf.ed.ac.uk/jyamagis/' +
+            'release/VCTK-Corpus.tar.gz',
+            saveto)
 
     wavs = glob('{}/**/*.16khz.wav'.format(saveto), recursive=True)
     if convert_to_16khz and len(wavs) == 0:
         wavs = glob('{}/**/*.wav'.format(saveto), recursive=True)
         for f in wavs:
             subprocess.check_call(
-                    ['ffmpeg', '-i', f, '-f', 'wav', '-ar', '16000', '-y', '%s.16khz.wav' % f])
+                ['ffmpeg', '-i', f, '-f', 'wav', '-ar', '16000', '-y', '%s.16khz.wav' % f])
 
     wavs = glob('{}/**/*.16khz.wav'.format(saveto), recursive=True)
 
@@ -65,6 +72,28 @@ def get_dataset(saveto='vctk', convert_to_16khz=False):
 
 def batch_generator(dataset, batch_size=32, max_sequence_length=6144,
                     maxval=32768.0, threshold=0.2, normalize=True):
+    """Summary
+
+    Parameters
+    ----------
+    dataset : TYPE
+        Description
+    batch_size : int, optional
+        Description
+    max_sequence_length : int, optional
+        Description
+    maxval : float, optional
+        Description
+    threshold : float, optional
+        Description
+    normalize : bool, optional
+        Description
+
+    Yields
+    ------
+    TYPE
+        Description
+    """
     n_batches = len(dataset) // batch_size
     for batch_i in range(n_batches):
         cropped_wavs = []
@@ -80,4 +109,3 @@ def batch_generator(dataset, batch_size=32, max_sequence_length=6144,
                         cropped_wav = cropped_wav / maxval
                     cropped_wavs.append(cropped_wav)
         yield np.array(cropped_wavs, np.float32)
-

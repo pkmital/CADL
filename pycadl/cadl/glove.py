@@ -23,6 +23,13 @@ from sklearn.decomposition import PCA
 
 
 def get_model():
+    """Summary
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     # Download the glove model and open a zip file
     file = utils.download('http://nlp.stanford.edu/data/wordvecs/glove.6B.zip')
     zf = zipfile.ZipFile(file)
@@ -42,6 +49,8 @@ def get_model():
 
 
 def course_example():
+    """Summary
+    """
     wordvecs, word2id, words = get_model()
 
     word = '2000'
@@ -96,6 +105,15 @@ def course_example():
 
     # Let's stick it all in a function and explore some other words:
     def plot_nearest_words(word, k=20):
+        """Summary
+
+        Parameters
+        ----------
+        word : TYPE
+            Description
+        k : int, optional
+            Description
+        """
         # Get distances to target word
         target_vec = wordvecs[word2id[word]]
         dists = []
@@ -139,6 +157,20 @@ def course_example():
     # Let's create a function which will return us the nearest words rather than
     # plot them:
     def get_nearest_words(target_vec, k=20):
+        """Summary
+
+        Parameters
+        ----------
+        target_vec : TYPE
+            Description
+        k : int, optional
+            Description
+
+        Returns
+        -------
+        TYPE
+            Description
+        """
         # Get distances to target vector
         dists = []
         for vec_i in wordvecs:
@@ -152,9 +184,20 @@ def course_example():
 
     # And a convenience function for returning a vector
     def get_vector(word):
+        """Summary
+
+        Parameters
+        ----------
+        word : TYPE
+            Description
+
+        Returns
+        -------
+        TYPE
+            Description
+        """
         return wordvecs[word2id[word]]
 
     # Now we can try some word embedding arithmetic
     get_nearest_words(get_vector('king') - get_vector('man') + get_vector('woman'))
     get_nearest_words(get_vector('france') - get_vector('french') + get_vector('spain'))
-

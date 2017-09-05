@@ -1,7 +1,7 @@
 """TEDLium Dataset.
 
-SPH format info:
-
+SPH format info
+---------------
 Channels            : 1
 Sample Rate     : 16000
 Precision           : 16-bit
@@ -26,6 +26,13 @@ import os
 
 
 def get_dataset():
+    """Summary
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     stms = []
     for dirpath, dirnames, filenames in os.walk('TEDLIUM_release2'):
         for f in filenames:
@@ -61,5 +68,3 @@ def get_dataset():
                     durations.append(dur)
 
     return data, durations
-
-

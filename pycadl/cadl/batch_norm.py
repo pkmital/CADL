@@ -69,14 +69,7 @@ def batch_norm(x, phase_train, name='bn', decay=0.9, reuse=None, affine=True):
         ema_mean, ema_var = ema.average(batch_mean), ema.average(batch_var)
 
         def mean_var_with_update():
-            """Summary
-
-            Returns
-            -------
-            name : TYPE
-                Description
-            """
-            with tf.control_dependencies([ema_apply_op]):
+           with tf.control_dependencies([ema_apply_op]):
                 return tf.identity(batch_mean), tf.identity(batch_var)
 
         mean, var = control_flow_ops.cond(phase_train, mean_var_with_update,

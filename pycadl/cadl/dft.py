@@ -19,14 +19,58 @@ from scipy.signal import hann
 
 
 def ztoc(re, im):
+    """Summary
+
+    Parameters
+    ----------
+    re : TYPE
+        Description
+    im : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     return np.sqrt(re**2 + im**2), np.angle(re + im * 1j)
 
 
 def ctoz(mag, phs):
+    """Summary
+
+    Parameters
+    ----------
+    mag : TYPE
+        Description
+    phs : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     return mag * np.cos(phs), mag * np.sin(phs)
 
 
 def dft_np(signal, hop_size=256, fft_size=512):
+    """Summary
+
+    Parameters
+    ----------
+    signal : TYPE
+        Description
+    hop_size : int, optional
+        Description
+    fft_size : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     n_hops = len(signal) // hop_size
     s = []
     hann_win = hann(fft_size)
@@ -46,6 +90,24 @@ def dft_np(signal, hop_size=256, fft_size=512):
 
 
 def idft_np(re, im, hop_size=256, fft_size=512):
+    """Summary
+
+    Parameters
+    ----------
+    re : TYPE
+        Description
+    im : TYPE
+        Description
+    hop_size : int, optional
+        Description
+    fft_size : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     N = re.shape[1] * 2
     k = np.reshape(np.linspace(0.0, 2 * np.pi / N * (N // 2), N // 2), [N // 2, 1])
     x = np.reshape(np.linspace(0.0, N - 1, N), [1, N])

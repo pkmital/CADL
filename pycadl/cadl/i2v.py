@@ -24,13 +24,25 @@ from cadl.utils import download
 
 
 def i2v_download():
-    """Download a pretrained i2v network."""
+    """Download a pretrained i2v network.
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     model = download('https://s3.amazonaws.com/cadl/models/illust2vec.tfmodel')
     return model
 
 
 def i2v_tag_download():
-    """Download a pretrained i2v network."""
+    """Download a pretrained i2v network.
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     model = download('https://s3.amazonaws.com/cadl/models/illust2vec_tag.tfmodel')
     tags = download('https://s3.amazonaws.com/cadl/models/tag_list.json')
     return model, tags
@@ -99,6 +111,24 @@ def get_i2v_tag_model():
 
 
 def preprocess(img, crop=True, resize=True, dsize=(224, 224)):
+    """Summary
+
+    Parameters
+    ----------
+    img : TYPE
+        Description
+    crop : bool, optional
+        Description
+    resize : bool, optional
+        Description
+    dsize : tuple, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     mean_img = np.array([164.76139251, 167.47864617, 181.13838569])
     if img.dtype == np.uint8:
         img = (img[..., ::-1] - mean_img).astype(np.float32)
@@ -120,6 +150,18 @@ def preprocess(img, crop=True, resize=True, dsize=(224, 224)):
 
 
 def deprocess(img):
+    """Summary
+
+    Parameters
+    ----------
+    img : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     mean_img = np.array([164.76139251, 167.47864617, 181.13838569])
     processed = (img + mean_img)[..., ::-1]
     return np.clip(processed, 0, 255).astype(np.uint8)

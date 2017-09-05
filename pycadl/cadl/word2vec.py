@@ -19,7 +19,24 @@ import tensorflow as tf
 
 def build_model(batch_size=128, vocab_size=50000, embedding_size=128,
                 n_neg_samples=64):
+    """Summary
 
+    Parameters
+    ----------
+    batch_size : int, optional
+        Description
+    vocab_size : int, optional
+        Description
+    embedding_size : int, optional
+        Description
+    n_neg_samples : int, optional
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
     # Input placeholders
     center_words = tf.placeholder(
         tf.int32, shape=[batch_size], name='center_words')
