@@ -13,7 +13,7 @@ Session 5: Generative Models
 
 **COURSE 2: Creative Applications of Deep Learning with TensorFlow II**  
 Session 1: Cloud Computing, GPUs, Deploying  
-Session 2: Mixture Density Networks
+Session 2: Mixture Density Networks  
 Session 3: Modeling Attention with RNNs, DRAW  
 Session 4: Image-to-Image Translation with GANs  
 
