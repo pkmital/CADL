@@ -1,0 +1,8 @@
+#Session 1 : Intro to TensorFlow
+  - Define waht you want to compute in the form of a Computation Graph. Running the Graph requires a session
+  - Convolution: Filter the image. Example use case of tensorflow library 
+  - Assignment: get 100 plus images and find mean, variance and sort them
+  - Deep learning requires LOT of data. Figure out data before starting a Deep Learning project
+  - Tha Data must try to cover for all variations so the NN can learn effectively. More data -> better learning.
+  - **Datasets** search for deep learning datasets 
+ 
