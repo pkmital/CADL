@@ -326,9 +326,8 @@ def infer(txt,
                            tf.local_variables_initializer())
         saver = tf.train.Saver()
         sess.run(init_op)
-        if os.path.exists(ckpt_name):
-            saver.restore(sess, ckpt_name)
-            print("Model restored.")
+        saver.restore(sess, ckpt_name)
+        print("Model restored.")
 
         state = []
         synth = [init_value]
