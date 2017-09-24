@@ -457,14 +457,14 @@ def test_mnist():
                         ae['z']: zs,
                         ae['train']: False,
                         ae['keep_prob']: 1.0})
-                m = utils.montage(recon.reshape((-1, 28, 28)),
+                utils.montage(recon.reshape((-1, 28, 28)),
                     'manifold_%08d.png' % t_i)
                 # Plot example reconstructions
                 recon = sess.run(
                     ae['y'], feed_dict={ae['x']: test_xs,
                                         ae['train']: False,
                                         ae['keep_prob']: 1.0})
-                m = utils.montage(recon.reshape(
+                utils.montage(recon.reshape(
                     (-1, 28, 28)), 'reconstruction_%08d.png' % t_i)
                 t_i += 1
             batch_i += 1

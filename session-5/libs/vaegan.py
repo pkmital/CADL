@@ -195,8 +195,8 @@ def variational_bayes(h, n_code):
     name : TYPE
         Description
     """
-    z_mu = tf.nn.tanh(utils.linear(h, n_code, name='mu')[0])
-    z_log_sigma = 0.5 * tf.nn.tanh(utils.linear(h, n_code, name='log_sigma')[0])
+    z_mu = utils.linear(h, n_code, name='mu')[0]
+    z_log_sigma = 0.5 * utils.linear(h, n_code, name='log_sigma')[0]
 
     # Sample from noise distribution p(eps) ~ N(0, 1)
     epsilon = tf.random_normal(tf.stack([tf.shape(h)[0], n_code]))
