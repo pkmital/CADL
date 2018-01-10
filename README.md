@@ -124,7 +124,7 @@ README.md  lecture-1.ipynb  libs  session-1.ipynb  tests
 Which you can use to launch jupyter like so:
 
 ```bash
-root@39c4441bcde8:/notebooks# jupyter notebook
+root@39c4441bcde8:/notebooks# jupyter notebook --allow-root
 [I 01:45:27.712 NotebookApp] [nb_conda_kernels] enabled, 2 kernels found
 [I 01:45:27.715 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
 [W 01:45:27.729 NotebookApp] WARNING: The notebook server is listening on all IP addresses and not using encryption. This is not recommended.
