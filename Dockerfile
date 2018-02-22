@@ -1,15 +1,18 @@
-FROM continuumio/anaconda3
+FROM continuumio/miniconda3
 
 RUN apt-get update && apt-get install -y \
         pkg-config \
         libfreetype6-dev \
+	build-essential \
+	libc-dev \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV TENSORFLOW_VERSION 1.5.0
-RUN pip install tensorflow==$TENSORFLOW_VERSION 
-# RUN conda update conda; conda update --all
+RUN conda update conda; conda update --all
+RUN conda install libgcc
+COPY requirements.txt /
+RUN pip install -r /requirements.txt
 
 COPY jupyter_notebook_config.py /root/.jupyter/
 
