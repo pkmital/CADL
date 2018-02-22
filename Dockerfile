@@ -13,6 +13,7 @@ RUN conda update conda; conda update --all
 RUN conda install libgcc
 COPY requirements.txt /
 RUN pip install -r /requirements.txt
+RUN pip install -U numpy tensorflow 
 
 COPY jupyter_notebook_config.py /root/.jupyter/
 
