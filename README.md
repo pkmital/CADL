@@ -105,13 +105,13 @@ $ cd
 $ git clone --recursive https://github.com/pkmital/CADL.git
 $ cd CADL
 $ docker build -t cadl .
-$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf cadl /bin/bash
+$ docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/session-1:/notebooks --name tf cadl /bin/bash
 ```
 
 Note that you can skip the build step and download from docker hub instead like so:
 
 ```bash
-$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf pkmital/cadl /bin/bash
+$ docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/session-1:/notebooks --name tf pkmital/cadl /bin/bash
 ```
 
 Be sure to replace "session-1" with whichever session you are working on, e.g. "session-2", "session-3"...  This will give you a bash prompt with the files for each session:
@@ -154,7 +154,7 @@ If you want to use a GPU version, and have a Linux machine, and have an NVIDIA G
 $ wget -P /tmp https://github.com/NVIDIA/nvidia-docker/releases/download/v1.0.0-rc.3/nvidia-docker_1.0.0.rc.3-1_amd64.deb
 $ sudo dpkg -i /tmp/nvidia-docker*.deb && rm /tmp/nvidia-docker*.deb
 $ nvidia-docker build -t cadl-gpu -f Dockerfile-gpu .
-$ nvidia-docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/session-1:/notebooks --name tf cadl-gpu /bin/bash 
+$ nvidia-docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/session-1:/notebooks --name tf cadl-gpu /bin/bash 
 $ nvidia-docker start -i tf
 ```
 
@@ -202,19 +202,19 @@ $ git clone --recursive https://github.com/pkmital/CADL.git
 We'll now print out what the full path to that directory is.  PLEASE NOTE DOWN THIS DIRECTORY.  This is where everything will happen, and I'll explain that in a minute.
 
 ```shell
-$ echo /$(pwd)/CADL
+$ echo $(pwd)/CADL
 ```
 
 Now run the following command, which will download everything we need to run tensorflow, python, and jupyter notebook (again, ignore the "$" at the beginning of the line only)!
 
 ```shell
-$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/CADL:/notebooks --name tf pkmital/cadl
+$ docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/CADL:/notebooks --name tf pkmital/cadl
 ```
 
 What this is doing is:
     * Running the docker image [pkmital/cadl](https://hub.docker.com/r/pkmital/cadl/)
     * --name is giving it a shorthand name of "tf"
-    * -v is mirroring the directory "/$(pwd)/CADL" to the virtual machine's directory of "/notebooks"
+    * -v is mirroring the directory "$(pwd)/CADL" to the virtual machine's directory of "/notebooks"
     * -p is forwarding ports from the virtual machine to your local machine so that you can access the virtual machine's port
     * -it is running it as an interactive process
 
@@ -303,7 +303,7 @@ $ jupyter notebook &
 
 Note on Virtual versus Windows Directories:
 
-This is tricky to grasp, mostly because I didn't explain it. Docker is "virtual" computer running inside your computer. It has its own filesystem and its own directories. So you can't reference your Windows machine's directories inside this machine. When you first ran docker (e.g. `$ docker run -it -p 8888:8888 -p 6006:6006 -v /$(pwd)/tensorflow:/notebooks --name tf pkmital/cadl`) it included as part of its command: `-v /$(pwd)/tensorflow:/notebooks`. What that was doing is "mirroring" a directory on your Windows machine inside your Virtual machine. So whatever was in your Windows machine under the directory `/$(pwd)/tensorflow` would appear in the Virtual machine under `/notebooks`. That Windows directory is likely `/Users/<YOURUSERNAME>/tensorflow`. So _ONLY_ inside that directory, create it if it doesn't exist, should you put files in order to access it on the Virtual machine.
+This is tricky to grasp, mostly because I didn't explain it. Docker is "virtual" computer running inside your computer. It has its own filesystem and its own directories. So you can't reference your Windows machine's directories inside this machine. When you first ran docker (e.g. `$ docker run -it -p 8888:8888 -p 6006:6006 -v $(pwd)/tensorflow:/notebooks --name tf pkmital/cadl`) it included as part of its command: `-v $(pwd)/tensorflow:/notebooks`. What that was doing is "mirroring" a directory on your Windows machine inside your Virtual machine. So whatever was in your Windows machine under the directory `$(pwd)/tensorflow` would appear in the Virtual machine under `/notebooks`. That Windows directory is likely `/Users/<YOURUSERNAME>/tensorflow`. So _ONLY_ inside that directory, create it if it doesn't exist, should you put files in order to access it on the Virtual machine.
 
 So let's say your Username was "pkmital". Then your home directory would be `/Users/pkmital`, and you would have mirrored `/Users/pkmital/tensorflow` on your Windows Machine to the Virtual machine under `/notebook`. Now let's say I create a directory `/Users/pkmital/tensorflow/images` on my Windows Machine, and then put a bunch of png files in there. I will then see them in my Virtual machine under `/notebook/images`.  If I put the CADL repository inside `/Users/pkmital/tensorflow`, then I should have `/Users/pkmital/tensorflow/CADL/session-1/session-1.ipynb` and on the Virtual machine, it will be in `/notebooks/CADL/session-1/session-1.ipynb` - From this notebook, running on the virtual machine, accessed with Jupyter Notebook, I would access my images like so:
 
