@@ -119,7 +119,8 @@ def get_celeb_files():
 
     files = [os.path.join('img_align_celeba', file_i)
              for file_i in os.listdir('img_align_celeba')
-             if '.jpg' in file_i]
+             if ('.jpg' in file_i) and (file_i < '000101.jpg')]
+    
     return files
 
 
